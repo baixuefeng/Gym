@@ -1,0 +1,27 @@
+﻿总结: 从lua中获取数据(先执行lua脚本):
+1. lua_getglobal(lua_State, 变量名), lua_to... , lua_pop
+2. table, lua_getglobal(lua_State, table名)
+方法一, lua_getfield(lua_State, -1, 键名), lua_to..., lua_pop
+方法二, lua_rawgeti(lua_State, -1, 下标), lua_to..., lua_pop
+
+写入数据到lua(先写入后执行lua脚本)
+1. lua_pushxxx, lua_setglobal(lua_State, 变量名)
+2. table, lua_newtable,
+方法一, lua_pushxxx, lua_setfield(lua_State, -2, 键名)
+方法二, lua_pushxxx, lua_rawseti(lua_State, -2, 下标)
+最后, lua_setglobal(lua_State, table名)
+
+lua调用C
+(1). 定义lua_CFunction，每个函数有自己的私有栈，参数从左往右的索引从1开始依次类推，
+     函数结果(lua中的函数返回值)push到栈上，C函数返回值为函数结果的个数
+(2). 定义一个luaL_Reg数组，注意，是数组不是指针，数组最后一个元素置空作为结束标记
+(3). luaL_newlib，注册函数
+(4). lua_setglobal，设置table名
+(5). lua中调用方式：table名.函数字符串
+
+C调用lua
+(1). 定义lua函数，执行lua
+(2). lua_getglobal(lua_State, 函数名)
+(3). lua_push... 压入参数
+(4). lua_pcall (执行之后, 函数、参数出栈，结果入栈)
+(5). 结果出栈

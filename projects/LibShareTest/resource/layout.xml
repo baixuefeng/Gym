@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<CenterToParent><![CDATA[
+    pParent = Layer.parent(this);
+    rcBound = Layer.GetLayerBounds(pParent);
+    rcBound[1] = rcBound[1] + 10;
+    rcBound[2] = rcBound[2] + 10;
+    rcBound[3] = rcBound[3] - 10;
+    rcBound[4] = rcBound[4] - 10;
+    Layer.SetLayerBounds(this, rcBound);
+    Layer.AlignXY(this, 1, 1, pParent, false);
+]]></CenterToParent>
+<Text1Layout><![CDATA[
+    pParent = Layer.parent(this);
+    rcParent = Layer.GetLayerBounds(pParent);
+    rcBound = {0, 0, rcParent[3] - rcParent[1] - 60, rcParent[4] - rcParent[2] - 40};
+    Layer.SetLayerBounds(this, rcBound);
+    Layer.AlignXY(this, 0, 0, pParent, false);
+    Layer.OffsetOrigin(this, { 30, 20 }, false);
+]]></Text1Layout>
+<Text2Layout><![CDATA[
+    pPrev = Layer.previous_sibling(this);
+    Layer.AlignXY(this, 0, 4, pPrev, false);
+]]></Text2Layout>
+<VCenter><![CDATA[
+    pParent = Layer.parent(this);
+    Layer.AlignXY(this, 1, 1, pParent, false);
+]]></VCenter>
+</root>

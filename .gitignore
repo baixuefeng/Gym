@@ -1,0 +1,8 @@
+/windows_build
+/out
+/.vscode/ipch/*
+/.vscode/c_cpp_properties.json
+/GTAGS
+/GPATH
+/GRTAGS
+*.TMP

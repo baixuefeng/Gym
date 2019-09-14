@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root lrColor="8886B7D7">
+    <scroll lrOrigin="10,20" lrBounds="0,0,1000,500" lrColor="88C7EDCC" lrDragWindow="true" lrDragMove="false" lrVisible="1" lrTransparent="0" lrEnable="1"  lrLayoutLua="CenterToParent">
+        <text lrFontSize="30" lrDragMove="true" lrFontStyle="0" lrFontWeight="400" lrFontStretch="5" lrTextColor="FF000000" lrColor="FFFFFFFF" lrFont="微软雅黑" lrOrigin="200,20" lrBounds="0,0,800,600" lrDebugLevel="0" lrTextMargin="10,10,10,10" lrLayoutLua="Text1Layout">
+            <![CDATA[skfjsd<lsj工不肖鑫水燚删除1]]>
+            <bitmap lrSkin="aa" lrDragMove="1" lrColor="AAFFFFFF" lrEnableFocus="true">
+                <text lrTextMargin="1,1,1,1" lrTextColor="FF0000FF" lrFont="楷体" lrFontSize="40" lrFontWeight="400" lrFontStyle="0" lrFontStretch="5" lrColor="0" lrDragMove="1" lrDebugLevel="2" >😄😄😄😄😄😄😄😄😄</text>
+            </bitmap>
+        </text>
+        <text lrFontSize="12" lrDragMove="1" lrFontStyle="0" lrFontWeight="400" lrFontStretch="5" lrTextColor="FF000000" lrColor="FFFFFFFF" lrFont="微软雅黑" lrOrigin="200,20" lrDebugLevel="0" lrTextMargin="10,10,10,10">
+            <![CDATA[skfjsd<lsj工不肖鑫水燚删除2]]>
+        </text>
+        <text lrFontSize="50" lrDragMove="1" lrFontStyle="0" lrFontWeight="400" lrFontStretch="5" lrTextColor="FF000000" lrColor="FFFFFFFF" lrFont="微软雅黑" lrOrigin="200,20" lrDebugLevel="0" lrTextMargin="10,10,10,10" lrTransparent="1" lrLayoutLua="Text2Layout">
+            <![CDATA[skfjsd<lsj工不肖鑫水燚3]]>
+        </text>
+        <text lrFontSize="50" lrDragMove="1" lrFontStyle="0" lrFontWeight="400" lrFontStretch="5" lrTextColor="FF000000" lrColor="FFFFFFFF" lrFont="微软雅黑" lrOrigin="200,20" lrDebugLevel="0" lrTextMargin="10,10,10,10" lrLayoutLua="Text2Layout">
+            <![CDATA[skfjsd<lsj工不肖鑫水燚4]]>
+        </text>
+        <text lrFontSize="50" lrDragMove="1" lrFontStyle="0" lrFontWeight="400" lrFontStretch="5" lrTextColor="FF000000" lrColor="FFFFFFFF" lrFont="微软雅黑" lrOrigin="200,20" lrDebugLevel="0" lrTextMargin="10,10,10,10" lrLayoutLua="Text2Layout">
+            <![CDATA[skfjsd<lsj工不肖鑫水燚5]]>
+        </text>
+        <text lrFontSize="50" lrDragMove="1" lrFontStyle="0" lrFontWeight="400" lrFontStretch="5" lrTextColor="FF000000" lrColor="FFFFFFFF" lrFont="微软雅黑" lrOrigin="200,20" lrDebugLevel="0" lrTextMargin="10,10,10,10" lrEnableFocus="true" lrLayoutLua="Text2Layout">
+            <![CDATA[skfjsd<lsj工不肖鑫水燚6]]>
+        </text>
+    </scroll>
+</root>

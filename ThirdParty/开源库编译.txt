@@ -1,0 +1,38 @@
+﻿VS命令行
+call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" x86
+call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" x64
+
+环境变量
+set CFLAGS="-DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0601"
+
+编译命令
+cmake --build . --target install --clean-first
+
+zlib
+cmake -G"NMake Makefiles" -DCMAKE_INSTALL_PREFIX=out -DCMAKE_BUILD_TYPE=Release ..
+
+
+openssl
+/* 1. 需要安装perl和nasm
+   2. -DOPENSSL_NO_ASYNC ios上不定义该宏，会包含一些系统私有的api调用，评审过不了。实测，定义该宏，对
+   boost::asio的异步ssl封装没有影响
+   3. --debug --release(默认)
+   4. tlsv1.3开始禁用了压缩，且之前的版本也不推荐使用压缩，所以最好不集成zlib:
+        zlib --with-zlib-include="%cd%\..\zlib\win64\include" --with-zlib-lib="%cd%\..\zlib\win64\lib\zlib.lib"
+*/
+perl Configure VC-WIN32 --prefix="%cd%\..\OpenSSL\win32" --openssldir=.\SSL -DOPENSSL_NO_ASYNC
+perl Configure VC-WIN64A --prefix="%cd%\..\OpenSSL\win64" --openssldir=.\SSL -DOPENSSL_NO_ASYNC
+
+
+curl
+include ThirdParty.cmake
+注释掉 add_subdirectory(tests) 这一行
+cmake -G"NMake Makefiles" -DCMAKE_USE_OPENSSL=ON -DCMAKE_INSTALL_PREFIX=out -DCMAKE_BUILD_TYPE=Release ..
+
+
+glew
+cmake -G"NMake Makefiles" -DCMAKE_INSTALL_PREFIX=out -DCMAKE_BUILD_TYPE=Release ..
+
+
+lua
+cmake -G"NMake Makefiles" -DCMAKE_BUILD_TYPE=Release ..

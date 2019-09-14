@@ -1,0 +1,34 @@
+﻿opengl基本绘制
+1.glGenBuffers 生成顶点缓存，bind(ARRAY_BUFFER)，写入顶点数据
+2.glVertexAttribPointer 关联着色器数据(顶点数据的类型、维度、起始地址、距离、着色器变量location)，
+  glEnableVertexArrayAttrib启用着色器变量
+3.glDrawArrays(类型、顶点个数)
+
+//1.glGenVertexArrays 生成顶点数组，bind
+
+
+融混
+glEnable(GL_BLEND);
+glBlendFunc
+
+抗锯齿
+glEnable(SmoothType::LINE_SMOOTH);
+glEnable(SmoothType::POLYGON_SMOOTH);
+glHint
+
+帧缓存
+glGenFramebuffers
+glBindFramebuffer
+glDeleteFramebuffers
+
+glGenRenderbuffers
+glDeleteRenderbuffers
+glBindRenderbuffer(GL_RENDERBUFFER, ...)
+glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, )
+glFramebufferRenderbuffer
+
+glBlitFramebuffer
+
+glClearBuffer(fi ui)v  glClearBufferfi
+
+glInvalidateFramebuffer
