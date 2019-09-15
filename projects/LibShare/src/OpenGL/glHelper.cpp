@@ -1,12 +1,12 @@
 ﻿#include "targetver.h"
 #include "OpenGL/glHelper.h"
 #include <cassert>
-#include <stdexcept>
-#include <cstring>
-#include <mutex>
-#include <cstdlib>
-#include <locale>
 #include <codecvt>
+#include <cstdlib>
+#include <cstring>
+#include <locale>
+#include <mutex>
+#include <stdexcept>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
@@ -35,52 +35,52 @@ SHARELIB_BEGIN_NAMESPACE
 
 glhWindowContext::glhWindowContext()
 {
-	m_hWnd = NULL;
-	m_hDc = NULL;
+    m_hWnd = NULL;
+    m_hDc = NULL;
 }
 
 glhWindowContext::~glhWindowContext()
 {
-	Destroy();
+    Destroy();
 }
 
 bool glhWindowContext::InitOpenglWindow(HWND hWnd)
 {
-	if (m_hDc && m_hWnd)
-	{
-		return true;
-	}
-	HDC hDc = ::GetDC(hWnd);
-	if (hDc)
-	{
-		PIXELFORMATDESCRIPTOR pfd{ sizeof(pfd) };
-		pfd.nVersion = 1;
+    if (m_hDc && m_hWnd)
+    {
+        return true;
+    }
+    HDC hDc = ::GetDC(hWnd);
+    if (hDc)
+    {
+        PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
+        pfd.nVersion = 1;
         pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-		pfd.iPixelType = PFD_TYPE_RGBA;
-		pfd.cDepthBits = 24;
-		pfd.cStencilBits = 8;
-		int n = ::ChoosePixelFormat(hDc, &pfd);
-		if (n > 0)
-		{
-			if (::SetPixelFormat(hDc, n, &pfd))
-			{
-				m_hWnd = hWnd;
-				m_hDc = hDc;
-				return true;
-			}
-		}
+        pfd.iPixelType = PFD_TYPE_RGBA;
+        pfd.cDepthBits = 24;
+        pfd.cStencilBits = 8;
+        int n = ::ChoosePixelFormat(hDc, &pfd);
+        if (n > 0)
+        {
+            if (::SetPixelFormat(hDc, n, &pfd))
+            {
+                m_hWnd = hWnd;
+                m_hDc = hDc;
+                return true;
+            }
+        }
 
-		::ReleaseDC(hWnd, hDc);
-		return false;
-	}
-	return false;
+        ::ReleaseDC(hWnd, hDc);
+        return false;
+    }
+    return false;
 }
 
 uint8_t glhWindowContext::GetStencilBufferBit()
 {
     if (m_hDc)
     {
-        PIXELFORMATDESCRIPTOR pfd{ sizeof(pfd) };
+        PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
         ::DescribePixelFormat(m_hDc, ::GetPixelFormat(m_hDc), sizeof(pfd), &pfd);
         return pfd.cStencilBits;
     }
@@ -91,7 +91,7 @@ uint8_t glhWindowContext::GetDepthBufferBit()
 {
     if (m_hDc)
     {
-        PIXELFORMATDESCRIPTOR pfd{ sizeof(pfd) };
+        PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
         ::DescribePixelFormat(m_hDc, ::GetPixelFormat(m_hDc), sizeof(pfd), &pfd);
         return pfd.cDepthBits;
     }
@@ -100,111 +100,110 @@ uint8_t glhWindowContext::GetDepthBufferBit()
 
 bool glhWindowContext::InitThreadRC()
 {
-	if (m_hDc)
-	{
-		HGLRC hRc = ::wglGetCurrentContext();
-		if (hRc)
-		{
-			return true;
-		}
-		hRc = ::wglCreateContext(m_hDc);
-		if (hRc)
-		{
-			if (::wglMakeCurrent(m_hDc, hRc))
-			{
-				//初始化glew库
+    if (m_hDc)
+    {
+        HGLRC hRc = ::wglGetCurrentContext();
+        if (hRc)
+        {
+            return true;
+        }
+        hRc = ::wglCreateContext(m_hDc);
+        if (hRc)
+        {
+            if (::wglMakeCurrent(m_hDc, hRc))
+            {
+                //初始化glew库
                 static std::once_flag s_initFlag;
-                std::call_once(s_initFlag,
-					[]()
-				{
-					GLenum status = glewInit();
+                std::call_once(s_initFlag, []() {
+                    GLenum status = glewInit();
                     (void)status;
-					assert(status == GLEW_OK);
-				});
+                    assert(status == GLEW_OK);
+                });
 
                 ConfigRC();
-				return true;
-			}
-			::wglDeleteContext(hRc);
-		}
-	}
-	return false;
+                return true;
+            }
+            ::wglDeleteContext(hRc);
+        }
+    }
+    return false;
 }
 
 bool glhWindowContext::UseDebugRC()
 {
-	if (m_hDc)
-	{
-		HGLRC hRc = ::wglGetCurrentContext();
-		if (hRc && wglCreateContextAttribsARB)
-		{
-			const char * pVersion = (const char*)glGetString(GL_VERSION);
-			char * pEnd = nullptr;
-			int nMajor = std::strtol(pVersion, &pEnd, 0);
-			int nMinor = 0;
-			if (pEnd && *pEnd == '.')
-			{
-				nMinor = std::strtol(++pEnd, nullptr, 0);
-			}
+    if (m_hDc)
+    {
+        HGLRC hRc = ::wglGetCurrentContext();
+        if (hRc && wglCreateContextAttribsARB)
+        {
+            const char *pVersion = (const char *)glGetString(GL_VERSION);
+            char *pEnd = nullptr;
+            int nMajor = std::strtol(pVersion, &pEnd, 0);
+            int nMinor = 0;
+            if (pEnd && *pEnd == '.')
+            {
+                nMinor = std::strtol(++pEnd, nullptr, 0);
+            }
 
-			const int nAttribList[] = 
-			{
-				WGL_CONTEXT_MAJOR_VERSION_ARB, nMajor,
-				WGL_CONTEXT_MINOR_VERSION_ARB, nMinor,
-				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-				WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-				0
-			};
-			HGLRC hDebugRc = wglCreateContextAttribsARB(m_hDc, hRc, nAttribList);
-			if (hDebugRc)
-			{
-				::wglMakeCurrent(m_hDc, nullptr);
-				::wglDeleteContext(hRc);
-				::wglMakeCurrent(m_hDc, hDebugRc);
+            const int nAttribList[] = {WGL_CONTEXT_MAJOR_VERSION_ARB,
+                                       nMajor,
+                                       WGL_CONTEXT_MINOR_VERSION_ARB,
+                                       nMinor,
+                                       WGL_CONTEXT_PROFILE_MASK_ARB,
+                                       WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+                                       WGL_CONTEXT_FLAGS_ARB,
+                                       WGL_CONTEXT_DEBUG_BIT_ARB,
+                                       0};
+            HGLRC hDebugRc = wglCreateContextAttribsARB(m_hDc, hRc, nAttribList);
+            if (hDebugRc)
+            {
+                ::wglMakeCurrent(m_hDc, nullptr);
+                ::wglDeleteContext(hRc);
+                ::wglMakeCurrent(m_hDc, hDebugRc);
                 ConfigRC();
                 return true;
-			}
-		}
-	}
-	return false;
+            }
+        }
+    }
+    return false;
 }
 
 bool glhWindowContext::IsValid() const
 {
-	return (m_hDc && m_hWnd && ::wglGetCurrentContext());
+    return (m_hDc && m_hWnd && ::wglGetCurrentContext());
 }
 
 void glhWindowContext::ClearThreadRC()
 {
-	if (m_hDc)
-	{
-		HGLRC hRc = ::wglGetCurrentContext();
-		if (hRc)
-		{
-			::wglMakeCurrent(NULL, NULL);
-			::wglDeleteContext(hRc);
-		}
-	}
+    if (m_hDc)
+    {
+        HGLRC hRc = ::wglGetCurrentContext();
+        if (hRc)
+        {
+            ::wglMakeCurrent(NULL, NULL);
+            ::wglDeleteContext(hRc);
+        }
+    }
 }
 
 bool glhWindowContext::SwapBuffers()
 {
-	if (m_hDc)
-	{
+    if (m_hDc)
+    {
         ::glFlush();
-		return !!::SwapBuffers(m_hDc);
-	}
-	return false;
+        return !!::SwapBuffers(m_hDc);
+    }
+    return false;
 }
 
 void glhWindowContext::Destroy()
 {
-	if (m_hDc)
-	{
-		::ReleaseDC(m_hWnd, m_hDc);
-		m_hWnd = NULL;
-		m_hDc = NULL;
-	}
+    if (m_hDc)
+    {
+        ::ReleaseDC(m_hWnd, m_hDc);
+        m_hWnd = NULL;
+        m_hDc = NULL;
+    }
 }
 
 bool glhWindowContext::ConfigRC()
@@ -237,9 +236,7 @@ bool glhWindowContext::ConfigRC()
 
 //-------------------------------------------------------------------------------
 
-glhVertextArrayMgr::glhVertextArrayMgr()
-{
-}
+glhVertextArrayMgr::glhVertextArrayMgr() {}
 
 glhVertextArrayMgr::~glhVertextArrayMgr()
 {
@@ -253,7 +250,7 @@ bool glhVertextArrayMgr::Generate(GLsizei n)
     {
         return false;
     }
-    
+
     m_array.assign(n, 0);
     ::glGenVertexArrays(n, &m_array[0]);
     if (::glGetError() != GL_NO_ERROR)
@@ -293,8 +290,7 @@ void glhVertextArrayMgr::Delete()
 glhBufferMgr::glhBufferMgr()
     : m_bufferIndex(INVALID_BUFFER_INDEX)
     , m_target(0)
-{
-}
+{}
 
 glhBufferMgr::~glhBufferMgr()
 {
@@ -310,8 +306,7 @@ bool glhBufferMgr::Create(BufferTarget target, bool bind)
     }
     Delete();
     ::glGenBuffers(1, &m_bufferIndex);
-    if ((::glGetError() == GL_NO_ERROR) && 
-        (INVALID_BUFFER_INDEX != m_bufferIndex))
+    if ((::glGetError() == GL_NO_ERROR) && (INVALID_BUFFER_INDEX != m_bufferIndex))
     {
         if (bind)
         {
@@ -411,19 +406,24 @@ bool glhBufferMgr::BufferSubData(GLintptr offset, GLsizeiptr size, const void *p
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhBufferMgr::CopyBufferSubData(BufferTarget readTarget, BufferTarget writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size)
+bool glhBufferMgr::CopyBufferSubData(BufferTarget readTarget,
+                                     BufferTarget writeTarget,
+                                     GLintptr readOffset,
+                                     GLintptr writeOffset,
+                                     GLsizeiptr size)
 {
     assert(GLEW_ARB_copy_buffer);
     if (!GLEW_ARB_copy_buffer)
     {
         return false;
     }
-    ::glCopyBufferSubData(EnumToGL(readTarget), EnumToGL(writeTarget), readOffset, writeOffset, size);
+    ::glCopyBufferSubData(
+        EnumToGL(readTarget), EnumToGL(writeTarget), readOffset, writeOffset, size);
     assert(::glGetError() == GL_NO_ERROR);
     return ::glGetError() == GL_NO_ERROR;
 }
 
-void * glhBufferMgr::MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAccessBit access)
+void *glhBufferMgr::MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAccessBit access)
 {
     assert(GLEW_ARB_map_buffer_range);
     if (!GLEW_ARB_map_buffer_range)
@@ -433,7 +433,7 @@ void * glhBufferMgr::MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAc
     return ::glMapBufferRange(m_target, offset, length, EnumToGL(access));
 }
 
-void * glhBufferMgr::MapBuffer(BufferAccessBit access)
+void *glhBufferMgr::MapBuffer(BufferAccessBit access)
 {
     assert(GLEW_VERSION_1_5);
     if (!GLEW_VERSION_1_5)
@@ -483,19 +483,15 @@ GLint glhBufferMgr::GetBufferInfo(BufferTarget target, BufferParameter param)
 glhTextureMgr::glhTextureMgr()
     : m_textureIndex(INVALID_TEXTURE_INDEX)
     , m_target(0)
-{
-}
+{}
 
-glhTextureMgr::~glhTextureMgr()
-{
-}
+glhTextureMgr::~glhTextureMgr() {}
 
 bool glhTextureMgr::Create(TextureTarget target)
 {
     glGenTextures(1, &m_textureIndex);
     assert(::glGetError() == GL_NO_ERROR);
-    if ((::glGetError() == GL_NO_ERROR) &&
-        (INVALID_TEXTURE_INDEX != m_textureIndex))
+    if ((::glGetError() == GL_NO_ERROR) && (INVALID_TEXTURE_INDEX != m_textureIndex))
     {
         glBindTexture(EnumToGL(target), m_textureIndex);
         assert(::glGetError() == GL_NO_ERROR);
@@ -550,7 +546,10 @@ bool glhTextureMgr::TexStorage1D(GLsizei levels, TextureFormat format, GLsizei w
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::TexStorage2D(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height)
+bool glhTextureMgr::TexStorage2D(GLsizei levels,
+                                 TextureFormat format,
+                                 GLsizei width,
+                                 GLsizei height)
 {
     if (!GLEW_ARB_texture_storage || !IsValid())
     {
@@ -569,7 +568,11 @@ bool glhTextureMgr::TexStorage2D(GLsizei levels, TextureFormat format, GLsizei w
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::TexStorage3D(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height, GLsizei depth)
+bool glhTextureMgr::TexStorage3D(GLsizei levels,
+                                 TextureFormat format,
+                                 GLsizei width,
+                                 GLsizei height,
+                                 GLsizei depth)
 {
     if (!GLEW_ARB_texture_storage || !IsValid())
     {
@@ -587,7 +590,11 @@ bool glhTextureMgr::TexStorage3D(GLsizei levels, TextureFormat format, GLsizei w
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::TexStorage2DMultisample(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height, GLboolean fixedsamplelocations)
+bool glhTextureMgr::TexStorage2DMultisample(GLsizei levels,
+                                            TextureFormat format,
+                                            GLsizei width,
+                                            GLsizei height,
+                                            GLboolean fixedsamplelocations)
 {
     if (!GLEW_ARB_texture_storage_multisample || !IsValid())
     {
@@ -598,12 +605,18 @@ bool glhTextureMgr::TexStorage2DMultisample(GLsizei levels, TextureFormat format
         assert(!"error type");
         return false;
     }
-    glTexStorage2DMultisample(m_target, levels, EnumToGL(format), width, height, fixedsamplelocations);
+    glTexStorage2DMultisample(
+        m_target, levels, EnumToGL(format), width, height, fixedsamplelocations);
     assert(::glGetError() == GL_NO_ERROR);
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::TexStorage3DMultisample(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations)
+bool glhTextureMgr::TexStorage3DMultisample(GLsizei levels,
+                                            TextureFormat format,
+                                            GLsizei width,
+                                            GLsizei height,
+                                            GLsizei depth,
+                                            GLboolean fixedsamplelocations)
 {
     if (!GLEW_ARB_texture_storage_multisample || !IsValid())
     {
@@ -614,12 +627,13 @@ bool glhTextureMgr::TexStorage3DMultisample(GLsizei levels, TextureFormat format
         assert(!"error type");
         return false;
     }
-    glTexStorage3DMultisample(m_target, levels, EnumToGL(format), width, height, depth, fixedsamplelocations);
+    glTexStorage3DMultisample(
+        m_target, levels, EnumToGL(format), width, height, depth, fixedsamplelocations);
     assert(::glGetError() == GL_NO_ERROR);
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::TexBuffer(TextureFormat format, const glhBufferMgr & buffer)
+bool glhTextureMgr::TexBuffer(TextureFormat format, const glhBufferMgr &buffer)
 {
     if (!GLEW_VERSION_3_1 || !IsValid())
     {
@@ -634,7 +648,10 @@ bool glhTextureMgr::TexBuffer(TextureFormat format, const glhBufferMgr & buffer)
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::TexBufferRange(TextureFormat format, const glhBufferMgr & buffer, GLintptr offset, GLsizeiptr size)
+bool glhTextureMgr::TexBufferRange(TextureFormat format,
+                                   const glhBufferMgr &buffer,
+                                   GLintptr offset,
+                                   GLsizeiptr size)
 {
     if (!GLEW_ARB_texture_buffer_range || !IsValid())
     {
@@ -649,13 +666,19 @@ bool glhTextureMgr::TexBufferRange(TextureFormat format, const glhBufferMgr & bu
     return ::glGetError() == GL_NO_ERROR;
 }
 
-bool glhTextureMgr::BindImageTexture(GLuint unit, GLint level, GLboolean layered, GLint layer, TextureAccess access, TextureFormat format)
+bool glhTextureMgr::BindImageTexture(GLuint unit,
+                                     GLint level,
+                                     GLboolean layered,
+                                     GLint layer,
+                                     TextureAccess access,
+                                     TextureFormat format)
 {
     if (!GLEW_ARB_shader_image_load_store || !IsValid())
     {
         return false;
     }
-    glBindImageTexture(unit, m_textureIndex, level, layered, layer, EnumToGL(access), EnumToGL(format));
+    glBindImageTexture(
+        unit, m_textureIndex, level, layered, layer, EnumToGL(access), EnumToGL(format));
     assert(::glGetError() == GL_NO_ERROR);
     return ::glGetError() == GL_NO_ERROR;
 }
@@ -664,8 +687,7 @@ bool glhTextureMgr::BindImageTexture(GLuint unit, GLint level, GLboolean layered
 
 glhGlslShader::glhGlslShader()
     : m_shader(0)
-{
-}
+{}
 
 glhGlslShader::~glhGlslShader()
 {
@@ -678,7 +700,7 @@ bool glhGlslShader::Create(ShaderType type)
     {
         return false;
     }
-	m_shader = glCreateShader(EnumToGL(type));
+    m_shader = glCreateShader(EnumToGL(type));
     return !!glIsShader(m_shader);
 }
 
@@ -690,13 +712,14 @@ bool glhGlslShader::CompileFile(ShaderType type, const wchar_t *pFileName)
     }
     try
     {
-        auto & cvtFacet = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale());
-        std::wstring_convert<std::codecvt_utf16<wchar_t> > cvt{ &cvtFacet };
-        boost::interprocess::file_mapping fileMap{ cvt.to_bytes(pFileName).c_str(), boost::interprocess::mode_t::read_only };
-        boost::interprocess::mapped_region region{ fileMap, boost::interprocess::mode_t::read_only };
-        return CompileString(type, (const GLchar*)region.get_address(), (GLint)region.get_size());
+        auto &cvtFacet = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale());
+        std::wstring_convert<std::codecvt_utf16<wchar_t>> cvt{&cvtFacet};
+        boost::interprocess::file_mapping fileMap{cvt.to_bytes(pFileName).c_str(),
+                                                  boost::interprocess::mode_t::read_only};
+        boost::interprocess::mapped_region region{fileMap, boost::interprocess::mode_t::read_only};
+        return CompileString(type, (const GLchar *)region.get_address(), (GLint)region.get_size());
     }
-    catch (const std::exception&)
+    catch (const std::exception &)
     {
         assert(!"CompileFile Failed!");
         return false;
@@ -725,7 +748,7 @@ bool glhGlslShader::CompileString(ShaderType type, const GLchar *pString, GLint 
     {
         return false;
     }
-    
+
     //std::vector<GLint> linesLenth;
     //std::vector<const GLchar *> lines;
     //const GLchar *pCur = pString, *pLineHead = pString;
@@ -742,14 +765,14 @@ bool glhGlslShader::CompileString(ShaderType type, const GLchar *pString, GLint 
     //assert(lines.size() == linesLenth.size());
 
     //glShaderSource(m_shader, (GLsizei)linesLenth.size(), &lines[0], &linesLenth[0]);
-	glShaderSource(m_shader, 1, &pString, &nLength);
+    glShaderSource(m_shader, 1, &pString, &nLength);
 
     glCompileShader(m_shader);
     GLint result = GL_FALSE;
     glGetShaderiv(m_shader, GL_COMPILE_STATUS, &result);
     if (result != GL_TRUE)
     {
-        GLchar szBuffer[ERR_MSG_BUFFER_MAX_LENGTH] = { 0 };
+        GLchar szBuffer[ERR_MSG_BUFFER_MAX_LENGTH] = {0};
         GLsizei msgLength = 0;
         glGetShaderInfoLog(m_shader, ERR_MSG_BUFFER_MAX_LENGTH, &msgLength, szBuffer);
         m_errmsg.assign(szBuffer, msgLength);
@@ -771,7 +794,7 @@ glhGlslShader::operator GLuint() const
 
 void glhGlslShader::Destroy()
 {
-	if (GLEW_VERSION_2_0 && glIsShader(m_shader))
+    if (GLEW_VERSION_2_0 && glIsShader(m_shader))
     {
         glDeleteShader(m_shader);
         m_shader = 0;
@@ -782,20 +805,19 @@ void glhGlslShader::Destroy()
 
 glhGlslProgram::glhGlslProgram()
     : m_program(0)
-{
-}
+{}
 
 glhGlslProgram::~glhGlslProgram()
 {
     Destroy();
 }
 
-bool glhGlslProgram::AttachShader(const glhGlslShader & shader)
+bool glhGlslProgram::AttachShader(const glhGlslShader &shader)
 {
-	if (!GLEW_VERSION_2_0)
-	{
-		return false;
-	}
+    if (!GLEW_VERSION_2_0)
+    {
+        return false;
+    }
     if (!glIsShader(shader))
     {
         return false;
@@ -808,7 +830,7 @@ bool glhGlslProgram::AttachShader(const glhGlslShader & shader)
     return true;
 }
 
-bool glhGlslProgram::DetachShader(const glhGlslShader & shader)
+bool glhGlslProgram::DetachShader(const glhGlslShader &shader)
 {
     if (!GLEW_VERSION_2_0)
     {
@@ -828,10 +850,10 @@ bool glhGlslProgram::DetachShader(const glhGlslShader & shader)
 
 bool glhGlslProgram::LinkProgram()
 {
-	if (!GLEW_VERSION_2_0)
-	{
-		return false;
-	}
+    if (!GLEW_VERSION_2_0)
+    {
+        return false;
+    }
     if (!glIsProgram(m_program))
     {
         return false;
@@ -842,7 +864,7 @@ bool glhGlslProgram::LinkProgram()
     glGetProgramiv(m_program, GL_LINK_STATUS, &result);
     if (result != GL_TRUE)
     {
-        GLchar szBuffer[ERR_MSG_BUFFER_MAX_LENGTH] = { 0 };
+        GLchar szBuffer[ERR_MSG_BUFFER_MAX_LENGTH] = {0};
         GLsizei msgLength = 0;
         glGetProgramInfoLog(m_program, ERR_MSG_BUFFER_MAX_LENGTH, &msgLength, szBuffer);
         m_errmsg.assign(szBuffer, msgLength);
@@ -854,10 +876,10 @@ bool glhGlslProgram::LinkProgram()
 
 bool glhGlslProgram::UseProgram()
 {
-	if (!GLEW_VERSION_2_0)
-	{
-		return false;
-	}
+    if (!GLEW_VERSION_2_0)
+    {
+        return false;
+    }
     if (!glIsProgram(m_program))
     {
         return false;
@@ -866,7 +888,7 @@ bool glhGlslProgram::UseProgram()
     return true;
 }
 
-GLuint glhGlslProgram::GetUniformBlockIndex(const char* pName)
+GLuint glhGlslProgram::GetUniformBlockIndex(const char *pName)
 {
     if (!GLEW_ARB_uniform_buffer_object || !glIsProgram(m_program))
     {
@@ -875,7 +897,9 @@ GLuint glhGlslProgram::GetUniformBlockIndex(const char* pName)
     return glGetUniformBlockIndex(m_program, pName);
 }
 
-bool glhGlslProgram::GetUniformBlockOffsets(GLsizei uniformCount, const GLchar* const * pUniformNames, GLint* pOffsets)
+bool glhGlslProgram::GetUniformBlockOffsets(GLsizei uniformCount,
+                                            const GLchar *const *pUniformNames,
+                                            GLint *pOffsets)
 {
     if (!GLEW_ARB_uniform_buffer_object || !glIsProgram(m_program) || !pUniformNames || !pOffsets)
     {
@@ -902,7 +926,7 @@ bool glhGlslProgram::GetUniformBlockOffsets(GLsizei uniformCount, const GLchar* 
     return true;
 }
 
-GLuint glhGlslProgram::GetAttribLocation(const GLchar * pName)
+GLuint glhGlslProgram::GetAttribLocation(const GLchar *pName)
 {
     if (!GLEW_VERSION_2_0)
     {
@@ -911,7 +935,7 @@ GLuint glhGlslProgram::GetAttribLocation(const GLchar * pName)
     return glGetAttribLocation(m_program, pName);
 }
 
-GLuint glhGlslProgram::GetUniformLocation(const GLchar * pName)
+GLuint glhGlslProgram::GetUniformLocation(const GLchar *pName)
 {
     if (!GLEW_VERSION_2_0)
     {
@@ -946,18 +970,24 @@ bool glhGlslProgram::Create()
 
 void glhGlslProgram::Destroy()
 {
-	if (GLEW_VERSION_2_0 && glIsProgram(m_program))
+    if (GLEW_VERSION_2_0 && glIsProgram(m_program))
     {
         glDeleteProgram(m_program);
         m_program = 0;
     }
 }
 
-bool glhGlslProgram::VertexAttribPointer(GLuint nLocation, GLint nCount, VertexAttribType type, bool bNormalize, GLsizei nStride, GLuint nOffset)
+bool glhGlslProgram::VertexAttribPointer(GLuint nLocation,
+                                         GLint nCount,
+                                         VertexAttribType type,
+                                         bool bNormalize,
+                                         GLsizei nStride,
+                                         GLuint nOffset)
 {
     if (GLEW_VERSION_2_0)
     {
-        ::glVertexAttribPointer(nLocation, nCount, (GLenum)type, bNormalize, nStride, (const void*)(ptrdiff_t)nOffset);
+        ::glVertexAttribPointer(
+            nLocation, nCount, (GLenum)type, bNormalize, nStride, (const void *)(ptrdiff_t)nOffset);
         ::glEnableVertexAttribArray(nLocation);
         return true;
     }
@@ -967,10 +997,13 @@ bool glhGlslProgram::VertexAttribPointer(GLuint nLocation, GLint nCount, VertexA
 size_t GetGlslTypeSize(GLenum type)
 {
     size_t size = 0;
-#define CASE(Enum, Count, Type) \
-	case Enum: size = Count * sizeof(Type); break
+#define CASE(Enum, Count, Type)                                                                    \
+    case Enum:                                                                                     \
+        size = Count * sizeof(Type);                                                               \
+        break
 
-    switch (type) {
+    switch (type)
+    {
         CASE(GL_FLOAT, 1, GLfloat);
         CASE(GL_FLOAT_VEC2, 2, GLfloat);
         CASE(GL_FLOAT_VEC3, 3, GLfloat);
@@ -1030,29 +1063,29 @@ bool EnableMultiSample(bool isEnable)
     }
 }
 
-void GetMultiSamplePos(std::vector<std::pair<GLfloat, GLfloat> >  & samplePos)
+void GetMultiSamplePos(std::vector<std::pair<GLfloat, GLfloat>> &samplePos)
 {
-	samplePos.clear();
-	if (!GLEW_ARB_texture_multisample)
-	{
-		return;
-	}
-	GLint count = 0;
-	::glGetIntegerv(GL_SAMPLES, &count);
-	if (count > 0)
-	{
-		samplePos.reserve(count);
-		std::pair<GLfloat, GLfloat> onePos;
-		for (GLint i = 0; i < count; ++i)
-		{
-			::glGetMultisamplefv(GL_SAMPLE_POSITION, i, (GLfloat*)&onePos);
-			assert(::glGetError() == GL_NO_ERROR);
-			if (::glGetError() == GL_NO_ERROR)
-			{
-				samplePos.push_back(onePos);
-			}
-		}
-	}
+    samplePos.clear();
+    if (!GLEW_ARB_texture_multisample)
+    {
+        return;
+    }
+    GLint count = 0;
+    ::glGetIntegerv(GL_SAMPLES, &count);
+    if (count > 0)
+    {
+        samplePos.reserve(count);
+        std::pair<GLfloat, GLfloat> onePos;
+        for (GLint i = 0; i < count; ++i)
+        {
+            ::glGetMultisamplefv(GL_SAMPLE_POSITION, i, (GLfloat *)&onePos);
+            assert(::glGetError() == GL_NO_ERROR);
+            if (::glGetError() == GL_NO_ERROR)
+            {
+                samplePos.push_back(onePos);
+            }
+        }
+    }
 }
 
 SHARELIB_END_NAMESPACE

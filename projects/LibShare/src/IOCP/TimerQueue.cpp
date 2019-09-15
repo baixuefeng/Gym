@@ -13,7 +13,7 @@ TimerQueue::~TimerQueue()
 {
     if (m_pTimerQueue)
     {
-        for (auto & item : m_timers)
+        for (auto &item : m_timers)
         {
             if (item.first)
             {
@@ -40,7 +40,7 @@ void TimerQueue::RemoveTimer(HANDLE hTimer)
     if (m_pTimerQueue && CheckTimerHandle(hTimer))
     {
         ::DeleteTimerQueueTimer(m_pTimerQueue, hTimer, INVALID_HANDLE_VALUE);
-        std::lock_guard<decltype(m_lock)> lock{ m_lock };
+        std::lock_guard<decltype(m_lock)> lock{m_lock};
         m_timers.erase(hTimer);
     }
 }
@@ -48,7 +48,7 @@ void TimerQueue::RemoveTimer(HANDLE hTimer)
 bool TimerQueue::CheckTimerHandle(HANDLE hTimer)
 {
 #ifdef _DEBUG
-    std::lock_guard<decltype(m_lock)> lock{ m_lock };
+    std::lock_guard<decltype(m_lock)> lock{m_lock};
     bool bOk = (m_timers.find(hTimer) != m_timers.end());
     assert(bOk);
     return bOk;

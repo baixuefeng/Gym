@@ -1,19 +1,19 @@
 ﻿#include "targetver.h"
 #include "UI/GraphicLayer/Layers/GraphicLayer.h"
-#include "UI/GraphicLayer/Layers/GraphicRootLayer.h"
-#include "DataStructure/traverse_tree_node.h"
-#include "UI/GraphicLayer/ConfigEngine/XmlAttributeUtility.h"
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <mutex>
 #include <atlfile.h>
+#include "DataStructure/traverse_tree_node.h"
+#include "UI/GraphicLayer/ConfigEngine/XmlAttributeUtility.h"
+#include "UI/GraphicLayer/Layers/GraphicRootLayer.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
 IMPLEMENT_RUNTIME_DYNAMIC_CREATE(GraphicLayer, GraphicLayer::RegisterLayerClassesInfo)
 
 GraphicLayer::GraphicLayer()
-: m_crbg(0)
+    : m_crbg(0)
 {
     std::memset(m_bitConfig, 0, sizeof(m_bitConfig));
     m_bitConfig[TBitConfig::BIT_VISIBLE] = true;
@@ -22,19 +22,19 @@ GraphicLayer::GraphicLayer()
 
 GraphicLayer::~GraphicLayer()
 {
-    GraphicRootLayer* pRoot = GetRootGraphicLayer();
+    GraphicRootLayer *pRoot = GetRootGraphicLayer();
     if (pRoot)
     {
         pRoot->_OnChildRemoved(this);
     }
 }
 
-const CPoint & GraphicLayer::GetOrigin() const
+const CPoint &GraphicLayer::GetOrigin() const
 {
     return m_origin;
 }
 
-void GraphicLayer::SetOrigin(const CPoint & pt, bool bRedraw/* = true*/)
+void GraphicLayer::SetOrigin(const CPoint &pt, bool bRedraw /* = true*/)
 {
     if (bRedraw)
     {
@@ -46,7 +46,7 @@ void GraphicLayer::SetOrigin(const CPoint & pt, bool bRedraw/* = true*/)
     m_origin = pt;
 }
 
-void GraphicLayer::OffsetOrigin(const CPoint & pt, bool bRedraw /*= true*/)
+void GraphicLayer::OffsetOrigin(const CPoint &pt, bool bRedraw /*= true*/)
 {
     if (pt.x == 0 && pt.y == 0)
     {
@@ -62,7 +62,10 @@ void GraphicLayer::OffsetOrigin(const CPoint & pt, bool bRedraw /*= true*/)
     m_origin.Offset(pt);
 }
 
-bool GraphicLayer::AlignXY(TAlignType xAlign, TAlignType yAlign, GraphicLayer * pDatum, bool bRedraw /*= true*/)
+bool GraphicLayer::AlignXY(TAlignType xAlign,
+                           TAlignType yAlign,
+                           GraphicLayer *pDatum,
+                           bool bRedraw /*= true*/)
 {
     if (!pDatum || root() != pDatum->root())
     {
@@ -79,7 +82,8 @@ bool GraphicLayer::AlignXY(TAlignType xAlign, TAlignType yAlign, GraphicLayer * 
         ptOffset.x = ptDatum.x + pDatum->GetLayerBounds().left - pt.x - GetLayerBounds().left;
         break;
     case TAlignType::ALIGN_CENTER:
-        ptOffset.x = ptDatum.x + pDatum->GetLayerBounds().CenterPoint().x - pt.x - GetLayerBounds().CenterPoint().x;
+        ptOffset.x = ptDatum.x + pDatum->GetLayerBounds().CenterPoint().x - pt.x -
+                     GetLayerBounds().CenterPoint().x;
         break;
     case TAlignType::ALIGN_FAR:
         ptOffset.x = ptDatum.x + pDatum->GetLayerBounds().right - pt.x - GetLayerBounds().right;
@@ -99,7 +103,8 @@ bool GraphicLayer::AlignXY(TAlignType xAlign, TAlignType yAlign, GraphicLayer * 
         ptOffset.y = ptDatum.y + pDatum->GetLayerBounds().top - pt.y - GetLayerBounds().top;
         break;
     case TAlignType::ALIGN_CENTER:
-        ptOffset.y = ptDatum.y + pDatum->GetLayerBounds().CenterPoint().y - pt.y - GetLayerBounds().CenterPoint().y;
+        ptOffset.y = ptDatum.y + pDatum->GetLayerBounds().CenterPoint().y - pt.y -
+                     GetLayerBounds().CenterPoint().y;
         break;
     case TAlignType::ALIGN_FAR:
         ptOffset.y = ptDatum.y + pDatum->GetLayerBounds().bottom - pt.y - GetLayerBounds().bottom;
@@ -118,12 +123,12 @@ bool GraphicLayer::AlignXY(TAlignType xAlign, TAlignType yAlign, GraphicLayer * 
     return true;
 }
 
-const CRect & GraphicLayer::GetLayerBounds() const
+const CRect &GraphicLayer::GetLayerBounds() const
 {
     return m_bounds;
 }
 
-void GraphicLayer::SetLayerBounds(const CRect & rcBounds, bool bRedraw /*= true*/)
+void GraphicLayer::SetLayerBounds(const CRect &rcBounds, bool bRedraw /*= true*/)
 {
     if (bRedraw)
     {
@@ -134,7 +139,7 @@ void GraphicLayer::SetLayerBounds(const CRect & rcBounds, bool bRedraw /*= true*
     m_bounds = rcBounds;
 }
 
-void GraphicLayer::SetLayoutLua(const std::wstring & layoutLua)
+void GraphicLayer::SetLayoutLua(const std::wstring &layoutLua)
 {
     m_layoutLua = layoutLua;
 }
@@ -144,17 +149,14 @@ std::wstring GraphicLayer::GetLayoutLua() const
     return m_layoutLua;
 }
 
-bool GraphicLayer::HitTest(const CPoint & pt) const
+bool GraphicLayer::HitTest(const CPoint &pt) const
 {
     return !!m_bounds.PtInRect(pt);
 }
 
 void GraphicLayer::Relayout()
 {
-    traverse_tree_node_t2b(
-        this,
-        [this](GraphicLayer * pLayer, int /*nDepth*/)->int
-    {
+    traverse_tree_node_t2b(this, [this](GraphicLayer *pLayer, int /*nDepth*/) -> int {
         if (pLayer->m_bitConfig[TBitConfig::BIT_ROOT_LAYER])
         {
             return 1;
@@ -165,7 +167,7 @@ void GraphicLayer::Relayout()
     });
 }
 
-bool shr::GraphicLayer::OnLayerMsgLayout(GraphicLayer * pLayer, bool & bLayoutChildren)
+bool shr::GraphicLayer::OnLayerMsgLayout(GraphicLayer *pLayer, bool &bLayoutChildren)
 {
     (void)pLayer;
     (void)bLayoutChildren;
@@ -192,7 +194,7 @@ bool shr::GraphicLayer::OnLayerMsgLayout(GraphicLayer * pLayer, bool & bLayoutCh
 @param[in] ptSrc 父辈结点坐标
 @return 子结点坐标
 */
-static CPoint CalculateChildPoint(GraphicLayer * pChild, GraphicLayer * pParent, const CPoint & ptSrc)
+static CPoint CalculateChildPoint(GraphicLayer *pChild, GraphicLayer *pParent, const CPoint &ptSrc)
 {
     CPoint ptOffset;
     while (pChild != pParent)
@@ -203,82 +205,81 @@ static CPoint CalculateChildPoint(GraphicLayer * pChild, GraphicLayer * pParent,
     return CPoint(ptSrc.x - ptOffset.x, ptSrc.y - ptOffset.y);
 }
 
-GraphicLayer * GraphicLayer::FindChildLayerFromPoint(GraphicLayer * pParent, CPoint & pt)
+GraphicLayer *GraphicLayer::FindChildLayerFromPoint(GraphicLayer *pParent, CPoint &pt)
 {
     if (pParent->child_count() == 0)
     {
         return nullptr;
     }
 
-    GraphicLayer* pChildToFind = nullptr;
+    GraphicLayer *pChildToFind = nullptr;
     int nDepthFinded = 0;
     traverse_tree_node_reverse_t2b(
         pParent,
-        [pParent, &pt, &pChildToFind, &nDepthFinded](GraphicLayer* pLayer, int nDepth)->int
-    {
-        if (nDepth == 0)
-        {
-            return 1;
-        }
-        if (pChildToFind && (nDepthFinded >= nDepth))
-        {
-            //已找到
-            return -1;
-        }
-
-        //坐标映射到当前结点pLayer
-        CPoint ptCur = CalculateChildPoint(pLayer, (pChildToFind ? pChildToFind : pParent), pt);
-
-        if (pLayer->IsEnable() &&
-            pLayer->IsVisible() &&
-            pLayer->HitTest(ptCur))
-        {
-            if (pLayer->IsTransparent())
+        [pParent, &pt, &pChildToFind, &nDepthFinded](GraphicLayer *pLayer, int nDepth) -> int {
+            if (nDepth == 0)
             {
-                //不记录,继续子结点
                 return 1;
+            }
+            if (pChildToFind && (nDepthFinded >= nDepth))
+            {
+                //已找到
+                return -1;
+            }
+
+            //坐标映射到当前结点pLayer
+            CPoint ptCur = CalculateChildPoint(pLayer, (pChildToFind ? pChildToFind : pParent), pt);
+
+            if (pLayer->IsEnable() && pLayer->IsVisible() && pLayer->HitTest(ptCur))
+            {
+                if (pLayer->IsTransparent())
+                {
+                    //不记录,继续子结点
+                    return 1;
+                }
+                else
+                {
+                    //符合要求,记录下来
+                    pChildToFind = pLayer;
+                    nDepthFinded = nDepth;
+                    pt = ptCur;
+                    return (pLayer->IsInterceptChildren() ? -1 : 1);
+                }
             }
             else
             {
-                //符合要求,记录下来
-                pChildToFind = pLayer;
-                nDepthFinded = nDepth;
-                pt = ptCur;
-                return (pLayer->IsInterceptChildren() ? -1 : 1);
+                return 0;
             }
-        }
-        else
-        {
-            return 0;
-        }
-    });
+        });
     return pChildToFind;
 }
 
-void GraphicLayer::MapPointToRoot(const GraphicLayer * pLayer, POINT * pPt, size_t nCount/* = 1*/)
+void GraphicLayer::MapPointToRoot(const GraphicLayer *pLayer, POINT *pPt, size_t nCount /* = 1*/)
 {
     assert(pLayer);
     assert(pLayer->GetRootGraphicLayer());
     assert(pPt);
     assert(nCount > 0);
-    const GraphicLayer * pCur = pLayer;
+    const GraphicLayer *pCur = pLayer;
     while (pCur && !pCur->is_root())
     {
         for (size_t i = 0; i < nCount; ++i)
         {
-            ((CPoint*)pPt)[i] += pCur->GetOrigin();
+            ((CPoint *)pPt)[i] += pCur->GetOrigin();
         }
         pCur = pCur->parent();
     }
 }
 
-void GraphicLayer::MapRootPointToLayer(const GraphicLayer * pLayer, POINT * pPtRoot, size_t nCount /*= 1*/)
+void GraphicLayer::MapRootPointToLayer(const GraphicLayer *pLayer,
+                                       POINT *pPtRoot,
+                                       size_t nCount /*= 1*/)
 {
     assert(pLayer);
     assert(pLayer->GetRootGraphicLayer());
     assert(pPtRoot);
     assert(nCount > 0);
-    const GraphicLayer * pCur = pLayer;
+    const GraphicLayer *pCur = pLayer;
     CPoint ptOffset;
     while (pCur && !pCur->is_root())
     {
@@ -287,11 +288,14 @@ void GraphicLayer::MapRootPointToLayer(const GraphicLayer * pLayer, POINT * pPtR
     }
     for (size_t i = 0; i < nCount; ++i)
     {
-        ((CPoint*)pPtRoot)[i] -= ptOffset;
+        ((CPoint *)pPtRoot)[i] -= ptOffset;
     }
 }
 
-void GraphicLayer::MapPointToLayer(const GraphicLayer * pLayerSrc, const GraphicLayer * pLayerDst, POINT * pPt, size_t nCount /*= 1*/)
+void GraphicLayer::MapPointToLayer(const GraphicLayer *pLayerSrc,
+                                   const GraphicLayer *pLayerDst,
+                                   POINT *pPt,
+                                   size_t nCount /*= 1*/)
 {
     assert(pLayerSrc && pLayerDst);
     assert(pPt);
@@ -302,12 +306,12 @@ void GraphicLayer::MapPointToLayer(const GraphicLayer * pLayerSrc, const Graphic
     }
     assert(pLayerSrc->GetRootGraphicLayer());
     assert(pLayerSrc->GetRootGraphicLayer() == pLayerDst->GetRootGraphicLayer());
-    const GraphicLayer * pCur = pLayerSrc;
+    const GraphicLayer *pCur = pLayerSrc;
     while (pCur && !pCur->is_root())
     {
         for (size_t i = 0; i < nCount; ++i)
         {
-            ((CPoint*)pPt)[i] += pCur->GetOrigin();
+            ((CPoint *)pPt)[i] += pCur->GetOrigin();
         }
         pCur = pCur->parent();
         if (pCur == pLayerDst)
@@ -476,7 +480,7 @@ COLOR32 GraphicLayer::GetBgColor() const
 }
 
 //指针所指的对象是否改写了BeforePaintChildren虚函数
-static bool IsRewriteBeforePaintChildren(GraphicLayer * pLayer)
+static bool IsRewriteBeforePaintChildren(GraphicLayer *pLayer)
 {
 #if defined(WIN32) && defined(_MSC_VER)
     //此段代码不是可移植的，只有sisual studio的C++编译器，类的虚表才符合下面的规律
@@ -485,17 +489,14 @@ static bool IsRewriteBeforePaintChildren(GraphicLayer * pLayer)
     static std::once_flag s_funcAddrInitFlag;
     if (s_progAddr == 0)
     {
-        std::call_once(
-            s_funcAddrInitFlag,
-            []()
-        {
+        std::call_once(s_funcAddrInitFlag, []() {
             GraphicLayer temp;
-            ptrdiff_t * pVtbl = *((ptrdiff_t**)static_cast<IFastPaintHelper*>(&temp));
+            ptrdiff_t *pVtbl = *((ptrdiff_t **)static_cast<IFastPaintHelper *>(&temp));
             //BeforePaintChildren虚函数在IFastPaintHelper的虚表中的第一个位置，
             //因此虚表pVtbl[0]就是GraphicLayer中BeforePaintChildren的实际地址，如果派生类
             //中改写此虚函数，虚表中对应位置填写的地址就会改变
             s_progAddr = pVtbl[0];
-#ifdef _M_IX86
+#    ifdef _M_IX86
             //用32位内联汇编取虚函数地址进行验证，64位不允许使用内联汇编
             ptrdiff_t asmProc = 0;
             __asm
@@ -508,18 +509,18 @@ static bool IsRewriteBeforePaintChildren(GraphicLayer * pLayer)
                 s_progAddr = 0;
                 assert(!"获取虚函数地址错误");
             }
-#endif
+#    endif
         });
     }
     if (s_progAddr != 0)
     {
-        return s_progAddr != (*(ptrdiff_t**)static_cast<IFastPaintHelper*>(pLayer))[0];
+        return s_progAddr != (*(ptrdiff_t **)static_cast<IFastPaintHelper *>(pLayer))[0];
     }
 #endif
     return true;
 }
 
-void GraphicLayer::SchedulePaint(const CRect * pRcDraw/* = nullptr*/)
+void GraphicLayer::SchedulePaint(const CRect *pRcDraw /* = nullptr*/)
 {
     if (!IsVisible())
     {
@@ -530,13 +531,13 @@ void GraphicLayer::SchedulePaint(const CRect * pRcDraw/* = nullptr*/)
     {
         return;
     }
-    ATL::CWindow* pWnd = pRoot->GetMSWindow();
+    ATL::CWindow *pWnd = pRoot->GetMSWindow();
     if (!pWnd || !pWnd->IsWindow() || !pWnd->IsWindowVisible())
     {
         return;
     }
 
-    GraphicLayer* pPaintStart = nullptr;
+    GraphicLayer *pPaintStart = nullptr;
 
     CRect rcDraw = pRcDraw ? *pRcDraw : GetLayerBounds();
     if ((rcDraw == GetLayerBounds()) && MayItBePaintStart(this))
@@ -547,8 +548,8 @@ void GraphicLayer::SchedulePaint(const CRect * pRcDraw/* = nullptr*/)
         pPaintStart = this;
     }
 
-    rcDraw.OffsetRect(m_origin);//转到父Layer坐标
-    GraphicLayer* pLayer = parent();
+    rcDraw.OffsetRect(m_origin); //转到父Layer坐标
+    GraphicLayer *pLayer = parent();
     while (pLayer && (pLayer != pRoot))
     {
         //因为裁剪，重绘的最大区域不会超出父Layer的区域
@@ -586,18 +587,18 @@ void GraphicLayer::SchedulePaint(const CRect * pRcDraw/* = nullptr*/)
     pWnd->InvalidateRect(&rcDraw);
 }
 
-bool GraphicLayer::MayItBePaintStart(const GraphicLayer* pLayer)
+bool GraphicLayer::MayItBePaintStart(const GraphicLayer *pLayer)
 {
     //背景不透明
     return (pLayer && (COLOR32_GetA(pLayer->m_crbg) == 255));
 }
 
-GraphicRootLayer* GraphicLayer::GetRootGraphicLayer() const
+GraphicRootLayer *GraphicLayer::GetRootGraphicLayer() const
 {
-    GraphicLayer* pRoot = root();
+    GraphicLayer *pRoot = root();
     if (pRoot->m_bitConfig[TBitConfig::BIT_ROOT_LAYER])
     {
-        return ((GraphicRootLayer*)pRoot);
+        return ((GraphicRootLayer *)pRoot);
     }
     else
     {
@@ -605,9 +606,9 @@ GraphicRootLayer* GraphicLayer::GetRootGraphicLayer() const
     }
 }
 
-ATL::CWindow* GraphicLayer::GetMSWindow() const
+ATL::CWindow *GraphicLayer::GetMSWindow() const
 {
-    GraphicRootLayer* pRoot = GetRootGraphicLayer();
+    GraphicRootLayer *pRoot = GetRootGraphicLayer();
     if (pRoot)
     {
         return pRoot->GetMSWindow();
@@ -618,23 +619,20 @@ ATL::CWindow* GraphicLayer::GetMSWindow() const
     }
 }
 
-void GraphicLayer::ChangeMyPosInTheTree(GraphicLayer * pTarget, TInsertPos insertType)
+void GraphicLayer::ChangeMyPosInTheTree(GraphicLayer *pTarget, TInsertPos insertType)
 {
-    if (pTarget &&
-        pTarget != this &&
-        !is_root() &&
+    if (pTarget && pTarget != this && !is_root() &&
         (GetRootGraphicLayer() == pTarget->GetRootGraphicLayer()))
     {
         if (pTarget->is_root() &&
-            (insertType == TInsertPos::AsPrevSibling ||
-             insertType == TInsertPos::AsNextSibling))
+            (insertType == TInsertPos::AsPrevSibling || insertType == TInsertPos::AsNextSibling))
         {
             return;
         }
         CPoint ptOrigin = m_origin;
         GraphicLayer *pSrc = parent();
 #pragma warning(push)
-#pragma warning(disable: 4995)
+#pragma warning(disable : 4995)
         remove_tree_node(this);
 #pragma warning(pop)
         pTarget->insert_tree_node(this, insertType);
@@ -657,7 +655,7 @@ void GraphicLayer::BringToTopMost()
 
 HANDLE GraphicLayer::CreateLayerTimer(uint32_t nPeriod)
 {
-    GraphicRootLayer* pRootLayer = GetRootGraphicLayer();
+    GraphicRootLayer *pRootLayer = GetRootGraphicLayer();
     assert(pRootLayer);
     if (pRootLayer)
     {
@@ -672,7 +670,7 @@ void GraphicLayer::DestroyLayerTimer(HANDLE hTimer)
     {
         return;
     }
-    GraphicRootLayer* pRootLayer = GetRootGraphicLayer();
+    GraphicRootLayer *pRootLayer = GetRootGraphicLayer();
     assert(pRootLayer);
     if (pRootLayer)
     {
@@ -682,7 +680,7 @@ void GraphicLayer::DestroyLayerTimer(HANDLE hTimer)
 
 void GraphicLayer::DestroyAllLayerTimers()
 {
-    GraphicRootLayer* pRootLayer = GetRootGraphicLayer();
+    GraphicRootLayer *pRootLayer = GetRootGraphicLayer();
     assert(pRootLayer);
     if (pRootLayer)
     {
@@ -690,7 +688,7 @@ void GraphicLayer::DestroyAllLayerTimers()
     }
 }
 
-void GraphicLayer::AddLayerMsgHook(LayerMsgCallback * pHook)
+void GraphicLayer::AddLayerMsgHook(LayerMsgCallback *pHook)
 {
     if (pHook)
     {
@@ -703,7 +701,7 @@ void GraphicLayer::AddLayerMsgHook(LayerMsgCallback * pHook)
     }
 }
 
-void GraphicLayer::RemoveLayerMsgHook(LayerMsgCallback * pHook)
+void GraphicLayer::RemoveLayerMsgHook(LayerMsgCallback *pHook)
 {
     if (pHook && m_spHookers)
     {
@@ -720,7 +718,7 @@ void GraphicLayer::RemoveAllLayerMsgHook()
 {
     if (m_spHookers)
     {
-        for (auto & item : *m_spHookers)
+        for (auto &item : *m_spHookers)
         {
             //只标记不删除,避免在回调中自己删除自己导致迭代器失效
             item = nullptr;
@@ -728,7 +726,7 @@ void GraphicLayer::RemoveAllLayerMsgHook()
     }
 }
 
-void GraphicLayer::AddLayerMsgObserver(LayerMsgCallback * pObserver)
+void GraphicLayer::AddLayerMsgObserver(LayerMsgCallback *pObserver)
 {
     if (pObserver)
     {
@@ -736,12 +734,13 @@ void GraphicLayer::AddLayerMsgObserver(LayerMsgCallback * pObserver)
         {
             m_spObservers.reset(new std::list<LayerMsgCallback *>);
         }
-        assert(std::find(m_spObservers->begin(), m_spObservers->end(), pObserver) == m_spObservers->end());
+        assert(std::find(m_spObservers->begin(), m_spObservers->end(), pObserver) ==
+               m_spObservers->end());
         m_spObservers->push_back(pObserver);
     }
 }
 
-void GraphicLayer::RemoveLayerMsgObserver(LayerMsgCallback * pObserver)
+void GraphicLayer::RemoveLayerMsgObserver(LayerMsgCallback *pObserver)
 {
     if (pObserver && m_spObservers)
     {
@@ -758,7 +757,7 @@ void GraphicLayer::RemoveAllLayerMsgObserver()
 {
     if (m_spObservers)
     {
-        for (auto & item : *m_spObservers)
+        for (auto &item : *m_spObservers)
         {
             //只标记不删除,避免在回调中自己删除自己导致迭代器失效
             item = nullptr;
@@ -766,7 +765,7 @@ void GraphicLayer::RemoveAllLayerMsgObserver()
     }
 }
 
-GraphicLayer * GraphicLayer::CreateGraphicLayerByName(const wchar_t * pCreateKay)
+GraphicLayer *GraphicLayer::CreateGraphicLayerByName(const wchar_t *pCreateKay)
 {
     if (!pCreateKay || !*pCreateKay)
     {
@@ -778,10 +777,11 @@ GraphicLayer * GraphicLayer::CreateGraphicLayerByName(const wchar_t * pCreateKay
         assert(!"未注册的类信息");
         return nullptr;
     }
-    return (GraphicLayer*)it->second();
+    return (GraphicLayer *)it->second();
 }
 
-bool GraphicLayer::LoadFromXml(const wchar_t * pFilePath, pugi::xml_encoding encoding /*= pugi::xml_encoding::encoding_auto*/)
+bool GraphicLayer::LoadFromXml(const wchar_t *pFilePath,
+                               pugi::xml_encoding encoding /*= pugi::xml_encoding::encoding_auto*/)
 {
     ATL::CAtlFile file;
     HRESULT hr = file.Create(pFilePath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
@@ -800,7 +800,9 @@ bool GraphicLayer::LoadFromXml(const wchar_t * pFilePath, pugi::xml_encoding enc
     return LoadFromXml(fileMap, fileMap.GetMappingSize(), encoding);
 }
 
-bool GraphicLayer::LoadFromXml(const void * pBuffer, size_t nSize, pugi::xml_encoding encoding /*= pugi::xml_encoding::encoding_auto*/)
+bool GraphicLayer::LoadFromXml(const void *pBuffer,
+                               size_t nSize,
+                               pugi::xml_encoding encoding /*= pugi::xml_encoding::encoding_auto*/)
 {
     pugi::xml_document xmlDoc;
     if (!xmlDoc.load_buffer(pBuffer, nSize, pugi::parse_default, encoding))
@@ -811,20 +813,49 @@ bool GraphicLayer::LoadFromXml(const void * pBuffer, size_t nSize, pugi::xml_enc
     pugi::xml_node nodeRoot = xmlDoc.first_child();
     destroy_children(this);
     int nLastDepth = 0;
-    GraphicLayer * pLastNode = this;
+    GraphicLayer *pLastNode = this;
     traverse_tree_node_t2b(
-        nodeRoot,
-        [this, &nLastDepth, &pLastNode](pugi::xml_node & node, int nDepth)->int
-    {
-        if ((node.type() == pugi::xml_node_type::node_pcdata) ||
-            (node.type() == pugi::xml_node_type::node_cdata) ||
-            (node.type() == pugi::xml_node_type::node_comment))
-        {
-            return 0;
-        }
-        if (nDepth == 0)
-        {
-            if (ReadAllXmlAttributes(node))
+        nodeRoot, [this, &nLastDepth, &pLastNode](pugi::xml_node &node, int nDepth) -> int {
+            if ((node.type() == pugi::xml_node_type::node_pcdata) ||
+                (node.type() == pugi::xml_node_type::node_cdata) ||
+                (node.type() == pugi::xml_node_type::node_comment))
+            {
+                return 0;
+            }
+            if (nDepth == 0)
+            {
+                if (ReadAllXmlAttributes(node))
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            GraphicLayer *pNew = CreateGraphicLayerByName(node.name());
+            if (!pNew)
+            {
+                return 0;
+            }
+
+            if (nDepth > nLastDepth)
+            {
+                pLastNode->insert_tree_node(pNew, TInsertPos::AsLastChild);
+                pLastNode = pLastNode->first_child();
+            }
+            else
+            {
+                for (int i = 0; i < nLastDepth - nDepth; ++i)
+                {
+                    pLastNode = pLastNode->parent();
+                }
+                pLastNode->insert_tree_node(pNew, TInsertPos::AsNextSibling);
+                pLastNode = pLastNode->next_sibling();
+            }
+            nLastDepth = nDepth;
+
+            if (pNew->ReadAllXmlAttributes(node))
             {
                 return 1;
             }
@@ -832,53 +863,20 @@ bool GraphicLayer::LoadFromXml(const void * pBuffer, size_t nSize, pugi::xml_enc
             {
                 return 0;
             }
-        }
-        GraphicLayer * pNew = CreateGraphicLayerByName(node.name());
-        if (!pNew)
-        {
-            return 0;
-        }
-
-        if (nDepth > nLastDepth)
-        {
-            pLastNode->insert_tree_node(pNew, TInsertPos::AsLastChild);
-            pLastNode = pLastNode->first_child();
-        }
-        else
-        {
-            for (int i = 0; i < nLastDepth - nDepth; ++i)
-            {
-                pLastNode = pLastNode->parent();
-            }
-            pLastNode->insert_tree_node(pNew, TInsertPos::AsNextSibling);
-            pLastNode = pLastNode->next_sibling();
-        }
-        nLastDepth = nDepth;
-
-        if (pNew->ReadAllXmlAttributes(node))
-        {
-            return 1;
-        }
-        else
-        {
-            return 0;
-        }
-    });
+        });
     return true;
 }
 
-bool GraphicLayer::ReadAllXmlAttributes(const pugi::xml_node & node)
+bool GraphicLayer::ReadAllXmlAttributes(const pugi::xml_node &node)
 {
-    for (auto itAttr = node.attributes_begin();
-        itAttr != node.attributes_end();
-        ++itAttr)
+    for (auto itAttr = node.attributes_begin(); itAttr != node.attributes_end(); ++itAttr)
     {
         OnReadingXmlAttribute(*itAttr);
     }
     return OnReadXmlAttributeEnded(node);
 }
 
-bool GraphicLayer::ReadAllXmlAttributes(const std::wstring & xmlText)
+bool GraphicLayer::ReadAllXmlAttributes(const std::wstring &xmlText)
 {
     pugi::xml_document xmlDoc;
     if (!xmlDoc.load_string(xmlText.c_str()))
@@ -889,7 +887,7 @@ bool GraphicLayer::ReadAllXmlAttributes(const std::wstring & xmlText)
     return ReadAllXmlAttributes(xmlDoc.first_child());
 }
 
-void GraphicLayer::OnReadingXmlAttribute(const pugi::xml_attribute & attr)
+void GraphicLayer::OnReadingXmlAttribute(const pugi::xml_attribute &attr)
 {
     if (std::wcscmp(L"lrID", attr.name()) == 0)
     {
@@ -950,51 +948,47 @@ bool GraphicLayer::OnReadXmlAttributeEnded(const pugi::xml_node & /*node*/)
     return true;
 }
 
-bool GraphicLayer::SaveToXml(const wchar_t * pFilePath, pugi::xml_encoding encoding /*= pugi::xml_encoding::encoding_auto*/)
+bool GraphicLayer::SaveToXml(const wchar_t *pFilePath,
+                             pugi::xml_encoding encoding /*= pugi::xml_encoding::encoding_auto*/)
 {
     pugi::xml_document xmlDoc;
     int nLastDepth = 0;
     pugi::xml_node node = xmlDoc;
-    traverse_tree_node_t2b(
-        this,
-        [this, &nLastDepth, &node](GraphicLayer * pLayer, int nDepth)->int
-    {
-        if (nDepth == 0)
-        {
-            if (pLayer->m_bitConfig[TBitConfig::BIT_ROOT_LAYER])
-            {
-                node = node.append_child(L"root");
-            }
-            else
-            {
-                node = node.append_child(pLayer->GetCreateKey());
-            }
-            OnWritingAttributeToXml(node);
-            return OnWritingAttributeToXmlEnded(node) ? 1 : 0;
-        }
-        
-        if (nDepth > nLastDepth)
-        {
-            node = node.append_child(pLayer->GetCreateKey());
-        }
-        else
-        {
-            for (int i = 0; i < nLastDepth - nDepth; ++i)
-            {
-                node = node.parent();
-            }
-            node = node.parent().append_child(pLayer->GetCreateKey());
-        }
-        nLastDepth = nDepth;
+    traverse_tree_node_t2b(this,
+                           [this, &nLastDepth, &node](GraphicLayer *pLayer, int nDepth) -> int {
+                               if (nDepth == 0)
+                               {
+                                   if (pLayer->m_bitConfig[TBitConfig::BIT_ROOT_LAYER])
+                                   {
+                                       node = node.append_child(L"root");
+                                   }
+                                   else
+                                   {
+                                       node = node.append_child(pLayer->GetCreateKey());
+                                   }
+                                   OnWritingAttributeToXml(node);
+                                   return OnWritingAttributeToXmlEnded(node) ? 1 : 0;
+                               }
 
-        pLayer->OnWritingAttributeToXml(node);
-        return pLayer->OnWritingAttributeToXmlEnded(node) ? 1 : 0;
-    });
+                               if (nDepth > nLastDepth)
+                               {
+                                   node = node.append_child(pLayer->GetCreateKey());
+                               }
+                               else
+                               {
+                                   for (int i = 0; i < nLastDepth - nDepth; ++i)
+                                   {
+                                       node = node.parent();
+                                   }
+                                   node = node.parent().append_child(pLayer->GetCreateKey());
+                               }
+                               nLastDepth = nDepth;
+
+                               pLayer->OnWritingAttributeToXml(node);
+                               return pLayer->OnWritingAttributeToXmlEnded(node) ? 1 : 0;
+                           });
     return xmlDoc.save_file(
-        pFilePath, 
-        L"    ", 
-        pugi::format_default | pugi::format_write_bom,
-        encoding);
+        pFilePath, L"    ", pugi::format_default | pugi::format_write_bom, encoding);
 }
 
 void GraphicLayer::OnWritingAttributeToXml(pugi::xml_node node)
@@ -1031,7 +1025,7 @@ void GraphicLayer::OnWritingAttributeToXml(pugi::xml_node node)
         attr = node.append_attribute(L"lrTransparent");
         attr = true;
     }
-    
+
     if (m_bitConfig[TBitConfig::BIT_INTERCEPT_CHILDREN])
     {
         attr = node.append_attribute(L"lrInterceptChildren");
@@ -1069,13 +1063,10 @@ bool GraphicLayer::OnWritingAttributeToXmlEnded(pugi::xml_node node)
     return true;
 }
 
-GraphicLayer * GraphicLayer::FindChildByID(size_t nID)
+GraphicLayer *GraphicLayer::FindChildByID(size_t nID)
 {
-    GraphicLayer * pChild = nullptr;
-    traverse_tree_node_t2b(
-        this,
-        [&pChild, nID](GraphicLayer* pNode, int /*nDepth*/)->int
-    {
+    GraphicLayer *pChild = nullptr;
+    traverse_tree_node_t2b(this, [&pChild, nID](GraphicLayer *pNode, int /*nDepth*/) -> int {
         if (pNode && pNode->m_nID == nID)
         {
             pChild = pNode;
@@ -1089,7 +1080,8 @@ GraphicLayer * GraphicLayer::FindChildByID(size_t nID)
     return pChild;
 }
 
-void GraphicLayer::RegisterLayerClassesInfo(const wchar_t * pCreateKay, TRuntimeCreateFunction pfnCreateFunc)
+void GraphicLayer::RegisterLayerClassesInfo(const wchar_t *pCreateKay,
+                                            TRuntimeCreateFunction pfnCreateFunc)
 {
     assert(pCreateKay && std::wcslen(pCreateKay) > 0);
     assert(pfnCreateFunc);
@@ -1097,7 +1089,7 @@ void GraphicLayer::RegisterLayerClassesInfo(const wchar_t * pCreateKay, TRuntime
     GetLayersMap()[pCreateKay] = pfnCreateFunc;
 }
 
-std::unordered_map<std::wstring, TRuntimeCreateFunction> & GraphicLayer::GetLayersMap()
+std::unordered_map<std::wstring, TRuntimeCreateFunction> &GraphicLayer::GetLayersMap()
 {
     static std::unordered_map<std::wstring, TRuntimeCreateFunction> s_layersMapInfo;
     return s_layersMapInfo;

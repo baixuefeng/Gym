@@ -1,45 +1,45 @@
 ﻿#include "targetver.h"
 #include "UI/Utility/WindowUtility.h"
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <boost/dll.hpp>
 #include <CommCtrl.h>
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-#include <ShellScalingAPI.h>
+#    include <ShellScalingAPI.h>
 #endif
 
 //下面是使用 common control 所必须的
 #pragma comment(lib, "Comctl32.lib")
 
 #ifdef _UNICODE
-#if defined _M_IX86
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#elif defined _M_X64
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#else
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#endif
+#    if defined _M_IX86
+#        pragma comment(                                                                           \
+            linker,                                                                                \
+            "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#    elif defined _M_X64
+#        pragma comment(                                                                           \
+            linker,                                                                                \
+            "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#    else
+#        pragma comment(                                                                           \
+            linker,                                                                                \
+            "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#    endif
 #endif
 
 SHARELIB_BEGIN_NAMESPACE
 
 bool InitCmnCtrls()
 {
-	INITCOMMONCONTROLSEX commonCtrls = { sizeof(INITCOMMONCONTROLSEX) };
-	commonCtrls.dwICC = ICC_WIN95_CLASSES
-		| ICC_DATE_CLASSES
-		| ICC_USEREX_CLASSES
-		| ICC_COOL_CLASSES
-		| ICC_INTERNET_CLASSES
-		| ICC_PAGESCROLLER_CLASS
-		| ICC_NATIVEFNTCTL_CLASS
-		| ICC_STANDARD_CLASSES
-		| ICC_LINK_CLASS;
-	if (!::InitCommonControlsEx(&commonCtrls))
-	{
-		return false;
-	}
-	return true;
+    INITCOMMONCONTROLSEX commonCtrls = {sizeof(INITCOMMONCONTROLSEX)};
+    commonCtrls.dwICC = ICC_WIN95_CLASSES | ICC_DATE_CLASSES | ICC_USEREX_CLASSES |
+                        ICC_COOL_CLASSES | ICC_INTERNET_CLASSES | ICC_PAGESCROLLER_CLASS |
+                        ICC_NATIVEFNTCTL_CLASS | ICC_STANDARD_CLASSES | ICC_LINK_CLASS;
+    if (!::InitCommonControlsEx(&commonCtrls))
+    {
+        return false;
+    }
+    return true;
 }
 
 bool IsDialogBox(HWND hWnd)
@@ -52,73 +52,72 @@ bool IsDialogBox(HWND hWnd)
     return lstrcmp(szBuf, _T("#32770")) == 0;
 }
 
-namespace win_dpi
-{
+namespace win_dpi {
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    /** 使用boost::dll::import的时候，不要用函数指针类型，要用函数类型，因为从shared_library中get到的是对象的引用。
+/** 使用boost::dll::import的时候，不要用函数指针类型，要用函数类型，因为从shared_library中get到的是对象的引用。
     */
-    using TSetDpiFunc = HRESULT(__stdcall)(PROCESS_DPI_AWARENESS value);
-    using TGetDpiFunc = HRESULT(__stdcall)(HANDLE hprocess, PROCESS_DPI_AWARENESS *value);
+using TSetDpiFunc = HRESULT(__stdcall)(PROCESS_DPI_AWARENESS value);
+using TGetDpiFunc = HRESULT(__stdcall)(HANDLE hprocess, PROCESS_DPI_AWARENESS *value);
 #endif
 
-    bool SetDpiAwareness(DpiAwarenessType type)
+bool SetDpiAwareness(DpiAwarenessType type)
+{
+    if (type == DpiAwarenessType::ERROR_VALUE)
     {
-        if (type == DpiAwarenessType::ERROR_VALUE)
-        {
-            return false;
-        }
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-        try
-        {
-            auto libFunc = boost::dll::import<TSetDpiFunc>(L"Shcore.dll", "SetProcessDpiAwareness", boost::dll::load_mode::search_system_folders);
-            return SUCCEEDED(libFunc(static_cast<PROCESS_DPI_AWARENESS>(static_cast<int>(type))));
-        }
-        catch (...)
-        {
-        }
-#endif
         return false;
     }
-
-    DpiAwarenessType GetDpiAwareness()
-    {
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-        try
-        {
-            auto libFunc = boost::dll::import<TGetDpiFunc>(L"Shcore.dll", "GetProcessDpiAwareness", boost::dll::load_mode::search_system_folders);
-            PROCESS_DPI_AWARENESS dpi{};
-            if (SUCCEEDED(libFunc(::GetCurrentProcess(), &dpi)))
-            {
-                return static_cast<DpiAwarenessType>(static_cast<int>(dpi));
-            }
-        }
-        catch (...)
-        {
-        }
-#endif
-        return DpiAwarenessType::ERROR_VALUE;
-    }
-
-    uint32_t GetSystemDPIValue()
+    try
     {
-        ATL::CRegKey reg;
-        if (ERROR_SUCCESS == reg.Open(HKEY_CURRENT_USER, LR"(Control Panel\Desktop\WindowMetrics)"))
-        {
-            DWORD value = 0;
-            if (ERROR_SUCCESS == reg.QueryDWORDValue(L"AppliedDPI", value))
-            {
-                return value;
-            }
-        }
-        return 96;
+        auto libFunc = boost::dll::import<TSetDpiFunc>(
+            L"Shcore.dll", "SetProcessDpiAwareness", boost::dll::load_mode::search_system_folders);
+        return SUCCEEDED(libFunc(static_cast<PROCESS_DPI_AWARENESS>(static_cast<int>(type))));
     }
+    catch (...)
+    {}
+#endif
+    return false;
 }
+
+DpiAwarenessType GetDpiAwareness()
+{
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
+    try
+    {
+        auto libFunc = boost::dll::import<TGetDpiFunc>(
+            L"Shcore.dll", "GetProcessDpiAwareness", boost::dll::load_mode::search_system_folders);
+        PROCESS_DPI_AWARENESS dpi{};
+        if (SUCCEEDED(libFunc(::GetCurrentProcess(), &dpi)))
+        {
+            return static_cast<DpiAwarenessType>(static_cast<int>(dpi));
+        }
+    }
+    catch (...)
+    {}
+#endif
+    return DpiAwarenessType::ERROR_VALUE;
+}
+
+uint32_t GetSystemDPIValue()
+{
+    ATL::CRegKey reg;
+    if (ERROR_SUCCESS == reg.Open(HKEY_CURRENT_USER, LR"(Control Panel\Desktop\WindowMetrics)"))
+    {
+        DWORD value = 0;
+        if (ERROR_SUCCESS == reg.QueryDWORDValue(L"AppliedDPI", value))
+        {
+            return value;
+        }
+    }
+    return 96;
+}
+} // namespace win_dpi
 /////////////////////////////////////////////////////////////////////////////////////
 
 BorderlessWindowHandler::BorderlessWindowHandler()
     : m_bEnableDragChangeSize(false)
 {
-    m_rcDragRegin = CRect( 10, 10, 10, 10);
+    m_rcDragRegin = CRect(10, 10, 10, 10);
 }
 
 void BorderlessWindowHandler::ShowWindowFullScreen()
@@ -133,8 +132,8 @@ bool BorderlessWindowHandler::IsFullScreen()
     CRect rcFullScreen = GetZoomedRect(m_curMsgWindow, true);
     CRect rcWindow;
     m_curMsgWindow.GetWindowRect(&rcWindow);
-    return ((rcFullScreen == rcWindow) && 
-        (m_curMsgWindow.GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_TOPMOST));
+    return ((rcFullScreen == rcWindow) &&
+            (m_curMsgWindow.GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_TOPMOST));
 }
 
 void BorderlessWindowHandler::RestoreFromFullScreen()
@@ -151,7 +150,7 @@ void BorderlessWindowHandler::SetEnableDragChangeSize(bool bEnable)
     m_bEnableDragChangeSize = bEnable;
 }
 
-void BorderlessWindowHandler::SetDragChangeSizeRegion(const CRect & rcRegion)
+void BorderlessWindowHandler::SetDragChangeSizeRegion(const CRect &rcRegion)
 {
     m_rcDragRegin = rcRegion;
 }
@@ -173,8 +172,7 @@ LRESULT BorderlessWindowHandler::OnBorderlessNcCalcSize(BOOL bCalcValidRects, LP
     */
     if (bCalcValidRects)
     {
-        if (m_curMsgWindow.IsZoomed() && 
-            !(m_curMsgWindow.GetWindowLongPtr(GWL_STYLE) & WS_CHILD) && 
+        if (m_curMsgWindow.IsZoomed() && !(m_curMsgWindow.GetWindowLongPtr(GWL_STYLE) & WS_CHILD) &&
             !(m_curMsgWindow.GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_LAYERED))
         {
             //客户区大小修正
@@ -249,9 +247,7 @@ void BorderlessWindowHandler::OnBorderlessGetMinMaxInfo(LPMINMAXINFO lpMMI)
 LRESULT BorderlessWindowHandler::OnBorderlessNcHitTest(CPoint point)
 {
     //该消息用来实现"拖拉改变窗口大小"的功能
-    if (!m_bEnableDragChangeSize ||
-        m_rcDragRegin.IsRectNull() ||
-        m_curMsgWindow.IsZoomed() ||
+    if (!m_bEnableDragChangeSize || m_rcDragRegin.IsRectNull() || m_curMsgWindow.IsZoomed() ||
         IsFullScreen())
     {
         SetMsgHandled(FALSE);
@@ -337,7 +333,7 @@ CRect BorderlessWindowHandler::GetZoomedRect(HWND hWnd, bool bFullScreen /*= fal
     assert(::IsWindow(hWnd));
     HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
     assert(hMonitor);
-    MONITORINFO mInfo{ sizeof(MONITORINFO) };
+    MONITORINFO mInfo{sizeof(MONITORINFO)};
     BOOL isOk = ::GetMonitorInfo(hMonitor, &mInfo);
     assert(isOk);
     UNREFERENCED_PARAMETER(isOk);
@@ -353,9 +349,7 @@ CRect BorderlessWindowHandler::GetZoomedRect(HWND hWnd, bool bFullScreen /*= fal
 
 //------------------------------------------------------------------------------------
 
-MinRestoreHandler::MinRestoreHandler()
-{
-}
+MinRestoreHandler::MinRestoreHandler() {}
 
 void MinRestoreHandler::OnMinRestoreWindowPosChanged(LPWINDOWPOS lpWndPos)
 {
@@ -375,21 +369,15 @@ void MinRestoreHandler::OnMinRestoreWindowPosChanged(LPWINDOWPOS lpWndPos)
 
 //------------------------------------------------------------------------------------
 
-DragFrameHandler::DragFrameHandler()
-{
-}
+DragFrameHandler::DragFrameHandler() {}
 
 LRESULT DragFrameHandler::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     assert(m_curMsgWindow.IsWindow());
-    if ((wParam == (SC_SIZE | WMSZ_TOP)) ||
-        (wParam == (SC_SIZE | WMSZ_LEFT)) ||
-        (wParam == (SC_SIZE | WMSZ_RIGHT)) ||
-        (wParam == (SC_SIZE | WMSZ_BOTTOM)) ||
-        (wParam == (SC_SIZE | WMSZ_TOPLEFT)) ||
-        (wParam == (SC_SIZE | WMSZ_TOPRIGHT)) ||
-        (wParam == (SC_SIZE | WMSZ_BOTTOMLEFT)) ||
-        (wParam == (SC_SIZE | WMSZ_BOTTOMRIGHT)) ||
+    if ((wParam == (SC_SIZE | WMSZ_TOP)) || (wParam == (SC_SIZE | WMSZ_LEFT)) ||
+        (wParam == (SC_SIZE | WMSZ_RIGHT)) || (wParam == (SC_SIZE | WMSZ_BOTTOM)) ||
+        (wParam == (SC_SIZE | WMSZ_TOPLEFT)) || (wParam == (SC_SIZE | WMSZ_TOPRIGHT)) ||
+        (wParam == (SC_SIZE | WMSZ_BOTTOMLEFT)) || (wParam == (SC_SIZE | WMSZ_BOTTOMRIGHT)) ||
         (wParam == (SC_MOVE | HTCAPTION)))
     {
         BOOL bDragFullWindow = FALSE;

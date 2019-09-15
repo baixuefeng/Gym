@@ -6,89 +6,90 @@
 SHARELIB_BEGIN_NAMESPACE
 
 //----把指针或引用统一转化为引用-------------------------------------------------------------------------------
-namespace Internal
+namespace Internal {
+template<class T,
+         bool isPointer = std::is_pointer<typename std::remove_reference<T>::type>::value,
+         bool = std::is_lvalue_reference<T>::value>
+struct ReferenceTypeHelper
 {
-    template<class T, 
-        bool isPointer = std::is_pointer<typename std::remove_reference<T>::type>::value, 
-        bool = std::is_lvalue_reference<T>::value>
-    struct ReferenceTypeHelper
+    enum : bool
     {
-        enum : bool { is_pointer = isPointer };
-        using type = typename std::remove_pointer<typename std::remove_reference<T>::type>::type &;
+        is_pointer = isPointer
     };
+    using type = typename std::remove_pointer<typename std::remove_reference<T>::type>::type &;
+};
 
-    template<class T>
-    struct ReferenceTypeHelper<T, false, false>
+template<class T>
+struct ReferenceTypeHelper<T, false, false>
+{
+    enum : bool
     {
-        enum : bool { is_pointer = false };
-        using type = typename std::remove_pointer<typename std::remove_reference<T>::type>::type &&;
+        is_pointer = false
     };
+    using type = typename std::remove_pointer<typename std::remove_reference<T>::type>::type &&;
+};
 
-    template<class T, bool = ReferenceTypeHelper<T>::is_pointer>
-    struct ToReferenceImpl
+template<class T, bool = ReferenceTypeHelper<T>::is_pointer>
+struct ToReferenceImpl
+{
+    static typename ReferenceTypeHelper<T>::type ToReference(T &&arg)
     {
-        static typename ReferenceTypeHelper<T>::type ToReference(T && arg)
-        {
-            return static_cast<typename ReferenceTypeHelper<T>::type>(*arg);
-        }
-    };
+        return static_cast<typename ReferenceTypeHelper<T>::type>(*arg);
+    }
+};
 
-    template<class T>
-    struct ToReferenceImpl<T, false>
+template<class T>
+struct ToReferenceImpl<T, false>
+{
+    static typename ReferenceTypeHelper<T>::type ToReference(T &&arg)
     {
-        static typename ReferenceTypeHelper<T>::type ToReference(T && arg)
-        {
-            return static_cast<typename ReferenceTypeHelper<T>::type>(arg);
-        }
-    };
-}
+        return static_cast<typename ReferenceTypeHelper<T>::type>(arg);
+    }
+};
+} // namespace Internal
 
 //把指针或引用统一转化为引用
 template<class T>
-typename Internal::ReferenceTypeHelper<T>::type to_reference(T && arg)
+typename Internal::ReferenceTypeHelper<T>::type to_reference(T &&arg)
 {
     return Internal::ToReferenceImpl<T>::ToReference(std::forward<T>(arg));
 }
 
 //----生成参数序列-----------------------------------------------------------------------
 
-template<size_t ... Index>
+template<size_t... Index>
 struct IntegerSequence
 {};
 
-namespace Internal
+namespace Internal {
+template<class T, size_t N>
+struct MakeSequenceHelper;
+
+template<size_t... Index>
+struct MakeSequenceHelper<IntegerSequence<Index...>, 0>
 {
-    template<class T, size_t N>
-    struct MakeSequenceHelper;
+    using type = IntegerSequence<Index...>;
+};
 
-    template<size_t ... Index>
-    struct MakeSequenceHelper<IntegerSequence<Index...>, 0>
-    {
-        using type = IntegerSequence<Index...>;
-    };
-
-    template<size_t ... Index, size_t N>
-    struct MakeSequenceHelper<IntegerSequence<Index...>, N>
-        : public MakeSequenceHelper<IntegerSequence<N - 1, Index...>, N - 1>
-    {};
-}
+template<size_t... Index, size_t N>
+struct MakeSequenceHelper<IntegerSequence<Index...>, N>
+    : public MakeSequenceHelper<IntegerSequence<N - 1, Index...>, N - 1>
+{};
+} // namespace Internal
 
 //根据可变参数生成参数序列,从0开始
 template<size_t N>
-struct MakeSequence
-    : public Internal::MakeSequenceHelper<IntegerSequence<>, N>
-{
-};
+struct MakeSequence : public Internal::MakeSequenceHelper<IntegerSequence<>, N>
+{};
 
 //----判断类是否有成员类型------------------------------------------------------------------------
 
-namespace Internal
+namespace Internal {
+struct WrapInt
 {
-    struct WrapInt
-    {
-        WrapInt(int){};
-    };
-}
+    WrapInt(int){};
+};
+} // namespace Internal
 
 /* 判断类是否有成员
 使用方法: 定义下面的类
@@ -116,56 +117,58 @@ public: \
 */
 
 //是否有成员(类型)
-#define HAS_MEMBER_TYPE_IMPL(memberType) \
-{ \
-private: \
-    template<class T>static auto DeclFunc(int, typename T::memberType * = 0)->std::true_type; \
-    template<class T>static auto DeclFunc(Internal::WrapInt)->std::false_type; \
-public: \
-    enum{ value = decltype(DeclFunc<_ClassType>(0))::value }; \
-};
+#define HAS_MEMBER_TYPE_IMPL(memberType)                                                           \
+    {                                                                                              \
+    private:                                                                                       \
+        template<class T>                                                                          \
+        static auto DeclFunc(int, typename T::memberType * = 0)->std::true_type;                   \
+        template<class T>                                                                          \
+        static auto DeclFunc(Internal::WrapInt)->std::false_type;                                  \
+                                                                                                   \
+    public:                                                                                        \
+        enum                                                                                       \
+        {                                                                                          \
+            value = decltype(DeclFunc<_ClassType>(0))::value                                       \
+        };                                                                                         \
+    };
 
 //----函数类型辅助----------------------------------------------------------------------------
 
-namespace Internal
-{
+namespace Internal {
 
 // 空，用来给宏传递空参数
 #define NON_PARAM
 
 // 下面的宏用来定义函数调用类型
 
-#if defined(_WIN32) && defined(_M_IX86) 
+#if defined(_WIN32) && defined(_M_IX86)
 
-#ifndef     NON_MEMBER_CALL_MACRO
-#define     NON_MEMBER_CALL_MACRO(FUNC) \
-	        FUNC(__cdecl) \
-	        FUNC(__stdcall) \
-	        FUNC(__fastcall)
-#endif      // !NON_MEMBER_CALL_MACRO
+#    ifndef NON_MEMBER_CALL_MACRO
+#        define NON_MEMBER_CALL_MACRO(FUNC)                                                        \
+            FUNC(__cdecl)                                                                          \
+            FUNC(__stdcall)                                                                        \
+            FUNC(__fastcall)
+#    endif // !NON_MEMBER_CALL_MACRO
 
-#ifndef     MEMBER_CALL_MACRO
-#define     MEMBER_CALL_MACRO(FUNC, CV_OPT) \
-	        FUNC(__thiscall, CV_OPT) \
-	        FUNC(__cdecl, CV_OPT) \
-	        FUNC(__stdcall, CV_OPT) \
-	        FUNC(__fastcall, CV_OPT)
-#endif      // !MEMBER_CALL_MACRO
+#    ifndef MEMBER_CALL_MACRO
+#        define MEMBER_CALL_MACRO(FUNC, CV_OPT)                                                    \
+            FUNC(__thiscall, CV_OPT)                                                               \
+            FUNC(__cdecl, CV_OPT)                                                                  \
+            FUNC(__stdcall, CV_OPT)                                                                \
+            FUNC(__fastcall, CV_OPT)
+#    endif // !MEMBER_CALL_MACRO
 
-#else 
+#else
 
-#ifndef     NON_MEMBER_CALL_MACRO
-#define     NON_MEMBER_CALL_MACRO(FUNC) \
-	        FUNC(NON_PARAM)
-#endif      // !NON_MEMBER_CALL_MACRO
+#    ifndef NON_MEMBER_CALL_MACRO
+#        define NON_MEMBER_CALL_MACRO(FUNC) FUNC(NON_PARAM)
+#    endif // !NON_MEMBER_CALL_MACRO
 
-#ifndef     MEMBER_CALL_MACRO
-#define     MEMBER_CALL_MACRO(FUNC, CV_OPT) \
-	        FUNC(NON_PARAM, CV_OPT)
-#endif      // !MEMBER_CALL_MACRO
+#    ifndef MEMBER_CALL_MACRO
+#        define MEMBER_CALL_MACRO(FUNC, CV_OPT) FUNC(NON_PARAM, CV_OPT)
+#    endif // !MEMBER_CALL_MACRO
 
 #endif
-
 
 //下面定义的宏, 用来生成模板特化
 
@@ -174,14 +177,14 @@ namespace Internal
 */
 
 #ifndef MEMBER_CALL_CV_MACRO
-#define MEMBER_CALL_CV_MACRO(FUNC) \
-	MEMBER_CALL_MACRO(FUNC, NON_PARAM) \
-	MEMBER_CALL_MACRO(FUNC, const) \
-	MEMBER_CALL_MACRO(FUNC, volatile) \
-	MEMBER_CALL_MACRO(FUNC, const volatile)
+#    define MEMBER_CALL_CV_MACRO(FUNC)                                                             \
+        MEMBER_CALL_MACRO(FUNC, NON_PARAM)                                                         \
+        MEMBER_CALL_MACRO(FUNC, const)                                                             \
+        MEMBER_CALL_MACRO(FUNC, volatile)                                                          \
+        MEMBER_CALL_MACRO(FUNC, const volatile)
 #endif // !MEMBER_CALL_CV_MACRO
 
-}
+} // namespace Internal
 
 //类型值
 enum class CallType
@@ -201,46 +204,46 @@ arg_index_t, 参数的序列号类型, IntegerSequence<...>
 class_t, (只有成员函数指针和成员指针才定义), 类类型
 call_type, 值,CallType中定义的类型值
  */
-template<class T, bool= std::is_class<T>::value>
+template<class T, bool = std::is_class<T>::value>
 struct CallableTypeHelper;
 
 //函数类型特化
-#define FUNCTION_HELPER(CALL_OPT) \
-template<class _RetType, class... _ArgType> \
-struct CallableTypeHelper<_RetType CALL_OPT (_ArgType...), false> \
-{ \
-    using result_t = _RetType; \
-    using arg_tuple_t = std::tuple<_ArgType...>; \
-    using arg_index_t = typename MakeSequence<sizeof...(_ArgType)>::type; \
-    static const CallType call_type = CallType::FUNCTION; \
-};
+#define FUNCTION_HELPER(CALL_OPT)                                                                  \
+    template<class _RetType, class... _ArgType>                                                    \
+    struct CallableTypeHelper<_RetType CALL_OPT(_ArgType...), false>                               \
+    {                                                                                              \
+        using result_t = _RetType;                                                                 \
+        using arg_tuple_t = std::tuple<_ArgType...>;                                               \
+        using arg_index_t = typename MakeSequence<sizeof...(_ArgType)>::type;                      \
+        static const CallType call_type = CallType::FUNCTION;                                      \
+    };
 NON_MEMBER_CALL_MACRO(FUNCTION_HELPER)
 #undef FUNCTION_HELPER
 
 //函数指针类型特化
-#define POINTER_TO_FUNCTION_HELPER(CALL_OPT) \
-template<class _RetType, class... _ArgType> \
-struct CallableTypeHelper<_RetType(CALL_OPT * )(_ArgType...), false> \
-{ \
-    using result_t = _RetType; \
-    using arg_tuple_t = std::tuple<_ArgType...>; \
-    using arg_index_t = typename MakeSequence<sizeof...(_ArgType)>::type; \
-    static const CallType call_type = CallType::POINTER_TO_FUNCTION; \
-};
+#define POINTER_TO_FUNCTION_HELPER(CALL_OPT)                                                       \
+    template<class _RetType, class... _ArgType>                                                    \
+    struct CallableTypeHelper<_RetType(CALL_OPT *)(_ArgType...), false>                            \
+    {                                                                                              \
+        using result_t = _RetType;                                                                 \
+        using arg_tuple_t = std::tuple<_ArgType...>;                                               \
+        using arg_index_t = typename MakeSequence<sizeof...(_ArgType)>::type;                      \
+        static const CallType call_type = CallType::POINTER_TO_FUNCTION;                           \
+    };
 NON_MEMBER_CALL_MACRO(POINTER_TO_FUNCTION_HELPER)
 #undef POINTER_TO_FUNCTION_HELPER
 
 //成员函数指针类型特化
-#define POINTER_TO_MEMBER_FUNCTION_HELPER(CALL_OPT, CV_OPT) \
-template<class _RetType, class _ClassType, class... _ArgType> \
-struct CallableTypeHelper<_RetType(CALL_OPT _ClassType::* )(_ArgType...) CV_OPT, false> \
-{ \
-    using class_t = _ClassType; \
-    using result_t = _RetType; \
-    using arg_tuple_t = std::tuple<_ArgType...>; \
-    using arg_index_t = typename MakeSequence<sizeof...(_ArgType)>::type; \
-    static const CallType call_type = CallType::POINTER_TO_MEMBER_FUNCTION; \
-};
+#define POINTER_TO_MEMBER_FUNCTION_HELPER(CALL_OPT, CV_OPT)                                        \
+    template<class _RetType, class _ClassType, class... _ArgType>                                  \
+    struct CallableTypeHelper<_RetType (CALL_OPT _ClassType::*)(_ArgType...) CV_OPT, false>        \
+    {                                                                                              \
+        using class_t = _ClassType;                                                                \
+        using result_t = _RetType;                                                                 \
+        using arg_tuple_t = std::tuple<_ArgType...>;                                               \
+        using arg_index_t = typename MakeSequence<sizeof...(_ArgType)>::type;                      \
+        static const CallType call_type = CallType::POINTER_TO_MEMBER_FUNCTION;                    \
+    };
 MEMBER_CALL_CV_MACRO(POINTER_TO_MEMBER_FUNCTION_HELPER)
 #undef POINTER_TO_MEMBER_FUNCTION_HELPER
 

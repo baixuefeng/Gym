@@ -1,13 +1,13 @@
 ﻿#include "targetver.h"
-#include <mutex>
+#include "UI/DirectX/DWriteUtility.h"
 #include <cassert>
-#include <memory>
 #include <cmath>
-#include <atlfile.h>
+#include <memory>
+#include <mutex>
 #include <atlbase.h>
 #include <atlcom.h>
+#include <atlfile.h>
 #include <atltypes.h>
-#include "UI/DirectX/DWriteUtility.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -18,33 +18,30 @@ using TNoLockComObject = ATL::CComObjectNoLock<ImplClass>;
 
 /** 辅助类，内存字体加载器
 */
-class CustomMemoryFontLoader :
-    public IDWriteFontFileLoader,
-    public IDWriteFontFileStream,
-    public ATL::CComObjectRoot
+class CustomMemoryFontLoader
+    : public IDWriteFontFileLoader
+    , public IDWriteFontFileStream
+    , public ATL::CComObjectRoot
 {
     BEGIN_COM_MAP(CustomMemoryFontLoader)
-        COM_INTERFACE_ENTRY(IDWriteFontFileLoader)
-        COM_INTERFACE_ENTRY(IDWriteFontFileStream)
+    COM_INTERFACE_ENTRY(IDWriteFontFileLoader)
+    COM_INTERFACE_ENTRY(IDWriteFontFileStream)
     END_COM_MAP()
 
 public:
-    CustomMemoryFontLoader() :
-        m_pRes(nullptr),
-        m_nResSize(0)
-    {
-    }
+    CustomMemoryFontLoader()
+        : m_pRes(nullptr)
+        , m_nResSize(0)
+    {}
 
-    ~CustomMemoryFontLoader()
-    {
-    }
+    ~CustomMemoryFontLoader() {}
 
     /** 初始化加载器
     @param[in] pRes 内存字体指针
     @param[in] nSize 内存大小
     @return 初始化是否成功
     */
-    bool Initialize(const void * pRes, uint32_t nSize)
+    bool Initialize(const void *pRes, uint32_t nSize)
     {
         if (!pRes || (nSize == 0))
         {
@@ -56,32 +53,31 @@ public:
     }
 
 public:
-//----IDWriteFontFileLoader--------------------------------------------
+    //----IDWriteFontFileLoader--------------------------------------------
 
-    STDMETHOD(CreateStreamFromKey)(
-        void const* /*fontFileReferenceKey*/,
-        UINT32 /*fontFileReferenceKeySize*/,
-        _COM_Outptr_ IDWriteFontFileStream** fontFileStream)
+    STDMETHOD(CreateStreamFromKey)
+    (void const * /*fontFileReferenceKey*/,
+     UINT32 /*fontFileReferenceKeySize*/,
+     _COM_Outptr_ IDWriteFontFileStream **fontFileStream)
     {
-        if (SUCCEEDED(QueryInterface(__uuidof(IDWriteFontFileStream), (void**)fontFileStream)))
+        if (SUCCEEDED(QueryInterface(__uuidof(IDWriteFontFileStream), (void **)fontFileStream)))
         {
             return S_OK;
         }
         return E_FAIL;
     }
 
-//----IDWriteFontFileStream-------------------------------------------
+    //----IDWriteFontFileStream-------------------------------------------
 
-    STDMETHOD(ReadFileFragment)(
-        _Outptr_result_bytebuffer_(fragmentSize) void const** fragmentStart,
-        UINT64 fileOffset,
-        UINT64 fragmentSize,
-        _Out_ void** fragmentContext)
+    STDMETHOD(ReadFileFragment)
+    (_Outptr_result_bytebuffer_(fragmentSize) void const **fragmentStart,
+     UINT64 fileOffset,
+     UINT64 fragmentSize,
+     _Out_ void **fragmentContext)
     {
-        if ((fileOffset <= m_nResSize) &&
-            (fragmentSize <= m_nResSize - fileOffset))
+        if ((fileOffset <= m_nResSize) && (fragmentSize <= m_nResSize - fileOffset))
         {
-            *fragmentStart = static_cast<uint8_t const*>(m_pRes) + fileOffset;
+            *fragmentStart = static_cast<uint8_t const *>(m_pRes) + fileOffset;
             *fragmentContext = NULL;
             return S_OK;
         }
@@ -93,11 +89,9 @@ public:
         }
     }
 
-    STDMETHOD_(void, ReleaseFileFragment)(void* /*fragmentContext*/)
-    {
-    }
+    STDMETHOD_(void, ReleaseFileFragment)(void * /*fragmentContext*/) {}
 
-    STDMETHOD(GetFileSize)(_Out_ UINT64* fileSize)
+    STDMETHOD(GetFileSize)(_Out_ UINT64 *fileSize)
     {
         if (fileSize)
         {
@@ -107,7 +101,7 @@ public:
         return E_INVALIDARG;
     }
 
-    STDMETHOD(GetLastWriteTime)(_Out_ UINT64* lastWriteTime)
+    STDMETHOD(GetLastWriteTime)(_Out_ UINT64 *lastWriteTime)
     {
         if (lastWriteTime)
         {
@@ -117,30 +111,30 @@ public:
     }
 
 private:
-    const void * m_pRes;
+    const void *m_pRes;
     uint32_t m_nResSize;
 };
 
 //-----------------------------------------------------------------------------------
 
-class CustomCollectionLoader :
-    public IDWriteFontCollectionLoader,
-    public IDWriteFontFileEnumerator,
-    public ATL::CComObjectRoot
+class CustomCollectionLoader
+    : public IDWriteFontCollectionLoader
+    , public IDWriteFontFileEnumerator
+    , public ATL::CComObjectRoot
 {
     BEGIN_COM_MAP(CustomCollectionLoader)
-        COM_INTERFACE_ENTRY(IDWriteFontCollectionLoader)
-        COM_INTERFACE_ENTRY(IDWriteFontFileEnumerator)
+    COM_INTERFACE_ENTRY(IDWriteFontCollectionLoader)
+    COM_INTERFACE_ENTRY(IDWriteFontFileEnumerator)
     END_COM_MAP()
 
 public:
     struct FontMemInfo
     {
-        const void * m_pRes = nullptr; //内存指针
-        uint32_t m_nSize = 0;          //内存大小
+        const void *m_pRes = nullptr; //内存指针
+        uint32_t m_nSize = 0;         //内存大小
     };
 
-    static bool GetResInfo(const TFontResInfo & info, FontMemInfo & fontMem)
+    static bool GetResInfo(const TFontResInfo &info, FontMemInfo &fontMem)
     {
         if ((info.m_nResID == 0) || (info.m_pResType == nullptr))
         {
@@ -165,16 +159,14 @@ public:
         return false;
     }
 
-    CustomCollectionLoader() :
-        m_bLoadFromFile(false),
-        m_nIndex(0)
+    CustomCollectionLoader()
+        : m_bLoadFromFile(false)
+        , m_nIndex(0)
     {}
 
-    ~CustomCollectionLoader()
-    {
-    }
+    ~CustomCollectionLoader() {}
 
-    bool Initialize(IDWriteFactory * pFactory, const std::vector<TFontResInfo> & fontInfo)
+    bool Initialize(IDWriteFactory *pFactory, const std::vector<TFontResInfo> &fontInfo)
     {
         if (pFactory == nullptr)
         {
@@ -182,7 +174,7 @@ public:
         }
         std::vector<FontMemInfo> fontMemArray;
         fontMemArray.reserve(fontInfo.size());
-        for (auto & info : fontInfo)
+        for (auto &info : fontInfo)
         {
             FontMemInfo fontMem;
             if (GetResInfo(info, fontMem))
@@ -202,7 +194,7 @@ public:
         return true;
     }
 
-    bool Initialize(IDWriteFactory * pFactory, const std::vector<std::wstring> & fontInfo)
+    bool Initialize(IDWriteFactory *pFactory, const std::vector<std::wstring> &fontInfo)
     {
         if (pFactory == nullptr)
         {
@@ -210,7 +202,7 @@ public:
         }
         ATL::CAtlFile file;
         HRESULT hr = E_FAIL;
-        for (auto & info : fontInfo)
+        for (auto &info : fontInfo)
         {
             hr = file.Create(info.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
             if (FAILED(hr))
@@ -229,24 +221,21 @@ public:
     }
 
 public:
+    //----IDWriteFontCollectionLoader----------------------------------------------
 
-//----IDWriteFontCollectionLoader----------------------------------------------
-
-    STDMETHOD(CreateEnumeratorFromKey)(
-        IDWriteFactory* /*factory*/,
-        void const* /*collectionKey*/,
-        UINT32 /*collectionKeySize*/,
-        _COM_Outptr_ IDWriteFontFileEnumerator** fontFileEnumerator
-        )
+    STDMETHOD(CreateEnumeratorFromKey)
+    (IDWriteFactory * /*factory*/,
+     void const * /*collectionKey*/,
+     UINT32 /*collectionKeySize*/,
+     _COM_Outptr_ IDWriteFontFileEnumerator **fontFileEnumerator)
     {
         if (!fontFileEnumerator)
         {
             return E_INVALIDARG;
         }
         *fontFileEnumerator = nullptr;
-        HRESULT hr = QueryInterface(
-            __uuidof(IDWriteFontFileEnumerator),
-            (void**)fontFileEnumerator);
+        HRESULT hr = QueryInterface(__uuidof(IDWriteFontFileEnumerator),
+                                    (void **)fontFileEnumerator);
         if (SUCCEEDED(hr))
         {
             return S_OK;
@@ -255,9 +244,9 @@ public:
         return E_FAIL;
     }
 
-//----IDWriteFontFileEnumerator-------------------------------------------------------------
+    //----IDWriteFontFileEnumerator-------------------------------------------------------------
 
-    STDMETHOD(MoveNext)(_Out_ BOOL* hasCurrentFile)
+    STDMETHOD(MoveNext)(_Out_ BOOL *hasCurrentFile)
     {
         if (hasCurrentFile)
         {
@@ -275,7 +264,7 @@ public:
         return S_OK;
     }
 
-    STDMETHOD(GetCurrentFontFile)(_COM_Outptr_ IDWriteFontFile** fontFile)
+    STDMETHOD(GetCurrentFontFile)(_COM_Outptr_ IDWriteFontFile **fontFile)
     {
         if (!fontFile)
         {
@@ -295,9 +284,7 @@ public:
                 return E_INVALIDARG;
             }
             hr = m_spDWFactory->CreateFontFileReference(
-                m_fontPathArray[m_nIndex - 1].c_str(),
-                nullptr,
-                fontFile);
+                m_fontPathArray[m_nIndex - 1].c_str(), nullptr, fontFile);
             return hr;
         }
         else
@@ -307,16 +294,15 @@ public:
                 return E_INVALIDARG;
             }
             auto pImpl = new TNoLockComObject<CustomMemoryFontLoader>;
-            if (!pImpl->Initialize(
-                m_fontMemArray[m_nIndex - 1].m_pRes,
-                m_fontMemArray[m_nIndex - 1].m_nSize))
+            if (!pImpl->Initialize(m_fontMemArray[m_nIndex - 1].m_pRes,
+                                   m_fontMemArray[m_nIndex - 1].m_nSize))
             {
                 delete pImpl;
                 assert(!"bug");
                 return E_NOTIMPL;
             }
             ATL::CComPtr<IDWriteFontFileLoader> spFontFileLoader;
-            hr = pImpl->QueryInterface(__uuidof(IDWriteFontFileLoader), (void**)&spFontFileLoader);
+            hr = pImpl->QueryInterface(__uuidof(IDWriteFontFileLoader), (void **)&spFontFileLoader);
             if (FAILED(hr))
             {
                 delete pImpl;
@@ -329,11 +315,10 @@ public:
             {
                 return E_INVALIDARG;
             }
-            hr = m_spDWFactory->CreateCustomFontFileReference(
-                GetResInfo,//该参数不使用
-                sizeof(&GetResInfo),//该参数不使用
-                spFontFileLoader,
-                fontFile);
+            hr = m_spDWFactory->CreateCustomFontFileReference(GetResInfo, //该参数不使用
+                                                              sizeof(&GetResInfo), //该参数不使用
+                                                              spFontFileLoader,
+                                                              fontFile);
             return hr;
         }
     }
@@ -352,25 +337,23 @@ private:
 static std::once_flag g_gammaInitFlags;
 static uint8_t g_gammaCorrection[256];
 
-class DWriteUtility::DWriteCustomRender :
-    public IDWriteTextRenderer,
-    public ATL::CComObjectRoot
+class DWriteUtility::DWriteCustomRender
+    : public IDWriteTextRenderer
+    , public ATL::CComObjectRoot
 {
     BEGIN_COM_MAP(DWriteCustomRender)
-        COM_INTERFACE_ENTRY(IDWritePixelSnapping)
-        COM_INTERFACE_ENTRY(IDWriteTextRenderer)
+    COM_INTERFACE_ENTRY(IDWritePixelSnapping)
+    COM_INTERFACE_ENTRY(IDWriteTextRenderer)
     END_COM_MAP()
 
 public:
     DWriteCustomRender()
     {
-        std::call_once(
-            g_gammaInitFlags,
-            []()
-        {
+        std::call_once(g_gammaInitFlags, []() {
             for (int i = 0; i < _countof(g_gammaCorrection); ++i)
             {
-                g_gammaCorrection[i] = (uint8_t)std::round(std::pow((double)i / 255.0, 0.483) * 255.0);
+                g_gammaCorrection[i] = (uint8_t)std::round(std::pow((double)i / 255.0, 0.483) *
+                                                           255.0);
             }
         });
     }
@@ -400,10 +383,8 @@ public:
     /// <returns>
     /// Standard HRESULT error code.
     /// </returns>
-    STDMETHOD(IsPixelSnappingDisabled)(
-        __maybenull void* clientDrawingContext,
-        __out BOOL* isDisabled
-        )
+    STDMETHOD(IsPixelSnappingDisabled)
+    (__maybenull void *clientDrawingContext, __out BOOL *isDisabled)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         if (isDisabled)
@@ -422,10 +403,8 @@ public:
     /// <returns>
     /// Standard HRESULT error code.
     /// </returns>
-    STDMETHOD(GetCurrentTransform)(
-        __maybenull void* clientDrawingContext,
-        __out DWRITE_MATRIX* transform
-        )
+    STDMETHOD(GetCurrentTransform)
+    (__maybenull void *clientDrawingContext, __out DWRITE_MATRIX *transform)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         if (transform)
@@ -449,10 +428,7 @@ public:
     /// <returns>
     /// Standard HRESULT error code.
     /// </returns>
-    STDMETHOD(GetPixelsPerDip)(
-        __maybenull void* clientDrawingContext,
-        __out FLOAT* pixelsPerDip
-        )
+    STDMETHOD(GetPixelsPerDip)(__maybenull void *clientDrawingContext, __out FLOAT *pixelsPerDip)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         if (pixelsPerDip)
@@ -466,7 +442,7 @@ public:
     /// IDWriteTextLayout::Draw calls this function to instruct the client to
     /// render a run of glyphs.
     /// </summary>
-    /// <param name="clientDrawingContext">The context passed to 
+    /// <param name="clientDrawingContext">The context passed to
     /// IDWriteTextLayout::Draw.</param>
     /// <param name="baselineOriginX">X-coordinate of the baseline.</param>
     /// <param name="baselineOriginY">Y-coordinate of the baseline.</param>
@@ -478,22 +454,21 @@ public:
     /// DWRITE_RENDERING_MODE_CLEARTYPE_GDI_NATURAL for DWRITE_MEASURING_MODE_GDI_NATURAL
     /// </param>
     /// <param name="glyphRun">The glyph run to draw.</param>
-    /// <param name="glyphRunDescription">Properties of the characters 
+    /// <param name="glyphRunDescription">Properties of the characters
     /// associated with this run.</param>
     /// <param name="clientDrawingEffect">The drawing effect set in
     /// IDWriteTextLayout::SetDrawingEffect.</param>
     /// <returns>
     /// Standard HRESULT error code.
     /// </returns>
-    STDMETHOD(DrawGlyphRun)(
-        __maybenull void* clientDrawingContext,
-        FLOAT baselineOriginX,
-        FLOAT baselineOriginY,
-        DWRITE_MEASURING_MODE measuringMode,
-        __in DWRITE_GLYPH_RUN const* glyphRun,
-        __in DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
-        __maybenull IUnknown* clientDrawingEffect
-        )
+    STDMETHOD(DrawGlyphRun)
+    (__maybenull void *clientDrawingContext,
+     FLOAT baselineOriginX,
+     FLOAT baselineOriginY,
+     DWRITE_MEASURING_MODE measuringMode,
+     __in DWRITE_GLYPH_RUN const *glyphRun,
+     __in DWRITE_GLYPH_RUN_DESCRIPTION const *glyphRunDescription,
+     __maybenull IUnknown *clientDrawingEffect)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         UNREFERENCED_PARAMETER(clientDrawingContext);
@@ -515,7 +490,7 @@ public:
         {
             return hr;
         }
-        RECT rcBounds{ 0, 0, m_szBitmap.cx, m_szBitmap.cy };
+        RECT rcBounds{0, 0, m_szBitmap.cx, m_szBitmap.cy};
         hr = spGlyphRunAnalysis->CreateAlphaTexture(
             DWRITE_TEXTURE_TYPE::DWRITE_TEXTURE_CLEARTYPE_3x1,
             &rcBounds,
@@ -527,8 +502,7 @@ public:
             return hr;
         }
         hr = spGlyphRunAnalysis->GetAlphaTextureBounds(
-            DWRITE_TEXTURE_TYPE::DWRITE_TEXTURE_CLEARTYPE_3x1, 
-            &rcBounds);
+            DWRITE_TEXTURE_TYPE::DWRITE_TEXTURE_CLEARTYPE_3x1, &rcBounds);
         assert(SUCCEEDED(hr));
         if (FAILED(hr))
         {
@@ -564,7 +538,7 @@ public:
     /// IDWriteTextLayout::Draw calls this function to instruct the client to draw
     /// an underline.
     /// </summary>
-    /// <param name="clientDrawingContext">The context passed to 
+    /// <param name="clientDrawingContext">The context passed to
     /// IDWriteTextLayout::Draw.</param>
     /// <param name="baselineOriginX">X-coordinate of the baseline.</param>
     /// <param name="baselineOriginY">Y-coordinate of the baseline.</param>
@@ -587,13 +561,12 @@ public:
     /// stamped alpha blend. To avoid alpha overlap, round the end points
     /// to the nearest device pixel.
     /// </remarks>
-    STDMETHOD(DrawUnderline)(
-        __maybenull void* clientDrawingContext,
-        FLOAT baselineOriginX,
-        FLOAT baselineOriginY,
-        __in DWRITE_UNDERLINE const* underline,
-        __maybenull IUnknown* clientDrawingEffect
-        )
+    STDMETHOD(DrawUnderline)
+    (__maybenull void *clientDrawingContext,
+     FLOAT baselineOriginX,
+     FLOAT baselineOriginY,
+     __in DWRITE_UNDERLINE const *underline,
+     __maybenull IUnknown *clientDrawingEffect)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         UNREFERENCED_PARAMETER(baselineOriginX);
@@ -607,7 +580,7 @@ public:
     /// IDWriteTextLayout::Draw calls this function to instruct the client to draw
     /// a strikethrough.
     /// </summary>
-    /// <param name="clientDrawingContext">The context passed to 
+    /// <param name="clientDrawingContext">The context passed to
     /// IDWriteTextLayout::Draw.</param>
     /// <param name="baselineOriginX">X-coordinate of the baseline.</param>
     /// <param name="baselineOriginY">Y-coordinate of the baseline.</param>
@@ -626,13 +599,12 @@ public:
     /// Like underlines, the x coordinate will always be passed as the left side,
     /// regardless of text directionality.
     /// </remarks>
-    STDMETHOD(DrawStrikethrough)(
-        __maybenull void* clientDrawingContext,
-        FLOAT baselineOriginX,
-        FLOAT baselineOriginY,
-        __in DWRITE_STRIKETHROUGH const* strikethrough,
-        __maybenull IUnknown* clientDrawingEffect
-        )
+    STDMETHOD(DrawStrikethrough)
+    (__maybenull void *clientDrawingContext,
+     FLOAT baselineOriginX,
+     FLOAT baselineOriginY,
+     __in DWRITE_STRIKETHROUGH const *strikethrough,
+     __maybenull IUnknown *clientDrawingEffect)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         UNREFERENCED_PARAMETER(baselineOriginX);
@@ -662,15 +634,14 @@ public:
     /// strange for the image to be shown normally (like an arrow pointing to
     /// right to indicate a submenu).
     /// </remarks>
-    STDMETHOD(DrawInlineObject)(
-        __maybenull void* clientDrawingContext,
-        FLOAT originX,
-        FLOAT originY,
-        IDWriteInlineObject* inlineObject,
-        BOOL isSideways,
-        BOOL isRightToLeft,
-        __maybenull IUnknown* clientDrawingEffect
-        )
+    STDMETHOD(DrawInlineObject)
+    (__maybenull void *clientDrawingContext,
+     FLOAT originX,
+     FLOAT originY,
+     IDWriteInlineObject *inlineObject,
+     BOOL isSideways,
+     BOOL isRightToLeft,
+     __maybenull IUnknown *clientDrawingEffect)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
         UNREFERENCED_PARAMETER(originX);
@@ -702,8 +673,7 @@ public:
 
 DWriteUtility::DWriteUtility()
     : m_pDWriteCustomRender(nullptr)
-{
-}
+{}
 
 DWriteUtility::~DWriteUtility()
 {
@@ -716,23 +686,19 @@ DWriteUtility::~DWriteUtility()
 
 bool DWriteUtility::CreateDWriteFactory()
 {
-    using TDWriteCreateFunc = HRESULT(WINAPI*)(
-        _In_ DWRITE_FACTORY_TYPE factoryType,
-        _In_ REFIID iid,
-        _COM_Outptr_ IUnknown **factory);
+    using TDWriteCreateFunc = HRESULT(WINAPI *)(
+        _In_ DWRITE_FACTORY_TYPE factoryType, _In_ REFIID iid, _COM_Outptr_ IUnknown * *factory);
 
     static TDWriteCreateFunc s_dWriteCreateFunc = nullptr;
     static std::once_flag s_d2dInitFlags;
     if (!s_dWriteCreateFunc)
     {
-        std::call_once(
-            s_d2dInitFlags,
-            [this]()
-        {
+        std::call_once(s_d2dInitFlags, [this]() {
             HMODULE hDWrite = ::LoadLibrary(L"dwrite.dll");
             if (hDWrite)
             {
-                s_dWriteCreateFunc = (TDWriteCreateFunc)::GetProcAddress(hDWrite, "DWriteCreateFactory");
+                s_dWriteCreateFunc = (TDWriteCreateFunc)::GetProcAddress(hDWrite,
+                                                                         "DWriteCreateFactory");
             }
         });
         if (!s_dWriteCreateFunc)
@@ -743,10 +709,9 @@ bool DWriteUtility::CreateDWriteFactory()
 
     if (!m_spDWriteFactory)
     {
-        HRESULT hr = s_dWriteCreateFunc(
-            DWRITE_FACTORY_TYPE::DWRITE_FACTORY_TYPE_SHARED,
-            __uuidof(IDWriteFactory),
-            (IUnknown**)&m_spDWriteFactory);
+        HRESULT hr = s_dWriteCreateFunc(DWRITE_FACTORY_TYPE::DWRITE_FACTORY_TYPE_SHARED,
+                                        __uuidof(IDWriteFactory),
+                                        (IUnknown **)&m_spDWriteFactory);
         assert(SUCCEEDED(hr));
         if (!m_spDWriteFactory || FAILED(hr))
         {
@@ -756,9 +721,8 @@ bool DWriteUtility::CreateDWriteFactory()
     return true;
 }
 
-HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
-    const std::vector<TFontResInfo> & fontInfo,
-    IDWriteFontCollection ** ppCustomCollection)
+HRESULT DWriteUtility::CreateCustomDWriteFontCollection(const std::vector<TFontResInfo> &fontInfo,
+                                                        IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
     if (!m_spDWriteFactory || !ppCustomCollection)
@@ -772,9 +736,8 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
         return E_INVALIDARG;
     }
     ATL::CComPtr<IDWriteFontCollectionLoader> spCollectionLoader;
-    HRESULT hr = pImpl->QueryInterface(
-        __uuidof(IDWriteFontCollectionLoader),
-        (void**)&spCollectionLoader);
+    HRESULT hr = pImpl->QueryInterface(__uuidof(IDWriteFontCollectionLoader),
+                                       (void **)&spCollectionLoader);
     if (FAILED(hr))
     {
         delete pImpl;
@@ -785,14 +748,15 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
 
 HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
     std::initializer_list<TFontResInfo> fontList,
-    IDWriteFontCollection ** ppCustomCollection)
+    IDWriteFontCollection **ppCustomCollection)
 {
-    return CreateCustomDWriteFontCollection(std::vector<TFontResInfo>(fontList), ppCustomCollection);
+    return CreateCustomDWriteFontCollection(std::vector<TFontResInfo>(fontList),
+                                            ppCustomCollection);
 }
 
 HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
-    const std::vector<std::wstring> & fontPath, /*字体文件路径 */
-    IDWriteFontCollection ** ppCustomCollection)
+    const std::vector<std::wstring> &fontPath, /*字体文件路径 */
+    IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
     if (!m_spDWriteFactory || !ppCustomCollection)
@@ -806,9 +770,8 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
         return E_INVALIDARG;
     }
     ATL::CComPtr<IDWriteFontCollectionLoader> spCollectionLoader;
-    HRESULT hr = pImpl->QueryInterface(
-        __uuidof(IDWriteFontCollectionLoader),
-        (void**)&spCollectionLoader);
+    HRESULT hr = pImpl->QueryInterface(__uuidof(IDWriteFontCollectionLoader),
+                                       (void **)&spCollectionLoader);
     if (FAILED(hr))
     {
         delete pImpl;
@@ -819,20 +782,20 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
 
 HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
     std::initializer_list<const wchar_t *> fontList, /*字体文件路径 */
-    IDWriteFontCollection ** ppCustomCollection)
+    IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
     if (!m_spDWriteFactory || !ppCustomCollection)
     {
         return E_INVALIDARG;
     }
-    std::vector<std::wstring> fontPath{ fontList.begin(), fontList.end() };
+    std::vector<std::wstring> fontPath{fontList.begin(), fontList.end()};
     return CreateCustomDWriteFontCollection(fontPath, ppCustomCollection);
 }
 
 HRESULT DWriteUtility::CreateCustomDWriteFontCollectionImpl(
     ATL::CComPtr<IDWriteFontCollectionLoader> spCollectionLoader,
-    IDWriteFontCollection ** ppCustomCollection)
+    IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
     if (!m_spDWriteFactory || !spCollectionLoader || !ppCustomCollection)
@@ -845,16 +808,16 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollectionImpl(
     {
         return hr;
     }
-    hr = m_spDWriteFactory->CreateCustomFontCollection(
-        spCollectionLoader,
-        &hr,//该参数不使用
-        sizeof(hr),//该参数不使用
-        ppCustomCollection);
+    hr = m_spDWriteFactory->CreateCustomFontCollection(spCollectionLoader,
+                                                       &hr,        //该参数不使用
+                                                       sizeof(hr), //该参数不使用
+                                                       ppCustomCollection);
     hr = m_spDWriteFactory->UnregisterFontCollectionLoader(spCollectionLoader);
     return hr;
 }
 
-ATL::CComPtr<IDWriteTextFormat> DWriteUtility::CreateTextFormat(const TDWriteTextAttributes & textAttr)
+ATL::CComPtr<IDWriteTextFormat> DWriteUtility::CreateTextFormat(
+    const TDWriteTextAttributes &textAttr)
 {
     assert(m_spDWriteFactory);
     if (!m_spDWriteFactory)
@@ -862,15 +825,14 @@ ATL::CComPtr<IDWriteTextFormat> DWriteUtility::CreateTextFormat(const TDWriteTex
         return nullptr;
     }
     ATL::CComPtr<IDWriteTextFormat> spTextFormat;
-    HRESULT hr = m_spDWriteFactory->CreateTextFormat(
-        textAttr.m_pFontName,
-        textAttr.m_pFontCollection,
-        textAttr.m_fontWeight,
-        textAttr.m_fontStyle,
-        textAttr.m_fontStretch,
-        textAttr.m_fontSize,
-        textAttr.m_pLocalName,
-        &spTextFormat);
+    HRESULT hr = m_spDWriteFactory->CreateTextFormat(textAttr.m_pFontName,
+                                                     textAttr.m_pFontCollection,
+                                                     textAttr.m_fontWeight,
+                                                     textAttr.m_fontStyle,
+                                                     textAttr.m_fontStretch,
+                                                     textAttr.m_fontSize,
+                                                     textAttr.m_pLocalName,
+                                                     &spTextFormat);
     if (SUCCEEDED(hr))
     {
         spTextFormat->SetTextAlignment(textAttr.m_textAlignment);
@@ -882,12 +844,11 @@ ATL::CComPtr<IDWriteTextFormat> DWriteUtility::CreateTextFormat(const TDWriteTex
     return nullptr;
 }
 
-uint8_t * DWriteUtility::DrawToBitmap(
-    IDWriteTextLayout* pLayout, 
-    SIZE szBitmap, 
-    const DWRITE_MATRIX& transformMx, 
-    POINT pt, 
-    COLOR32 textColor)
+uint8_t *DWriteUtility::DrawToBitmap(IDWriteTextLayout *pLayout,
+                                     SIZE szBitmap,
+                                     const DWRITE_MATRIX &transformMx,
+                                     POINT pt,
+                                     COLOR32 textColor)
 {
     if (!pLayout || (szBitmap.cx == 0) || (szBitmap.cy == 0))
     {
@@ -911,7 +872,8 @@ uint8_t * DWriteUtility::DrawToBitmap(
     return m_pDWriteCustomRender->m_spBitmap.get();
 }
 
-ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(ATL::CComPtr<IDWriteTextFormat> spTextFormat)
+ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(
+    ATL::CComPtr<IDWriteTextFormat> spTextFormat)
 {
     if (!spTextFormat)
     {
@@ -923,7 +885,7 @@ ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(ATL::CComPtr<IDWr
     {
         return nullptr;
     }
-    uint32_t nLength = spTextFormat->GetFontFamilyNameLength();//不包含L'\0'
+    uint32_t nLength = spTextFormat->GetFontFamilyNameLength(); //不包含L'\0'
     ++nLength;
     std::unique_ptr<wchar_t[]> spFontName(new wchar_t[nLength]{});
     hr = spTextFormat->GetFontFamilyName(spFontName.get(), nLength);
@@ -947,11 +909,10 @@ ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(ATL::CComPtr<IDWr
     }
 
     ATL::CComPtr<IDWriteFont> spFont;
-    hr = spFontFamily->GetFirstMatchingFont(
-        spTextFormat->GetFontWeight(),
-        spTextFormat->GetFontStretch(),
-        spTextFormat->GetFontStyle(),
-        &spFont);
+    hr = spFontFamily->GetFirstMatchingFont(spTextFormat->GetFontWeight(),
+                                            spTextFormat->GetFontStretch(),
+                                            spTextFormat->GetFontStyle(),
+                                            &spFont);
     if (FAILED(hr))
     {
         return nullptr;

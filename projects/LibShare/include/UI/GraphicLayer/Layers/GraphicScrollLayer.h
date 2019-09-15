@@ -4,8 +4,7 @@
 
 SHARELIB_BEGIN_NAMESPACE
 
-class GraphicScrollLayer
-    : public GraphicLayer
+class GraphicScrollLayer : public GraphicLayer
 {
     DECLARE_RUNTIME_DYNAMIC_CREATE(GraphicScrollLayer, L"scroll")
 
@@ -23,7 +22,11 @@ public:
 protected:
     /** 复用系统消息WM_MOUSEFIRST~WM_MOUSELAST,各参数含义不作任何改变,但坐标已经转换为相对pLayer自身的坐标
     */
-    virtual bool OnLayerMsgMouse(GraphicLayer * pLayer, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & lResult);
+    virtual bool OnLayerMsgMouse(GraphicLayer *pLayer,
+                                 UINT uMsg,
+                                 WPARAM wParam,
+                                 LPARAM lParam,
+                                 LRESULT &lResult);
 
 private:
     bool m_bUseSysSetting;

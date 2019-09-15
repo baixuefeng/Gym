@@ -1,11 +1,11 @@
 ﻿#pragma once
+#include <cstdint>
+#include <string>
+#include <vector>
 #include "GL/glew.h"
 #include "GL/wglew.h"
 #include "MacroDefBase.h"
 #include "glEnumerations.h"
-#include <vector>
-#include <string>
-#include <cstdint>
 
 //----Opengl绘制过程----------------------
 /* 1.每个窗口一个glWindowContext，InitOpenglWindow初始化，只做一次；
@@ -21,45 +21,46 @@ SHARELIB_BEGIN_NAMESPACE
 
 struct glhGuardAttrib
 {
-	explicit glhGuardAttrib(GLbitfield mask = ~0){ ::glPushAttrib(mask); }
-	~glhGuardAttrib(){ ::glPopAttrib(); }
+    explicit glhGuardAttrib(GLbitfield mask = ~0) { ::glPushAttrib(mask); }
+    ~glhGuardAttrib() { ::glPopAttrib(); }
 };
 
 struct glhGuardMatrix
 {
-    glhGuardMatrix(){ ::glPushMatrix(); }
-    ~glhGuardMatrix(){ ::glPopMatrix(); }
+    glhGuardMatrix() { ::glPushMatrix(); }
+    ~glhGuardMatrix() { ::glPopMatrix(); }
 };
 
 //-------------------------------------------------------------------
 //rendering DC 管理类
-class glhWindowContext 
+class glhWindowContext
 {
     SHARELIB_DISABLE_COPY_CLASS(glhWindowContext);
+
 public:
-	glhWindowContext();
-	~glhWindowContext();
-	bool InitOpenglWindow(HWND hWnd);
+    glhWindowContext();
+    ~glhWindowContext();
+    bool InitOpenglWindow(HWND hWnd);
 
     //获取模板缓存位宽
     uint8_t GetStencilBufferBit();
     uint8_t GetDepthBufferBit();
 
-	//这两个是线程安全的。必须配对使用
-	bool InitThreadRC();
-	bool UseDebugRC();
-	bool IsValid() const;
-	void ClearThreadRC();
+    //这两个是线程安全的。必须配对使用
+    bool InitThreadRC();
+    bool UseDebugRC();
+    bool IsValid() const;
+    void ClearThreadRC();
 
-	//等所有线程都绘制完成后，在InitOpenglWindow的线程里调用
-	bool SwapBuffers();
+    //等所有线程都绘制完成后，在InitOpenglWindow的线程里调用
+    bool SwapBuffers();
 
 private:
-	void Destroy();
+    void Destroy();
     bool ConfigRC();
-	
-	HWND m_hWnd;
-	HDC m_hDc;
+
+    HWND m_hWnd;
+    HDC m_hDc;
 };
 
 //-------------------------------------------------------------------
@@ -67,6 +68,7 @@ private:
 class glhVertextArrayMgr
 {
     SHARELIB_DISABLE_COPY_CLASS(glhVertextArrayMgr);
+
 public:
     glhVertextArrayMgr();
     ~glhVertextArrayMgr();
@@ -84,6 +86,7 @@ private:
 class glhBufferMgr
 {
     SHARELIB_DISABLE_COPY_CLASS(glhBufferMgr);
+
 public:
     glhBufferMgr();
     ~glhBufferMgr();
@@ -147,18 +150,22 @@ public:
     @param[in] writeOffset 写入偏移
     @param[in] size 大小
     */
-    bool CopyBufferSubData(BufferTarget readTarget, BufferTarget writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+    bool CopyBufferSubData(BufferTarget readTarget,
+                           BufferTarget writeTarget,
+                           GLintptr readOffset,
+                           GLintptr writeOffset,
+                           GLsizeiptr size);
 
     /** 映射buffer到内存
     @param[in] offset 偏移
     @param[in] length 长度
     @param[in] access 权限
     */
-    void * MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAccessBit access);
+    void *MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAccessBit access);
 
     /** 与MapBufferRange类似，映射整个buffer。SHADER_STORAGE_BUFFER类型的buffer不适用。
     */
-    void * MapBuffer(BufferAccessBit access);
+    void *MapBuffer(BufferAccessBit access);
 
     /** 刷新映射的buffer区域
     @param[in] target 目标
@@ -192,6 +199,7 @@ private:
 class glhTextureMgr
 {
     SHARELIB_DISABLE_COPY_CLASS(glhTextureMgr);
+
 public:
     glhTextureMgr();
     ~glhTextureMgr();
@@ -226,16 +234,38 @@ public:
     */
     bool TexStorage1D(GLsizei levels, TextureFormat format, GLsizei width);
     bool TexStorage2D(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height);
-    bool TexStorage3D(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height, GLsizei depth);
-    bool TexStorage2DMultisample(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
-    bool TexStorage3DMultisample(GLsizei levels, TextureFormat format, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+    bool TexStorage3D(GLsizei levels,
+                      TextureFormat format,
+                      GLsizei width,
+                      GLsizei height,
+                      GLsizei depth);
+    bool TexStorage2DMultisample(GLsizei levels,
+                                 TextureFormat format,
+                                 GLsizei width,
+                                 GLsizei height,
+                                 GLboolean fixedsamplelocations);
+    bool TexStorage3DMultisample(GLsizei levels,
+                                 TextureFormat format,
+                                 GLsizei width,
+                                 GLsizei height,
+                                 GLsizei depth,
+                                 GLboolean fixedsamplelocations);
 
     /** 关联buffer，将其中的数据存入texture
     */
-    bool TexBuffer(TextureFormat format, const glhBufferMgr & buffer);
-    bool TexBufferRange(TextureFormat format, const glhBufferMgr & buffer, GLintptr offset, GLsizeiptr size);
+    bool TexBuffer(TextureFormat format, const glhBufferMgr &buffer);
+    bool TexBufferRange(TextureFormat format,
+                        const glhBufferMgr &buffer,
+                        GLintptr offset,
+                        GLsizeiptr size);
 
-    bool BindImageTexture(GLuint unit, GLint level, GLboolean layered, GLint layer, TextureAccess access, TextureFormat format);
+    bool BindImageTexture(GLuint unit,
+                          GLint level,
+                          GLboolean layered,
+                          GLint layer,
+                          TextureAccess access,
+                          TextureFormat format);
+
 private:
     //texture索引
     GLuint m_textureIndex;
@@ -249,29 +279,30 @@ private:
 class glhGlslShader
 {
     SHARELIB_DISABLE_COPY_CLASS(glhGlslShader);
+
 public:
     glhGlslShader();
     ~glhGlslShader();
 
-	/** 编译glsl shader文件
+    /** 编译glsl shader文件
 	@param[in] type shader类型
 	@param[in] pFileName 文件名
 	@return 编译是否成功
 	*/
-	bool CompileFile(ShaderType type, const wchar_t *pFileName);
+    bool CompileFile(ShaderType type, const wchar_t *pFileName);
 
-	/** 编译glsl shader字符串
+    /** 编译glsl shader字符串
 	@param[in] type shader类型
 	@param[in] pString shader字符串
 	@param[in] nLength shader字符串长度，0表示不明确指定，以\0为结尾
 	@return 编译是否成功
 	*/
-	bool CompileString(ShaderType type, const char *pString, GLint nLength);
-    
+    bool CompileString(ShaderType type, const char *pString, GLint nLength);
+
     /** 获取编译错误提示
     */
     std::string GetCompileErrmsg() const;
-    
+
     /** shader类型
     */
     operator GLuint() const;
@@ -281,7 +312,7 @@ public:
     void Destroy();
 
 private:
-	bool Create(ShaderType type);
+    bool Create(ShaderType type);
 
     std::string m_errmsg;
     GLuint m_shader;
@@ -292,6 +323,7 @@ private:
 class glhGlslProgram
 {
     SHARELIB_DISABLE_COPY_CLASS(glhGlslProgram);
+
 public:
     glhGlslProgram();
     ~glhGlslProgram();
@@ -299,12 +331,12 @@ public:
     /** 关联编译好的shader
     @param[in] shader 成功编译的shader
     */
-    bool AttachShader(const glhGlslShader & shader);
+    bool AttachShader(const glhGlslShader &shader);
 
     /** 解除与shader的关联
     @param[in] shader shader
     */
-    bool DetachShader(const glhGlslShader & shader);
+    bool DetachShader(const glhGlslShader &shader);
 
     /** 链接程序
     */
@@ -318,7 +350,7 @@ public:
     @param[in] pName uniform块的名字
     @return 索引，有错误则返回 GL_INVALID_INDEX
     */
-    GLuint GetUniformBlockIndex(const char* pName);
+    GLuint GetUniformBlockIndex(const char *pName);
 
     /** 获取uniform block中变量的内存偏移量
     @param[in] uniformCount 变量个数
@@ -326,17 +358,25 @@ public:
     @param[out] offsets 变量的内存偏移量
     @return 操作是否成功
     */
-    bool GetUniformBlockOffsets(GLsizei uniformCount, const GLchar* const * pUniformNames, GLint* pOffsets);
+    bool GetUniformBlockOffsets(GLsizei uniformCount,
+                                const GLchar *const *pUniformNames,
+                                GLint *pOffsets);
 
-    GLuint GetAttribLocation(const GLchar * pName);
-    GLuint GetUniformLocation(const GLchar * pName);
+    GLuint GetAttribLocation(const GLchar *pName);
+    GLuint GetUniformLocation(const GLchar *pName);
 
     void UnuseProgram();
     std::string GetLinkErrmsg() const;
     operator GLuint() const;
     void Destroy();
 
-    static bool VertexAttribPointer(GLuint nLocation, GLint nCount, VertexAttribType type, bool bNormalize, GLsizei nStride, GLuint nOffset);
+    static bool VertexAttribPointer(GLuint nLocation,
+                                    GLint nCount,
+                                    VertexAttribType type,
+                                    bool bNormalize,
+                                    GLsizei nStride,
+                                    GLuint nOffset);
+
 private:
     bool Create();
 
@@ -354,6 +394,6 @@ size_t GetGlslTypeSize(GLenum type);
 
 bool EnableMultiSample(bool isEnable);
 
-void GetMultiSamplePos(std::vector<std::pair<GLfloat, GLfloat> > & samplePos);
+void GetMultiSamplePos(std::vector<std::pair<GLfloat, GLfloat>> &samplePos);
 
 SHARELIB_END_NAMESPACE

@@ -1,41 +1,34 @@
 ﻿#pragma once
+#include <cassert>
 #include <iosfwd>
 #include <streambuf>
-#include <cassert>
 #include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
-template<class _CharType, class _Traits = std::char_traits<_CharType> >
-class fix_length_buf_adaptor
-    : public std::basic_streambuf<_CharType, _Traits>
+template<class _CharType, class _Traits = std::char_traits<_CharType>>
+class fix_length_buf_adaptor : public std::basic_streambuf<_CharType, _Traits>
 {
     using _BaseType = std::basic_streambuf<_CharType, _Traits>;
 
 public:
-    fix_length_buf_adaptor(){}
+    fix_length_buf_adaptor() {}
 
-    fix_length_buf_adaptor(char_type * pBuf, std::streamsize nSize)
+    fix_length_buf_adaptor(char_type *pBuf, std::streamsize nSize)
     {
         _BaseType::pubsetbuf(pBuf, nSize);
     }
 
-    char_type * get_buffer() const
-    {
-        return pbase();
-    }
+    char_type *get_buffer() const { return pbase(); }
 
-    std::streamsize get_buffer_size() const
-    {
-        return epptr() - pbase();
-    }
+    std::streamsize get_buffer_size() const { return epptr() - pbase(); }
 
 protected:
     /** offer buffer to external agent
     @param[in] pBuf 缓冲区指针
     @param[in] nSize 缓冲区大小(字符数, count of char_type)
     */
-    virtual _BaseType * setbuf(char_type * pBuf, std::streamsize nSize) override
+    virtual _BaseType *setbuf(char_type *pBuf, std::streamsize nSize) override
     {
         assert(pBuf);
         assert(nSize > 0);
@@ -45,10 +38,9 @@ protected:
     }
 
     // change position by offset, according to way and mode
-    virtual pos_type seekoff(
-        off_type nOff,
-        std::ios_base::seekdir di,
-        std::ios_base::openmode mode) override
+    virtual pos_type seekoff(off_type nOff,
+                             std::ios_base::seekdir di,
+                             std::ios_base::openmode mode) override
     {
         pos_type pos = -1;
         if ((mode & std::ios_base::in) && (_BaseType::gptr() != 0))
@@ -107,9 +99,7 @@ protected:
     }
 
     // change to specified position, according to mode
-    virtual pos_type seekpos(
-        pos_type nPos,
-        std::ios_base::openmode mode) override
+    virtual pos_type seekpos(pos_type nPos, std::ios_base::openmode mode) override
     {
         return seekoff((off_type)nPos, std::ios_base::beg, mode);
     }

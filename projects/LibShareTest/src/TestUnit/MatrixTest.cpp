@@ -1,27 +1,34 @@
 ﻿#include "stdafx.h"
 #include <ObjIdl.h>
-#pragma warning(disable:4458)
+#pragma warning(disable : 4458)
 #include <GdiPlus.h>
-#pragma warning(default:4458)
-#include "TestUnit/MatrixTest.h"
-#include "ui/Utility/Matrix2D.h"
-#include "ui/Utility/GdiplusUtility.h"
+#pragma warning(default : 4458)
 #include "Log/TempLog.h"
+#include "TestUnit/MatrixTest.h"
+#include "ui/Utility/GdiplusUtility.h"
+#include "ui/Utility/Matrix2D.h"
 
 BEGIN_SHARELIBTEST_NAMESPACE
 
-void PrintMx(const shr::Matrix2D& mx, const Gdiplus::Matrix& gmx)
+void PrintMx(const shr::Matrix2D &mx, const Gdiplus::Matrix &gmx)
 {
-    float data[3][2] = { 0 };
-    gmx.GetElements((float*)data);
-    tcout.Printf(L"\nMyMatrix:%g, %g, %g, %g, %g, %g\n"
+    float data[3][2] = {0};
+    gmx.GetElements((float *)data);
+    tcout.Printf(
+        L"\nMyMatrix:%g, %g, %g, %g, %g, %g\n"
         L"gdiplus: %g, %g, %g, %g, %g, %g\n",
-        mx.m_data[0][0], mx.m_data[0][1],
-        mx.m_data[1][0], mx.m_data[1][1],
-        mx.m_data[2][0], mx.m_data[2][1],
-        data[0][0], data[0][1],
-        data[1][0], data[1][1],
-        data[2][0], data[2][1]);
+        mx.m_data[0][0],
+        mx.m_data[0][1],
+        mx.m_data[1][0],
+        mx.m_data[1][1],
+        mx.m_data[2][0],
+        mx.m_data[2][1],
+        data[0][0],
+        data[0][1],
+        data[1][0],
+        data[1][1],
+        data[2][0],
+        data[2][1]);
 }
 
 void CompareMatrixCalculate()
@@ -99,7 +106,7 @@ void CompareMatrixCalculate()
     gmx.Invert();
     PrintMx(mx, gmx);
 
-    POINT pt{ 100, 300 };
+    POINT pt{100, 300};
     Gdiplus::Point gpt(100, 300);
     mx.TransformPoints(&pt, 1);
     gmx.TransformPoints(&gpt);
@@ -112,9 +119,8 @@ void CompareMatrixCalculate()
 
     XFORM xMx = mx;
     D2D1::Matrix3x2F d2dMx = mx;
-    tcout << "内存布局 " 
-        << std::memcmp(&xMx, &mx, sizeof(mx)) << " "
-        << std::memcmp(&d2dMx, &mx, sizeof(mx)) << std::endl;
+    tcout << "内存布局 " << std::memcmp(&xMx, &mx, sizeof(mx)) << " "
+          << std::memcmp(&d2dMx, &mx, sizeof(mx)) << std::endl;
 }
 
 END_SHARELIBTEST_NAMESPACE

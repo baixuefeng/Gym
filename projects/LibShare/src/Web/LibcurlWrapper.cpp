@@ -1,40 +1,34 @@
 ﻿#include <mutex>
+#include "Web/LibcurlWrapper.h"
 #include <chrono>
 #include <thread>
 #include <utility>
-#include "Web/LibcurlWrapper.h"
 #include "curl/curl.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
 #ifndef CHECK_EASY_ERRCODE
-#define CHECK_EASY_ERRCODE(err) \
-    assert(err == CURLcode::CURLE_OK); \
-    if (err != CURLcode::CURLE_OK) \
-    { \
-        return false; \
-    }
+#    define CHECK_EASY_ERRCODE(err)                                                                \
+        assert(err == CURLcode::CURLE_OK);                                                         \
+        if (err != CURLcode::CURLE_OK)                                                             \
+        {                                                                                          \
+            return false;                                                                          \
+        }
 #endif
 
 #ifndef CHECK_MULTI_ERRCODE
-#define CHECK_MULTI_ERRCODE(err) \
-    assert(err == CURLMcode::CURLM_OK); \
-    if (err != CURLMcode::CURLM_OK) \
-    { \
-        return false; \
-    }
+#    define CHECK_MULTI_ERRCODE(err)                                                               \
+        assert(err == CURLMcode::CURLM_OK);                                                        \
+        if (err != CURLMcode::CURLM_OK)                                                            \
+        {                                                                                          \
+            return false;                                                                          \
+        }
 #endif
 
 struct AutoLibcurl
 {
-    AutoLibcurl()
-    {
-        m_initOk = (curl_global_init(CURL_GLOBAL_ALL) == CURLcode::CURLE_OK);
-    }
-    ~AutoLibcurl()
-    {
-        curl_global_cleanup();
-    }
+    AutoLibcurl() { m_initOk = (curl_global_init(CURL_GLOBAL_ALL) == CURLcode::CURLE_OK); }
+    ~AutoLibcurl() { curl_global_cleanup(); }
     bool m_initOk;
 };
 
@@ -42,10 +36,7 @@ bool InitGlobalLibcurl()
 {
     static std::once_flag s_initFlag;
     static bool s_initOk;
-    std::call_once(
-        s_initFlag,
-        []()
-    {
+    std::call_once(s_initFlag, []() {
         static AutoLibcurl s_initLibcurl;
         s_initOk = s_initLibcurl.m_initOk;
     });
@@ -56,10 +47,9 @@ bool InitGlobalLibcurl()
 
 CurlSlist::CurlSlist()
     : m_pSlist(nullptr)
-{
-}
+{}
 
-CurlSlist::CurlSlist(curl_slist * pList)
+CurlSlist::CurlSlist(curl_slist *pList)
 {
     Attatch(pList);
 }
@@ -69,26 +59,26 @@ CurlSlist::~CurlSlist()
     FreeAll();
 }
 
-void CurlSlist::Attatch(curl_slist * pList)
+void CurlSlist::Attatch(curl_slist *pList)
 {
     assert(!m_pSlist);
     m_pSlist = pList;
 }
 
-curl_slist * CurlSlist::Detach()
+curl_slist *CurlSlist::Detach()
 {
     auto p = m_pSlist;
     m_pSlist = nullptr;
     return p;
 }
 
-CurlSlist::CurlSlist(CurlSlist && other)
+CurlSlist::CurlSlist(CurlSlist &&other)
 {
     m_pSlist = other.m_pSlist;
     other.m_pSlist = nullptr;
 }
 
-CurlSlist & CurlSlist::operator=(CurlSlist && other)
+CurlSlist &CurlSlist::operator=(CurlSlist &&other)
 {
     if (this != &other)
     {
@@ -102,12 +92,12 @@ CurlSlist::operator curl_slist *() const
     return m_pSlist;
 }
 
-curl_slist * CurlSlist::Data() const
+curl_slist *CurlSlist::Data() const
 {
     return m_pSlist;
 }
 
-bool CurlSlist::Append(const char * pData)
+bool CurlSlist::Append(const char *pData)
 {
     m_pSlist = curl_slist_append(m_pSlist, pData);
     return (m_pSlist != nullptr);
@@ -131,7 +121,7 @@ CurlEasyHandle::CurlEasyHandle()
     curl_easy_setopt(m_pEasyHandle, CURLOPT_NOSIGNAL, 1);
 }
 
-CurlEasyHandle::CurlEasyHandle(CurlEasyHandle && other)
+CurlEasyHandle::CurlEasyHandle(CurlEasyHandle &&other)
 {
     m_pEasyHandle = other.m_pEasyHandle;
     other.m_pEasyHandle = nullptr;
@@ -145,7 +135,7 @@ CurlEasyHandle::CurlEasyHandle(CurlEasyHandle && other)
     m_spDebugLambda = std::move(other.m_spDebugLambda);
 }
 
-CurlEasyHandle & CurlEasyHandle::operator=(CurlEasyHandle && other)
+CurlEasyHandle &CurlEasyHandle::operator=(CurlEasyHandle &&other)
 {
     if (&other != this)
     {
@@ -212,7 +202,7 @@ bool CurlEasyHandle::SetHeaderBody(bool bHeader, bool bBody)
     return false;
 }
 
-bool CurlEasyHandle::SetUrl(const char * pUrl)
+bool CurlEasyHandle::SetUrl(const char *pUrl)
 {
     if (m_pEasyHandle && pUrl)
     {
@@ -240,7 +230,7 @@ bool CurlEasyHandle::AddHttpHeaders(std::initializer_list<const char *> iniList)
     {
         return false;
     }
-    for (auto & item : iniList)
+    for (auto &item : iniList)
     {
         m_headerList.Append(item);
     }
@@ -249,13 +239,13 @@ bool CurlEasyHandle::AddHttpHeaders(std::initializer_list<const char *> iniList)
     return true;
 }
 
-bool CurlEasyHandle::AddHttpHeaders(const std::vector<std::string> & headers)
+bool CurlEasyHandle::AddHttpHeaders(const std::vector<std::string> &headers)
 {
     if (!m_pEasyHandle)
     {
         return false;
     }
-    for (auto & item : headers)
+    for (auto &item : headers)
     {
         m_headerList.Append(item.c_str());
     }
@@ -264,7 +254,7 @@ bool CurlEasyHandle::AddHttpHeaders(const std::vector<std::string> & headers)
     return true;
 }
 
-bool CurlEasyHandle::SetCookie(const char* pCookie)
+bool CurlEasyHandle::SetCookie(const char *pCookie)
 {
     if (!m_pEasyHandle)
     {
@@ -275,7 +265,7 @@ bool CurlEasyHandle::SetCookie(const char* pCookie)
     return true;
 }
 
-bool CurlEasyHandle::SetPostFields(const char * pPostFields, size_t nSize /*= 0*/)
+bool CurlEasyHandle::SetPostFields(const char *pPostFields, size_t nSize /*= 0*/)
 {
     if (m_pEasyHandle)
     {
@@ -305,7 +295,7 @@ bool CurlEasyHandle::SetPostWithCallback(size_t nPostSize /*= 0*/)
         }
         else
         {
-            return AddHttpHeaders({ "Transfer-Encoding: chunked" });
+            return AddHttpHeaders({"Transfer-Encoding: chunked"});
         }
     }
     return false;
@@ -325,7 +315,7 @@ bool CurlEasyHandle::SetSSLVerify(bool bVerifyPeer, bool bVerifyHost)
     return false;
 }
 
-bool CurlEasyHandle::SetSSLCAPath(const char * pCAPath)
+bool CurlEasyHandle::SetSSLCAPath(const char *pCAPath)
 {
     if (m_pEasyHandle)
     {
@@ -336,7 +326,7 @@ bool CurlEasyHandle::SetSSLCAPath(const char * pCAPath)
     return false;
 }
 
-bool CurlEasyHandle::SetProxy(const char * pProxy)
+bool CurlEasyHandle::SetProxy(const char *pProxy)
 {
     if (m_pEasyHandle)
     {
@@ -376,7 +366,7 @@ CURLMcode CurlMultiHandle::GetLastErrCode()
     return m_errCode;
 }
 
-bool CurlMultiHandle::AddEasyHandle(const CurlEasyHandle & easyHandle)
+bool CurlMultiHandle::AddEasyHandle(const CurlEasyHandle &easyHandle)
 {
     if (m_pMultiHandle)
     {
@@ -387,7 +377,7 @@ bool CurlMultiHandle::AddEasyHandle(const CurlEasyHandle & easyHandle)
     return false;
 }
 
-bool CurlMultiHandle::RemoveEasyHandle(const CurlEasyHandle & easyHandle)
+bool CurlMultiHandle::RemoveEasyHandle(const CurlEasyHandle &easyHandle)
 {
     if (m_pMultiHandle)
     {
@@ -406,8 +396,7 @@ CurlMultiHandle::TPerformResult CurlMultiHandle::Perform(size_t nTimeOut /*= 0*/
     }
     m_bTerminate = false;
     auto timePt = std::chrono::system_clock::now();
-    for (int nStillRunning = INT_MAX, nRepeat = 0; 
-        (nStillRunning > 0) && !m_bTerminate;)
+    for (int nStillRunning = INT_MAX, nRepeat = 0; (nStillRunning > 0) && !m_bTerminate;)
     {
         m_errCode = curl_multi_perform(m_pMultiHandle, &nStillRunning);
         if ((m_errCode != CURLMcode::CURLM_OK) || (nStillRunning == 0))
@@ -424,7 +413,8 @@ CurlMultiHandle::TPerformResult CurlMultiHandle::Perform(size_t nTimeOut /*= 0*/
         if (nTimeOut > 0)
         {
             auto timeCur = std::chrono::system_clock::now();
-            auto timeDuration = std::chrono::duration_cast<std::chrono::milliseconds>(timeCur - timePt).count();
+            auto timeDuration =
+                std::chrono::duration_cast<std::chrono::milliseconds>(timeCur - timePt).count();
             if (timeDuration > static_cast<decltype(timeDuration)>(nTimeOut))
             {
                 return PERFORM_TIME_OUT;
@@ -451,7 +441,7 @@ CurlMultiHandle::TPerformResult CurlMultiHandle::Perform(size_t nTimeOut /*= 0*/
     {
         return PERFORM_TERMINATE;
     }
-    else 
+    else
     {
         return PERFORM_OK;
     }
@@ -462,13 +452,13 @@ void CurlMultiHandle::Terminate()
     m_bTerminate = true;
 }
 
-std::vector<CURLMsg*> CurlMultiHandle::GetInfoRead()
+std::vector<CURLMsg *> CurlMultiHandle::GetInfoRead()
 {
-    std::vector<CURLMsg*> msgs;
+    std::vector<CURLMsg *> msgs;
     if (m_pMultiHandle)
     {
-        CURLMsg * pMsg = nullptr;
-        do 
+        CURLMsg *pMsg = nullptr;
+        do
         {
             int nMsgCount = 0;
             pMsg = curl_multi_info_read(m_pMultiHandle, &nMsgCount);

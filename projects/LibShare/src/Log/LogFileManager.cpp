@@ -1,6 +1,6 @@
 ﻿#include "targetver.h"
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#    define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "LogFileManager.h"
 #include <algorithm>
@@ -28,7 +28,7 @@ LogFileManager::~LogFileManager()
     }
 }
 
-const char * LogFileManager::GetErrMsg()
+const char *LogFileManager::GetErrMsg()
 {
     return m_strErrorMsg.c_str();
 }
@@ -40,13 +40,15 @@ static HMODULE GetThisModule()
     return hModule;
 }
 
-bool LogFileManager::SetLogPathAndName(const char *pPath, const char *pName, bool bOneLogPerProcess /*= false*/)
+bool LogFileManager::SetLogPathAndName(const char *pPath,
+                                       const char *pName,
+                                       bool bOneLogPerProcess /*= false*/)
 {
     {
         char szModleFullPath[MAX_PATH + 20]{};
         ::GetModuleFileNameA(GetThisModule(), szModleFullPath, MAX_PATH);
         //查找可执行文件名的开始位置
-        char * pModuleName = std::strrchr(szModleFullPath, '\\');
+        char *pModuleName = std::strrchr(szModleFullPath, '\\');
         if (!pModuleName)
         {
             return false;
@@ -54,7 +56,7 @@ bool LogFileManager::SetLogPathAndName(const char *pPath, const char *pName, boo
         ++pModuleName;
 
         //查找可执行文件后缀的开始位置
-        char * pDot = std::strrchr(szModleFullPath, '.');
+        char *pDot = std::strrchr(szModleFullPath, '.');
         if (!pDot)
         {
             return false;
@@ -102,8 +104,8 @@ bool LogFileManager::SetLogPathAndName(const char *pPath, const char *pName, boo
         char szDate[20]{};
         SYSTEMTIME date{};
         ::GetLocalTime(&date);
-        ::StringCbPrintfA(szDate, sizeof(szDate), "%4u%02u%02u",
-            date.wYear, date.wMonth, date.wDay);
+        ::StringCbPrintfA(
+            szDate, sizeof(szDate), "%4u%02u%02u", date.wYear, date.wMonth, date.wDay);
         if (!::CreateDirectoryA((m_strFilePath + szDate).c_str(), nullptr))
         {
             DWORD dwErr = ::GetLastError();
@@ -131,7 +133,7 @@ bool LogFileManager::SetLogPathAndName(const char *pPath, const char *pName, boo
     return true;
 }
 
-bool LogFileManager::Write(const char * pkszMsg, size_t uiCount)
+bool LogFileManager::Write(const char *pkszMsg, size_t uiCount)
 {
     if (!m_bRunOK)
     {
@@ -163,15 +165,22 @@ bool LogFileManager::Write(const char * pkszMsg, size_t uiCount)
     char szDate[20]{};
     SYSTEMTIME curTime{};
     ::GetLocalTime(&curTime);
-    ::StringCbPrintfA(szDate, sizeof(szDate), "%4u%02u%02u",
-        curTime.wYear, curTime.wMonth, curTime.wDay);
+    ::StringCbPrintfA(
+        szDate, sizeof(szDate), "%4u%02u%02u", curTime.wYear, curTime.wMonth, curTime.wDay);
     if (!::CreateDirectoryA((m_strFilePath + szDate).c_str(), nullptr))
     {
         DWORD dwErr = GetLastError();
         if (ERROR_ALREADY_EXISTS != dwErr)
         {
-            char * pMsg = nullptr;
-            ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, dwErr, 0, LPSTR(&pMsg), 0, nullptr);
+            char *pMsg = nullptr;
+            ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                                 FORMAT_MESSAGE_IGNORE_INSERTS,
+                             nullptr,
+                             dwErr,
+                             0,
+                             LPSTR(&pMsg),
+                             0,
+                             nullptr);
             m_strErrorMsg = pMsg;
             ::LocalFree(pMsg);
             return false;
@@ -180,16 +189,24 @@ bool LogFileManager::Write(const char * pkszMsg, size_t uiCount)
 
     //移动当前文件并改名
     char szTime[20]{};
-    ::StringCbPrintfA(szTime, sizeof(szTime), "_%02u%02u%02u",
-        curTime.wHour, curTime.wMinute, curTime.wSecond);
+    ::StringCbPrintfA(
+        szTime, sizeof(szTime), "_%02u%02u%02u", curTime.wHour, curTime.wMinute, curTime.wSecond);
     //并非跨盘移动，所以速度是有保障的
-    if (!::MoveFileA(m_strFileFullName.c_str(), (m_strFilePath + szDate + "\\" + m_strFileName + szTime + ".log").c_str()))
+    if (!::MoveFileA(m_strFileFullName.c_str(),
+                     (m_strFilePath + szDate + "\\" + m_strFileName + szTime + ".log").c_str()))
     {
         DWORD dwErr = GetLastError();
         if (ERROR_ALREADY_EXISTS != dwErr)
         {
-            char * pMsg = nullptr;
-            ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, dwErr, 0, LPSTR(&pMsg), 0, nullptr);
+            char *pMsg = nullptr;
+            ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                                 FORMAT_MESSAGE_IGNORE_INSERTS,
+                             nullptr,
+                             dwErr,
+                             0,
+                             LPSTR(&pMsg),
+                             0,
+                             nullptr);
             m_strErrorMsg = pMsg;
             ::LocalFree(pMsg);
             return false;
@@ -198,7 +215,8 @@ bool LogFileManager::Write(const char * pkszMsg, size_t uiCount)
 
     {
         std::lock_guard<decltype(m_lockFileFullPath)> lock(m_lockFileFullPath);
-        m_strFileFullName = m_strFilePath + szDate + "\\" + m_strFileName + ".log";//移动成功，当前日志文件重定位
+        m_strFileFullName = m_strFilePath + szDate + "\\" + m_strFileName +
+                            ".log"; //移动成功，当前日志文件重定位
     }
 
     //打开新文件准备输入
@@ -207,8 +225,15 @@ bool LogFileManager::Write(const char * pkszMsg, size_t uiCount)
     if (!m_pFile)
     {
         DWORD dwErr = GetLastError();
-        char * pMsg = nullptr;
-        ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, dwErr, 0, LPSTR(&pMsg), 0, nullptr);
+        char *pMsg = nullptr;
+        ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                             FORMAT_MESSAGE_IGNORE_INSERTS,
+                         nullptr,
+                         dwErr,
+                         0,
+                         LPSTR(&pMsg),
+                         0,
+                         nullptr);
         m_strErrorMsg = pMsg;
         ::LocalFree(pMsg);
         return false;
@@ -229,7 +254,7 @@ void LogFileManager::Flush()
     }
 }
 
-const std::string & LogFileManager::GetLogFullPath() const
+const std::string &LogFileManager::GetLogFullPath() const
 {
     std::lock_guard<decltype(m_lockFileFullPath)> lock(m_lockFileFullPath);
     return m_strFileFullName;
@@ -249,52 +274,45 @@ void LogFileManager::DeleteLogFile(bool bDeleteAll)
             logDir.c_str(),
             10,
             //参数3,lambda表达式
-            [](const wchar_t *)->bool
-        {
-            return true;
-        },
+            [](const wchar_t *) -> bool { return true; },
             //参数4,lambda表达式
-            [&currLogFile, &processCurrFile, this](const wchar_t *pFileName)
-        {
-            if (!processCurrFile
-                && wcscmp(pFileName, currLogFile.c_str()) == 0)
-            {
-                if (m_pFile)
+            [&currLogFile, &processCurrFile, this](const wchar_t *pFileName) {
+                if (!processCurrFile && wcscmp(pFileName, currLogFile.c_str()) == 0)
                 {
-                    std::clearerr(m_pFile);
-                    std::fclose(m_pFile);
-                    m_pFile = nullptr;
+                    if (m_pFile)
+                    {
+                        std::clearerr(m_pFile);
+                        std::fclose(m_pFile);
+                        m_pFile = nullptr;
+                    }
+                    m_pFile = std::fopen(m_strFileFullName.c_str(), "wbcS");
+                    processCurrFile = true;
                 }
-                m_pFile = std::fopen(m_strFileFullName.c_str(), "wbcS");
-                processCurrFile = true;
-            }
-            else
-            {
-                ::DeleteFileW(pFileName);
-            }
-        },
+                else
+                {
+                    ::DeleteFileW(pFileName);
+                }
+            },
             ::RemoveDirectoryW);
     }
     else
     {
-
         bool bTodaySkiped = false;
-        ForEachItemInDirectory(logDir.c_str(),
+        ForEachItemInDirectory(
+            logDir.c_str(),
             10,
             //参数3,lambda表达式
-            [&logToday, &bTodaySkiped](const wchar_t *pDir)->bool
-        {
-            if (!bTodaySkiped
-                && wcscmp(pDir, logToday.c_str()) == 0)
-            {
-                bTodaySkiped = true;
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        },
+            [&logToday, &bTodaySkiped](const wchar_t *pDir) -> bool {
+                if (!bTodaySkiped && wcscmp(pDir, logToday.c_str()) == 0)
+                {
+                    bTodaySkiped = true;
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            },
             ::DeleteFileW,
             ::RemoveDirectoryW);
     }

@@ -21,9 +21,9 @@ SHARELIB_BEGIN_NAMESPACE
  */
 template<typename SinkBackendT,
          typename QueueingStrategyT = boost::log::sinks::unbounded_fifo_queue>
-class SimpleAsyncSink :
-    public boost::log::sinks::aux::make_sink_frontend_base<SinkBackendT>::type,
-    public QueueingStrategyT
+class SimpleAsyncSink
+    : public boost::log::sinks::aux::make_sink_frontend_base<SinkBackendT>::type
+    , public QueueingStrategyT
 {
     typedef typename boost::log::sinks::aux::make_sink_frontend_base<SinkBackendT>::type base_type;
     typedef QueueingStrategyT queue_base_type;
@@ -51,8 +51,10 @@ public:
     *
     * \pre \a backend is not \c NULL.
     */
-    explicit SimpleAsyncSink(boost::shared_ptr<sink_backend_type> const &backend) :
-        base_type(true), m_pBackend(backend), m_StopRequested(false)
+    explicit SimpleAsyncSink(boost::shared_ptr<sink_backend_type> const &backend)
+        : base_type(true)
+        , m_pBackend(backend)
+        , m_StopRequested(false)
     {
         boost::thread(boost::bind(&SimpleAsyncSink::run, this)).swap(m_DedicatedFeedingThread);
     }

@@ -12,8 +12,8 @@
 /* windows上默认是使用自旋锁实现的进程间等待，这会无谓地增加CPU context switch、CPU占用率，
 因此取消该宏的定义，改用命名Semaphore实现的进程间等待。
 */
-#include <boost/interprocess/detail/workaround.hpp>
-#undef BOOST_INTERPROCESS_FORCE_GENERIC_EMULATION
+#    include <boost/interprocess/detail/workaround.hpp>
+#    undef BOOST_INTERPROCESS_FORCE_GENERIC_EMULATION
 
 /*
 windows中ipc默认使用EventLog获取bootup time，基于此生成ipc的共享文件夹，但某些系统中可能获取失败。
@@ -24,31 +24,28 @@ bug参考: https://svn.boost.org/trac10/ticket/12137#no1
 
 linux中是基于shared memory objects(shm_open)实现，不会调用该函数。
 */
-#define BOOST_INTERPROCESS_SHARED_DIR_FUNC
-#include <boost/interprocess/ipc/message_queue.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/dll.hpp>
-namespace boost
+#    define BOOST_INTERPROCESS_SHARED_DIR_FUNC
+#    include <boost/dll.hpp>
+#    include <boost/filesystem.hpp>
+#    include <boost/interprocess/ipc/message_queue.hpp>
+namespace boost {
+namespace interprocess {
+namespace ipcdetail {
+inline void get_shared_dir(std::string &shared_dir)
 {
-    namespace interprocess
+    auto dir = boost::dll::program_location().remove_filename() / "ipc_share";
+    if (!boost::filesystem::exists(dir))
     {
-        namespace ipcdetail
-        {
-            inline void get_shared_dir(std::string &shared_dir)
-            {
-                auto dir = boost::dll::program_location().remove_filename() / "ipc_share";
-                if (!boost::filesystem::exists(dir))
-                {
-                    boost::filesystem::create_directories(dir);
-                }
-                shared_dir = dir.string();
-            }
-        }
+        boost::filesystem::create_directories(dir);
     }
+    shared_dir = dir.string();
 }
+} // namespace ipcdetail
+} // namespace interprocess
+} // namespace boost
 
 #else
 
-#include <boost/interprocess/ipc/message_queue.hpp>
+#    include <boost/interprocess/ipc/message_queue.hpp>
 
 #endif

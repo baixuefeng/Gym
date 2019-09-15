@@ -1,8 +1,8 @@
 ﻿#include "MacroDefBase.h"
-#include "UI/GraphicLayer/Layers/GraphicLayer.h"
 #include "UI/GraphicLayer/Layers/GraphicBitmap.h"
-#include "UI/GraphicLayer/Layers/GraphicText.h"
+#include "UI/GraphicLayer/Layers/GraphicLayer.h"
 #include "UI/GraphicLayer/Layers/GraphicScrollLayer.h"
+#include "UI/GraphicLayer/Layers/GraphicText.h"
 
 SHARELIB_BEGIN_NAMESPACE
 

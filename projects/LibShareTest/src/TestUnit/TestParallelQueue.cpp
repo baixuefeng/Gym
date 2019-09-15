@@ -1,10 +1,10 @@
 ﻿#include "stdafx.h"
 #include "TestUnit/TestParallelQueue.h"
-#include "Log/TempLog.h"
 #include <iostream>
 #include <vector>
 #include <boost/timer/timer.hpp>
 #include <process.h>
+#include "Log/TempLog.h"
 
 BEGIN_SHARELIBTEST_NAMESPACE
 
@@ -37,23 +37,23 @@ void TestParallelQueue::Test()
 {
     BeforeTest();
 
-	std::vector<HANDLE> threads;
+    std::vector<HANDLE> threads;
     threads.assign(m_nThreadCount * 2, NULL);
     for (DWORD i = 0; i < m_nThreadCount; ++i)
-	{
-		threads[i * 2] = (HANDLE)::_beginthreadex(0, 0, PushThread, this, 0, 0);
-		threads[i * 2 + 1] = (HANDLE)::_beginthreadex(0, 0, PopThread, this, 0, 0);
-	}
-	::Sleep(100);
+    {
+        threads[i * 2] = (HANDLE)::_beginthreadex(0, 0, PushThread, this, 0, 0);
+        threads[i * 2 + 1] = (HANDLE)::_beginthreadex(0, 0, PopThread, this, 0, 0);
+    }
+    ::Sleep(100);
     boost::timer::auto_cpu_timer timer;
-	::SetEvent(m_hEvent);
+    ::SetEvent(m_hEvent);
     ::WaitForMultipleObjects(m_nThreadCount * 2, &threads[0], TRUE, INFINITE);
     timer.stop();
     timer.report();
-	for (auto h : threads)
-	{
-		::CloseHandle(h);
-	}
+    for (auto h : threads)
+    {
+        ::CloseHandle(h);
+    }
 
     AfterTest();
 }
@@ -62,7 +62,7 @@ void TestParallelQueue::TestMsgQueue()
 {
     BeforeTest();
 
-    HANDLE threads[2] = { 0 };
+    HANDLE threads[2] = {0};
     threads[0] = (HANDLE)::_beginthreadex(0, 0, MsgQueuePushThread, this, 0, 0);
     threads[1] = (HANDLE)::_beginthreadex(0, 0, MsgQueuePopThread, this, 0, &m_threadid);
 
@@ -80,37 +80,36 @@ void TestParallelQueue::TestMsgQueue()
     AfterTest();
 }
 
-
 unsigned __stdcall TestParallelQueue::PushThread(void *pVoid)
 {
-	TestParallelQueue* pThis = (TestParallelQueue*)pVoid;
-	::WaitForSingleObject(pThis->m_hEvent, INFINITE);
+    TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
+    ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
 
-	MSG msg{};
-	for (size_t i = 0; i < pThis->m_testCount; ++i)
-	{
+    MSG msg{};
+    for (size_t i = 0; i < pThis->m_testCount; ++i)
+    {
         pThis->m_queue.push(msg);
-	}
-	return 0;
+    }
+    return 0;
 }
 
 unsigned __stdcall TestParallelQueue::PopThread(void *pVoid)
 {
-	TestParallelQueue* pThis = (TestParallelQueue*)pVoid;
-	::WaitForSingleObject(pThis->m_hEvent, INFINITE);
-	MSG msg{};
-	for (size_t i = 0; i < pThis->m_testCount; ++i)
-	{
+    TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
+    ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
+    MSG msg{};
+    for (size_t i = 0; i < pThis->m_testCount; ++i)
+    {
         while (!pThis->m_queue.try_pop(msg))
-		{
-		}
-	}
-	return 0;
+        {
+        }
+    }
+    return 0;
 }
 
 unsigned __stdcall TestParallelQueue::MsgQueuePushThread(void *pVoid)
 {
-    TestParallelQueue* pThis = (TestParallelQueue*)pVoid;
+    TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
     ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
     for (size_t i = 0; i < pThis->m_testCount; ++i)
     {
@@ -123,7 +122,7 @@ unsigned __stdcall TestParallelQueue::MsgQueuePushThread(void *pVoid)
 
 unsigned __stdcall TestParallelQueue::MsgQueuePopThread(void *pVoid)
 {
-    TestParallelQueue* pThis = (TestParallelQueue*)pVoid;
+    TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
     ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
     MSG msg{};
     for (size_t i = 0; i < pThis->m_testCount; ++i)

@@ -1,18 +1,18 @@
 ﻿#include "targetver.h"
 #include "UI/Utility/NotifyIconMgr.h"
-#include <cstring>
 #include <cassert>
+#include <cstring>
 #include <mutex>
 #include <utility>
-#include <strsafe.h>
 #include <Shlwapi.h>
+#include <strsafe.h>
 
 //确保所有成员可用
 #pragma warning(push)
-#pragma warning(disable: 4005)
+#pragma warning(disable : 4005)
 
 #if (NTDDI_VERSION < NTDDI_VISTA)
-#define NTDDI_VERSION NTDDI_VISTA
+#    define NTDDI_VERSION NTDDI_VISTA
 #endif
 
 #include <shellapi.h>
@@ -21,12 +21,9 @@
 
 SHARELIB_BEGIN_NAMESPACE
 
-struct NotifyIconMgr::IconData: public NOTIFYICONDATA
+struct NotifyIconMgr::IconData : public NOTIFYICONDATA
 {
-    IconData()
-    {
-        std::memset(this, 0, sizeof(*this));
-    }
+    IconData() { std::memset(this, 0, sizeof(*this)); }
 };
 
 NotifyIconMgr::NotifyIconMgr()
@@ -61,20 +58,20 @@ bool NotifyIconMgr::Initialize()
     return true;
 }
 
-NotifyIconMgr::NotifyIconMgr(const NotifyIconMgr& other)
+NotifyIconMgr::NotifyIconMgr(const NotifyIconMgr &other)
 {
     m_pImpl = new IconData;
     *m_pImpl = *other.m_pImpl;
 }
 
-NotifyIconMgr::NotifyIconMgr(NotifyIconMgr && other)
+NotifyIconMgr::NotifyIconMgr(NotifyIconMgr &&other)
 {
     assert(!m_pImpl);
     m_pImpl = other.m_pImpl;
     other.m_pImpl = nullptr;
 }
 
-NotifyIconMgr& NotifyIconMgr::operator =(const NotifyIconMgr& other)
+NotifyIconMgr &NotifyIconMgr::operator=(const NotifyIconMgr &other)
 {
     if (this != &other)
     {
@@ -83,7 +80,7 @@ NotifyIconMgr& NotifyIconMgr::operator =(const NotifyIconMgr& other)
     return *this;
 }
 
-NotifyIconMgr& NotifyIconMgr::operator=(NotifyIconMgr && other)
+NotifyIconMgr &NotifyIconMgr::operator=(NotifyIconMgr &&other)
 {
     if (this != &other)
     {
@@ -97,7 +94,7 @@ void NotifyIconMgr::ClearConfig()
     HWND hWnd = m_pImpl->hWnd;
     UINT uID = m_pImpl->uID;
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    GUID iconGuid{ 0 };
+    GUID iconGuid{0};
     if (m_pImpl->uFlags & NIF_GUID)
     {
         iconGuid = m_pImpl->guidItem;
@@ -109,7 +106,7 @@ void NotifyIconMgr::ClearConfig()
     m_pImpl->hWnd = hWnd;
     m_pImpl->uID = uID;
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    if (iconGuid != GUID{ 0 })
+    if (iconGuid != GUID{0})
     {
         m_pImpl->uFlags |= NIF_GUID;
         m_pImpl->guidItem = iconGuid;
@@ -127,7 +124,7 @@ void NotifyIconMgr::SetNotifyWndAndMsg(HWND hNotifyWnd, UINT uMsg)
     }
 }
 
-void NotifyIconMgr::GetNotifyWndAndMsg(HWND & hNotifyWnd, UINT & uMsg)
+void NotifyIconMgr::GetNotifyWndAndMsg(HWND &hNotifyWnd, UINT &uMsg)
 {
     hNotifyWnd = m_pImpl->hWnd;
     uMsg = m_pImpl->uCallbackMessage;
@@ -143,14 +140,14 @@ void NotifyIconMgr::SetIcon(HICON icon, UINT nNotifyId)
     m_pImpl->uID = nNotifyId;
 }
 
-void NotifyIconMgr::GetIcon(HICON & icon, UINT & nNotifyId)
+void NotifyIconMgr::GetIcon(HICON &icon, UINT &nNotifyId)
 {
     icon = m_pImpl->hIcon;
     nNotifyId = m_pImpl->uID;
 }
 
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-void NotifyIconMgr::SetIcon(HICON icon, const GUID & notifyGuid)
+void NotifyIconMgr::SetIcon(HICON icon, const GUID &notifyGuid)
 {
     if (icon)
     {
@@ -161,15 +158,15 @@ void NotifyIconMgr::SetIcon(HICON icon, const GUID & notifyGuid)
     m_pImpl->guidItem = notifyGuid;
 }
 
-void NotifyIconMgr::GetIcon(HICON & icon, GUID & notifyGuid)
+void NotifyIconMgr::GetIcon(HICON &icon, GUID &notifyGuid)
 {
     icon = m_pImpl->hIcon;
     notifyGuid = m_pImpl->guidItem;
 }
 
-bool NotifyIconMgr::GetIconBoundingRect(RECT & rcBounds)
+bool NotifyIconMgr::GetIconBoundingRect(RECT &rcBounds)
 {
-    NOTIFYICONIDENTIFIER iconId{ 0 };
+    NOTIFYICONIDENTIFIER iconId{0};
     iconId.cbSize = sizeof(iconId);
     iconId.hWnd = m_pImpl->hWnd;
     iconId.uID = m_pImpl->uID;
@@ -178,7 +175,7 @@ bool NotifyIconMgr::GetIconBoundingRect(RECT & rcBounds)
 }
 #endif
 
-void NotifyIconMgr::SetTip(wchar_t* pTip)
+void NotifyIconMgr::SetTip(wchar_t *pTip)
 {
     m_pImpl->uFlags |= NIF_TIP;
     if (IsDllVersionVistaOrLater())
@@ -190,13 +187,13 @@ void NotifyIconMgr::SetTip(wchar_t* pTip)
     ::StringCchCopy(m_pImpl->szTip, _countof(m_pImpl->szTip), pTip);
 }
 
-void NotifyIconMgr::SetInfoTitle(wchar_t * pInfoTitle)
+void NotifyIconMgr::SetInfoTitle(wchar_t *pInfoTitle)
 {
     m_pImpl->uFlags |= NIF_INFO;
     ::StringCchCopy(m_pImpl->szInfoTitle, _countof(m_pImpl->szInfoTitle), pInfoTitle);
 }
 
-void NotifyIconMgr::SetInfo(wchar_t * pInfo)
+void NotifyIconMgr::SetInfo(wchar_t *pInfo)
 {
     m_pImpl->uFlags |= NIF_INFO;
     ::StringCchCopy(m_pImpl->szInfo, _countof(m_pImpl->szInfo), pInfo);
@@ -307,16 +304,14 @@ bool NotifyIconMgr::IsDllVersionVistaOrLater()
 {
     static bool s_isVistaOrLater = false;
     static std::once_flag s_dllVersionFlags;
-    std::call_once(s_dllVersionFlags,
-        []()
-    {
+    std::call_once(s_dllVersionFlags, []() {
         HMODULE hDll = ::LoadLibraryW(L"Shell32.dll");
         assert(hDll);
         if (hDll)
         {
             DLLGETVERSIONPROC pFn = (DLLGETVERSIONPROC)::GetProcAddress(hDll, "DllGetVersion");
             assert(pFn);
-            DLLVERSIONINFO dllVer{ sizeof(dllVer) };
+            DLLVERSIONINFO dllVer{sizeof(dllVer)};
             if (pFn)
             {
                 pFn(&dllVer);
@@ -324,8 +319,7 @@ bool NotifyIconMgr::IsDllVersionVistaOrLater()
             ::FreeLibrary(hDll);
             if (dllVer.dwMajorVersion >= 6)
             {
-                if ((dllVer.dwMinorVersion == 0)
-                    && (dllVer.dwBuildNumber < 6))
+                if ((dllVer.dwMinorVersion == 0) && (dllVer.dwBuildNumber < 6))
                 {
                     s_isVistaOrLater = false;
                 }

@@ -9,17 +9,17 @@ SHARELIB_BEGIN_NAMESPACE
 //假的控件id,这里并不使用,只不过ATL必须提供这个
 #define SHARELIB_WEB_CONTROL_FAKEID 12345
 
-class ATL_NO_VTABLE IWebDispatchEvent :
-    public ATL::IDispEventImpl<SHARELIB_WEB_CONTROL_FAKEID, IWebDispatchEvent>
+class ATL_NO_VTABLE IWebDispatchEvent
+    : public ATL::IDispEventImpl<SHARELIB_WEB_CONTROL_FAKEID, IWebDispatchEvent>
 {
 public:
     BEGIN_SINK_MAP(IWebDispatchEvent)
-        SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_BEFORENAVIGATE2, OnBeforeNavigate2)
-        SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_DOCUMENTCOMPLETE, OnDocumentComplete)
-        SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete2)
-        SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_NEWWINDOW3, OnNewWindow3)
-        SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_NAVIGATEERROR, OnNavigateError)
-        SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_WINDOWCLOSING, OnWindowClosing)
+    SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_BEFORENAVIGATE2, OnBeforeNavigate2)
+    SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_DOCUMENTCOMPLETE, OnDocumentComplete)
+    SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete2)
+    SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_NEWWINDOW3, OnNewWindow3)
+    SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_NAVIGATEERROR, OnNavigateError)
+    SINK_ENTRY(SHARELIB_WEB_CONTROL_FAKEID, DISPID_WINDOWCLOSING, OnWindowClosing)
     END_SINK_MAP()
 
 #undef SHARELIB_WEB_CONTROL_FAKEID
@@ -37,7 +37,13 @@ public:
     @param[in] pHeaders VT_BSTR that contains additional HTTP headers to send to the server
     @param[out] pCancel VARIANT_BOOL that contains the cancel flag. An application can set this parameter to VARIANT_TRUE to cancel the navigation operation, or to VARIANT_FALSE to allow the navigation operation to proceed
     */
-    virtual void WINAPI OnBeforeNavigate2(LPDISPATCH pDisp, ATL::CComVariant* pUrl, ATL::CComVariant* pFlags, ATL::CComVariant* pTargetFrameName, ATL::CComVariant* pPostData, ATL::CComVariant* pHeaders, ATL::CComVariant* pCancel)
+    virtual void WINAPI OnBeforeNavigate2(LPDISPATCH pDisp,
+                                          ATL::CComVariant *pUrl,
+                                          ATL::CComVariant *pFlags,
+                                          ATL::CComVariant *pTargetFrameName,
+                                          ATL::CComVariant *pPostData,
+                                          ATL::CComVariant *pHeaders,
+                                          ATL::CComVariant *pCancel)
     {
         (void)pDisp;
         (void)pUrl;
@@ -52,7 +58,7 @@ public:
     @param[in] pDisp interface for the WebBrowser object that represents the window or frame
     @param[in] pUrl Variant structure of type String that specifies the URL, UNC file name, or a PIDL of the loaded document
     */
-    virtual void WINAPI OnDocumentComplete(LPDISPATCH pDisp, ATL::CComVariant* pUrl)
+    virtual void WINAPI OnDocumentComplete(LPDISPATCH pDisp, ATL::CComVariant *pUrl)
     {
         (void)pDisp;
         (void)pUrl;
@@ -62,7 +68,7 @@ public:
     @param[in] pDisp interface for the WebBrowser object that represents the window or frame
     @param[in] pUrl Variant structure of type String that contains the URL, UNC file name, or PIDL that was navigated to
     */
-    virtual void WINAPI OnNavigateComplete2(LPDISPATCH pDisp, ATL::CComVariant* pUrl)
+    virtual void WINAPI OnNavigateComplete2(LPDISPATCH pDisp, ATL::CComVariant *pUrl)
     {
         (void)pDisp;
         (void)pUrl;
@@ -76,7 +82,11 @@ public:
     @param[in] pbstrUrl BSTR,The URL that is opened in the new window.
     @return
     */
-    virtual void WINAPI OnNewWindow3(LPDISPATCH* ppDisp, BOOLEAN* pCancel, LONG dwFlags, BSTR pbstrUrlContext, BSTR pbstrUrl)
+    virtual void WINAPI OnNewWindow3(LPDISPATCH *ppDisp,
+                                     BOOLEAN *pCancel,
+                                     LONG dwFlags,
+                                     BSTR pbstrUrlContext,
+                                     BSTR pbstrUrl)
     {
         (void)ppDisp;
         (void)pCancel;
@@ -93,7 +103,11 @@ public:
     @param[in] pCancel VARIANT structure of type VARIANT_BOOL that specifies whether to cancel the navigation to an error page or to any further autosearch.
     @return
     */
-    virtual void WINAPI OnNavigateError(LPDISPATCH pDisp, ATL::CComVariant* pURL, ATL::CComVariant* pTargetFrameName, ATL::CComVariant* pStatusCode, ATL::CComVariant* pCancel)
+    virtual void WINAPI OnNavigateError(LPDISPATCH pDisp,
+                                        ATL::CComVariant *pURL,
+                                        ATL::CComVariant *pTargetFrameName,
+                                        ATL::CComVariant *pStatusCode,
+                                        ATL::CComVariant *pCancel)
     {
         (void)pDisp;
         (void)pURL;
@@ -106,7 +120,7 @@ public:
     @param[in] isChildWindow A Boolean that specifies whether the window was created from script.
     @param[in] pCancel A Boolean value that specifies whether the window is prevented from closing.
     */
-    virtual void WINAPI OnWindowClosing(BOOLEAN isChildWindow, BOOLEAN* pCancel)
+    virtual void WINAPI OnWindowClosing(BOOLEAN isChildWindow, BOOLEAN *pCancel)
     {
         (void)isChildWindow;
         (void)pCancel;

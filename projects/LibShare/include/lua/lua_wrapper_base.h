@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <cassert>
-#include "lua.hpp"
 #include "MacroDefBase.h"
+#include "lua.hpp"
 
 /* lua脚本使用的编码
 如果使用utf8, 定义该宏; 未定义时使用 std::local{} 的编码, 可以使用 std::locale::global修改编码
@@ -19,7 +19,7 @@ SHARELIB_BEGIN_NAMESPACE
 class lua_stack_guard_checker
 {
 public:
-    explicit lua_stack_guard_checker(lua_State * pL)
+    explicit lua_stack_guard_checker(lua_State *pL)
 #ifndef NDEBUG
         : m_pL(pL)
         , m_nCount(::lua_gettop(pL))
@@ -36,7 +36,7 @@ public:
 
 #ifndef NDEBUG
 private:
-    lua_State * m_pL;
+    lua_State *m_pL;
     int m_nCount;
 #endif
 };
@@ -45,11 +45,10 @@ private:
 class lua_stack_guard
 {
 public:
-    explicit lua_stack_guard(lua_State * pL)
+    explicit lua_stack_guard(lua_State *pL)
         : m_pL(pL)
         , m_nCount(::lua_gettop(pL))
-    {
-    }
+    {}
 
     ~lua_stack_guard()
     {
@@ -60,8 +59,9 @@ public:
             ::lua_pop(m_pL, (nCount - m_nCount));
         }
     }
+
 private:
-    lua_State * m_pL;
+    lua_State *m_pL;
     int m_nCount;
 };
 

@@ -4,11 +4,11 @@
 
 SHARELIB_BEGIN_NAMESPACE
 
-bool GetVideoAdapterDescription(std::vector<DXGI_ADAPTER_DESC>& adapters)
+bool GetVideoAdapterDescription(std::vector<DXGI_ADAPTER_DESC> &adapters)
 {
     adapters.clear();
     ATL::CComPtr<IDXGIFactory> spDxgiFactory;
-    HRESULT hr = ::CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&spDxgiFactory);
+    HRESULT hr = ::CreateDXGIFactory(__uuidof(IDXGIFactory), (void **)&spDxgiFactory);
     UINT i = 0;
     while (SUCCEEDED(hr))
     {

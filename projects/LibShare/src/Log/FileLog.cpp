@@ -1,24 +1,24 @@
 ﻿#include "targetver.h"
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#    define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "Log/FileLog.h"
-#include <cstdio>
-#include <cassert>
 #include <atomic>
-#include <mutex>
+#include <cassert>
 #include <chrono>
+#include <cstdio>
 #include <locale>
-#include <boost/dll.hpp>
+#include <mutex>
 #include <boost/date_time.hpp>
-#include "Thread/lockfree_queue.h"
-#include "LogFileManager.h"
-#include "Other/VersionTime.h"
-#include <windows.h>
+#include <boost/dll.hpp>
+#include <atlmem.h>
 #include <process.h>
 #include <shellapi.h>
-#include <atlmem.h>
 #include <strsafe.h>
+#include <windows.h>
+#include "LogFileManager.h"
+#include "Other/VersionTime.h"
+#include "Thread/lockfree_queue.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -31,7 +31,7 @@ void SetGlobalOneLogPerProcess(bool bOneLogPerProcess)
 
 struct LogBuffer
 {
-    char * m_pBuffer = nullptr;
+    char *m_pBuffer = nullptr;
     size_t m_nBufSize = 0;
     size_t m_nLoglength = 0;
 };
@@ -53,9 +53,7 @@ struct _LogCache
 struct FileLog::TImpl
 {
     TImpl()
-        : m_memPool(0, 0)
-    {
-    };
+        : m_memPool(0, 0){};
 
     ~TImpl()
     {
@@ -66,10 +64,7 @@ struct FileLog::TImpl
         }
     }
 
-    void AddRef()
-    {
-        ++m_refCount;
-    }
+    void AddRef() { ++m_refCount; }
 
     void Release()
     {
@@ -83,14 +78,9 @@ struct FileLog::TImpl
     {
         if (!m_bInitOK)
         {
-            std::call_once(
-                m_initFlag,
-                [this]()
-            {
+            std::call_once(m_initFlag, [this]() {
                 m_bInitOK = m_logFileManager.SetLogPathAndName(
-                    m_paramPath.c_str(),
-                    m_paramName.c_str(),
-                    m_bOneLogPerProcess);
+                    m_paramPath.c_str(), m_paramName.c_str(), m_bOneLogPerProcess);
             });
         }
         return m_bInitOK;
@@ -108,15 +98,17 @@ struct FileLog::TImpl
             m_hThread = (HANDLE)_beginthreadex(NULL, 0, TImpl::ThreadFunc, this, 0, NULL);
             if (NULL == m_hThread)
             {
-                char * pszErrMsg = NULL;
-                ::FormatMessageA(
-                    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL,
-                    GetLastError(),
-                    0,
-                    (LPSTR)(&pszErrMsg),
-                    0,
-                    NULL);
-                std::string strCombMsg = std::string("创建日志线程失败，原因：") + std::string(pszErrMsg);
+                char *pszErrMsg = NULL;
+                ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                                     FORMAT_MESSAGE_IGNORE_INSERTS,
+                                 NULL,
+                                 GetLastError(),
+                                 0,
+                                 (LPSTR)(&pszErrMsg),
+                                 0,
+                                 NULL);
+                std::string strCombMsg = std::string("创建日志线程失败，原因：") +
+                                         std::string(pszErrMsg);
                 ::LocalFree(pszErrMsg);
                 m_logFileManager.Write(strCombMsg.c_str(), strCombMsg.size());
                 return false;
@@ -132,7 +124,7 @@ struct FileLog::TImpl
     LogBuffer GetLogBuffer(size_t nSize)
     {
         LogBuffer buffer;
-        char *p = (char*)m_memPool.Allocate(nSize);
+        char *p = (char *)m_memPool.Allocate(nSize);
         if (p)
         {
             buffer.m_pBuffer = p;
@@ -142,7 +134,7 @@ struct FileLog::TImpl
         return buffer;
     }
 
-    bool WriteLog(const LogBuffer & log)
+    bool WriteLog(const LogBuffer &log)
     {
         if (!Init())
         {
@@ -184,22 +176,29 @@ struct FileLog::TImpl
         }
     }
 
-    static unsigned int __stdcall ThreadFunc(void * pVoid)
+    static unsigned int __stdcall ThreadFunc(void *pVoid)
     {
-        TImpl * pThis = static_cast<TImpl *>(pVoid);
-        auto& cvtFacet = std::use_facet<boost::filesystem::path::codecvt_type>(std::locale());
-        std::wstring_convert<std::remove_reference_t<decltype(cvtFacet)> > cvt(&cvtFacet);
+        TImpl *pThis = static_cast<TImpl *>(pVoid);
+        auto &cvtFacet = std::use_facet<boost::filesystem::path::codecvt_type>(std::locale());
+        std::wstring_convert<std::remove_reference_t<decltype(cvtFacet)>> cvt(&cvtFacet);
         _LogCache oneLog;
 
         {
             {
                 SYSTEMTIME sysTime{};
                 ::GetLocalTime(&sysTime);
-                
+
                 char szBuff[50]{};
-                ::StringCbPrintfA(szBuff, sizeof(szBuff), "[log start][%I64u][%02hu:%02hu:%02hu.%03hu]\n",
-                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count(),
-                    sysTime.wHour, sysTime.wMinute, sysTime.wSecond, sysTime.wMilliseconds);
+                ::StringCbPrintfA(szBuff,
+                                  sizeof(szBuff),
+                                  "[log start][%I64u][%02hu:%02hu:%02hu.%03hu]\n",
+                                  std::chrono::duration_cast<std::chrono::milliseconds>(
+                                      std::chrono::high_resolution_clock::now().time_since_epoch())
+                                      .count(),
+                                  sysTime.wHour,
+                                  sysTime.wMinute,
+                                  sysTime.wSecond,
+                                  sysTime.wMilliseconds);
                 pThis->m_logFileManager.Write(szBuff);
             }
 
@@ -248,7 +247,8 @@ struct FileLog::TImpl
             {
                 if (0 != oneLog.m_log.m_nLoglength)
                 {
-                    pThis->m_logFileManager.Write(oneLog.m_log.m_pBuffer, oneLog.m_log.m_nLoglength);
+                    pThis->m_logFileManager.Write(oneLog.m_log.m_pBuffer,
+                                                  oneLog.m_log.m_nLoglength);
                 }
                 pThis->m_memPool.Free(oneLog.m_log.m_pBuffer);
             }
@@ -267,7 +267,7 @@ struct FileLog::TImpl
         return 0;
     }
 
-    std::atomic<size_t> m_refCount{ 0 };
+    std::atomic<size_t> m_refCount{0};
     std::string m_paramPath;          //路径参数
     std::string m_paramName;          //名字参数
     bool m_bOneLogPerProcess = false; //进程模型参数
@@ -282,21 +282,21 @@ struct FileLog::TImpl
 
 //--------------------------------------------------------------------------------------
 
-FileLogOstream::FileLogOstream(FileLog * pLog, size_t bufLen, bool bTime /*= false*/, int nLine /*= 0*/)
+FileLogOstream::FileLogOstream(FileLog *pLog,
+                               size_t bufLen,
+                               bool bTime /*= false*/,
+                               int nLine /*= 0*/)
     : m_pLog(pLog)
     , std::ostream(&m_buf)
 {
     if (!m_pLog)
     {
-        static FileLog * s_pGlobalLog = nullptr;
+        static FileLog *s_pGlobalLog = nullptr;
         static std::once_flag s_globalInitFlag;
         if (!s_pGlobalLog)
         {
-            std::call_once(
-                s_globalInitFlag,
-                []()
-            {
-                static FileLog s_log{ nullptr, nullptr, g_bOneLogPerProcess };
+            std::call_once(s_globalInitFlag, []() {
+                static FileLog s_log{nullptr, nullptr, g_bOneLogPerProcess};
                 s_pGlobalLog = &s_log;
             });
         }
@@ -329,13 +329,20 @@ FileLogOstream::FileLogOstream(FileLog * pLog, size_t bufLen, bool bTime /*= fal
     }
     if (bTime)
     {
-        Printf("[%I64u]", std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+        Printf("[%I64u]",
+               std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::high_resolution_clock::now().time_since_epoch())
+                   .count());
     }
     else
     {
         //用<<输出time_of_day速度较慢
-        auto && timeOfDay = boost::posix_time::microsec_clock::local_time().time_of_day();
-        Printf("[%02I64d:%02I64d:%02I64d.%06I64d]", timeOfDay.hours(), timeOfDay.minutes(), timeOfDay.seconds(), timeOfDay.fractional_seconds());
+        auto &&timeOfDay = boost::posix_time::microsec_clock::local_time().time_of_day();
+        Printf("[%02I64d:%02I64d:%02I64d.%06I64d]",
+               timeOfDay.hours(),
+               timeOfDay.minutes(),
+               timeOfDay.seconds(),
+               timeOfDay.fractional_seconds());
     }
     if (nLine > 0)
     {
@@ -355,21 +362,20 @@ FileLogOstream::~FileLogOstream()
     }
 }
 
-FileLogOstream & FileLogOstream::Printf(const char * pFmt, ...)
+FileLogOstream &FileLogOstream::Printf(const char *pFmt, ...)
 {
     if (m_pLog && m_buf.get_buffer() && (m_buf.get_buffer_size() > tellp()))
     {
         va_list vaParam;
         va_start(vaParam, pFmt);
-        char * pEnd = nullptr;
-        ::StringCchVPrintfExA(
-            m_buf.get_buffer() + (std::streamoff)tellp(),
-            (size_t)(m_buf.get_buffer_size() - tellp()),
-            &pEnd,
-            nullptr,
-            0,
-            pFmt,
-            vaParam);
+        char *pEnd = nullptr;
+        ::StringCchVPrintfExA(m_buf.get_buffer() + (std::streamoff)tellp(),
+                              (size_t)(m_buf.get_buffer_size() - tellp()),
+                              &pEnd,
+                              nullptr,
+                              0,
+                              pFmt,
+                              vaParam);
         seekp(pEnd - m_buf.get_buffer());
         va_end(vaParam);
     }
@@ -378,7 +384,9 @@ FileLogOstream & FileLogOstream::Printf(const char * pFmt, ...)
 
 //---------------------------------------------------------------------------
 
-FileLog::FileLog(const char *pPath/*= nullptr*/, const char *pName /*= nullptr*/, bool bOneLogPerProcess /*= false*/)
+FileLog::FileLog(const char *pPath /*= nullptr*/,
+                 const char *pName /*= nullptr*/,
+                 bool bOneLogPerProcess /*= false*/)
 {
     m_pImpl = new TImpl;
     m_pImpl->AddRef();
@@ -439,7 +447,8 @@ void FileLog::ShowLogFile()
 {
     if (m_pImpl->Init())
     {
-        ::ShellExecuteA(NULL, "open", m_pImpl->m_logFileManager.GetLogFullPath().c_str(), NULL, NULL, SW_SHOW);
+        ::ShellExecuteA(
+            NULL, "open", m_pImpl->m_logFileManager.GetLogFullPath().c_str(), NULL, NULL, SW_SHOW);
     }
 }
 

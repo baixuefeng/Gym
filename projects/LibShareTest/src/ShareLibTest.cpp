@@ -117,8 +117,8 @@ class client
 public:
     client(boost::asio::io_context &io_context,
            boost::asio::ssl::context &context,
-           const tcp::endpoint &endpoints) :
-        socket_(io_context, context)
+           const tcp::endpoint &endpoints)
+        : socket_(io_context, context)
     {
         socket_.set_verify_mode(boost::asio::ssl::verify_peer |
                                 boost::asio::ssl::verify_fail_if_no_peer_cert);

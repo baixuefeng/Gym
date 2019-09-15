@@ -5,44 +5,41 @@ SHARELIB_BEGIN_NAMESPACE
 const lua_ostream::table_begin_t lua_ostream::table_begin;
 const lua_ostream::table_end_t lua_ostream::table_end;
 
-lua_ostream::lua_ostream(lua_State * pLua)
-: m_pLua(pLua)
-, m_tableIndex(0)
+lua_ostream::lua_ostream(lua_State *pLua)
+    : m_pLua(pLua)
+    , m_tableIndex(0)
 {
     assert(m_pLua);
 }
 
-lua_State * lua_ostream::get() const
+lua_State *lua_ostream::get() const
 {
     return m_pLua;
 }
 
-lua_ostream & lua_ostream::operator<<(bool value)
+lua_ostream &lua_ostream::operator<<(bool value)
 {
     ::lua_pushboolean(m_pLua, int(value));
     check_table_push();
     return *this;
 }
 
-lua_ostream & lua_ostream::operator<<(long long value)
+lua_ostream &lua_ostream::operator<<(long long value)
 {
     ::lua_pushinteger(m_pLua, lua_Integer(value));
     check_table_push();
     return *this;
 }
 
-lua_ostream & lua_ostream::operator<<(double value)
+lua_ostream &lua_ostream::operator<<(double value)
 {
     ::lua_pushnumber(m_pLua, (lua_Number)value);
     check_table_push();
     return *this;
 }
 
-#define IMPLEMENT_LUA_OSTREAM_INTEGER(type) \
-lua_ostream & lua_ostream::operator<<(type value) \
-{ \
-    return (*this) << (long long)value; \
-}
+#define IMPLEMENT_LUA_OSTREAM_INTEGER(type)                                                        \
+    lua_ostream &lua_ostream::operator<<(type value) { return (*this) << (long long)value; }
 IMPLEMENT_LUA_OSTREAM_INTEGER(char)
 IMPLEMENT_LUA_OSTREAM_INTEGER(unsigned char)
 IMPLEMENT_LUA_OSTREAM_INTEGER(wchar_t)
@@ -55,38 +52,35 @@ IMPLEMENT_LUA_OSTREAM_INTEGER(unsigned long)
 IMPLEMENT_LUA_OSTREAM_INTEGER(unsigned long long)
 #undef IMPLEMENT_LUA_OSTREAM_INTEGER
 
-#define IMPLEMENT_LUA_OSTREAM_FLOAT_POINT(type) \
-lua_ostream & lua_ostream::operator<<(type value) \
-{ \
-    return (*this) << (double)value; \
-}
+#define IMPLEMENT_LUA_OSTREAM_FLOAT_POINT(type)                                                    \
+    lua_ostream &lua_ostream::operator<<(type value) { return (*this) << (double)value; }
 IMPLEMENT_LUA_OSTREAM_FLOAT_POINT(float)
 IMPLEMENT_LUA_OSTREAM_FLOAT_POINT(long double)
 #undef IMPLEMENT_LUA_OSTREAM_FLOAT_POINT
 
-lua_ostream & lua_ostream::operator<<(char * value)
+lua_ostream &lua_ostream::operator<<(char *value)
 {
     return (*this) << (const char *)value;
 }
 
-lua_ostream & lua_ostream::operator<<(const char * value)
+lua_ostream &lua_ostream::operator<<(const char *value)
 {
     ::lua_pushstring(m_pLua, value);
     check_table_push();
     return *this;
 }
 
-lua_ostream & lua_ostream::operator<<(wchar_t * value)
+lua_ostream &lua_ostream::operator<<(wchar_t *value)
 {
-    return (*this) << (const wchar_t*)value;
+    return (*this) << (const wchar_t *)value;
 }
 
-lua_ostream & lua_ostream::operator<<(const wchar_t * value)
+lua_ostream &lua_ostream::operator<<(const wchar_t *value)
 {
     return (*this) << std::wstring(value);
 }
 
-lua_ostream & lua_ostream::operator<<(table_begin_t)
+lua_ostream &lua_ostream::operator<<(table_begin_t)
 {
     assert(m_tableIndex == 0);
     ::lua_newtable(m_pLua);
@@ -94,7 +88,7 @@ lua_ostream & lua_ostream::operator<<(table_begin_t)
     return *this;
 }
 
-lua_ostream & lua_ostream::operator<<(table_end_t)
+lua_ostream &lua_ostream::operator<<(table_end_t)
 {
     assert(m_tableIndex > 0);
     assert(::lua_type(m_pLua, m_tableIndex) == LUA_TTABLE);
@@ -124,7 +118,7 @@ void lua_ostream::check_table_push()
     }
 }
 
-lua_ostream & lua_ostream::operator<<(lua_table_key_t key)
+lua_ostream &lua_ostream::operator<<(lua_table_key_t key)
 {
     assert(key.m_pKey);
     assert(m_tableIndex > 0);
@@ -133,7 +127,7 @@ lua_ostream & lua_ostream::operator<<(lua_table_key_t key)
     return *this;
 }
 
-void lua_ostream::insert_subtable(lua_ostream & subTable)
+void lua_ostream::insert_subtable(lua_ostream &subTable)
 {
     (void)subTable;
     assert(subTable.m_pLua == m_pLua);
@@ -146,7 +140,7 @@ void lua_ostream::insert_subtable(lua_ostream & subTable)
 
 //----------------------------------------------------------------
 
-lua_istream::lua_istream(lua_State * pLua, int stackIndex)
+lua_istream::lua_istream(lua_State *pLua, int stackIndex)
     : m_pLua(pLua)
     , m_stackIndex(::lua_absindex(pLua, stackIndex))
     , m_top(::lua_gettop(pLua))
@@ -178,7 +172,7 @@ lua_istream::~lua_istream()
     }
 }
 
-lua_State * lua_istream::get() const
+lua_State *lua_istream::get() const
 {
     return m_pLua;
 }
@@ -198,9 +192,9 @@ bool lua_istream::bad() const
     return !m_isOK;
 }
 
-lua_istream::operator void*() const
+lua_istream::operator void *() const
 {
-    return (void*)m_isOK;
+    return (void *)m_isOK;
 }
 
 bool lua_istream::is_subtable() const
@@ -214,13 +208,13 @@ bool lua_istream::is_subtable() const
     {
         return false;
     }
-    else 
+    else
     {
         return ::lua_type(m_pLua, -1) == LUA_TTABLE;
     }
 }
 
-lua_istream & lua_istream::operator>>(bool & value)
+lua_istream &lua_istream::operator>>(bool &value)
 {
     if (!m_isEof)
     {
@@ -234,20 +228,20 @@ lua_istream & lua_istream::operator>>(bool & value)
     return *this;
 }
 
-#define IMPLEMENT_LUA_ISTREAM_INTEGER(type) \
-lua_istream & lua_istream::operator>>(type & value) \
-{ \
-    if (!m_isEof) \
-    { \
-        m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TNUMBER); \
-        if (m_isOK) \
-        { \
-            value = (type)::lua_tointeger(m_pLua, get_value_index()); \
-        } \
-        next(); \
-    } \
-    return *this; \
-}
+#define IMPLEMENT_LUA_ISTREAM_INTEGER(type)                                                        \
+    lua_istream &lua_istream::operator>>(type &value)                                              \
+    {                                                                                              \
+        if (!m_isEof)                                                                              \
+        {                                                                                          \
+            m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TNUMBER);                       \
+            if (m_isOK)                                                                            \
+            {                                                                                      \
+                value = (type)::lua_tointeger(m_pLua, get_value_index());                          \
+            }                                                                                      \
+            next();                                                                                \
+        }                                                                                          \
+        return *this;                                                                              \
+    }
 IMPLEMENT_LUA_ISTREAM_INTEGER(char)
 IMPLEMENT_LUA_ISTREAM_INTEGER(unsigned char)
 IMPLEMENT_LUA_ISTREAM_INTEGER(wchar_t)
@@ -261,26 +255,26 @@ IMPLEMENT_LUA_ISTREAM_INTEGER(long long)
 IMPLEMENT_LUA_ISTREAM_INTEGER(unsigned long long)
 #undef IMPLEMENT_LUA_ISTREAM_INTEGER
 
-#define IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(type) \
-lua_istream & lua_istream::operator>>(type & value) \
-{ \
-    if (!m_isEof) \
-    { \
-        m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TNUMBER); \
-        if (m_isOK) \
-        { \
-            value = (type)::lua_tonumber(m_pLua, get_value_index()); \
-        } \
-        next(); \
-    } \
-    return *this; \
-}
+#define IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(type)                                                    \
+    lua_istream &lua_istream::operator>>(type &value)                                              \
+    {                                                                                              \
+        if (!m_isEof)                                                                              \
+        {                                                                                          \
+            m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TNUMBER);                       \
+            if (m_isOK)                                                                            \
+            {                                                                                      \
+                value = (type)::lua_tonumber(m_pLua, get_value_index());                           \
+            }                                                                                      \
+            next();                                                                                \
+        }                                                                                          \
+        return *this;                                                                              \
+    }
 IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(float)
 IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(double)
 IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(long double)
 #undef IMPLEMENT_LUA_ISTREAM_FLOAT_POINT
 
-lua_istream & lua_istream::operator>>(lua_table_key_t key)
+lua_istream &lua_istream::operator>>(lua_table_key_t key)
 {
     assert(!m_isEof);
     if (!m_isEof)
@@ -294,7 +288,7 @@ lua_istream & lua_istream::operator>>(lua_table_key_t key)
     return *this;
 }
 
-void lua_istream::cleanup_subtable(lua_istream & subTable)
+void lua_istream::cleanup_subtable(lua_istream &subTable)
 {
     (void)subTable;
     assert(!m_isEof);

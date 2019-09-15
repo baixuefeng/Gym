@@ -1,27 +1,27 @@
 ﻿#include "Memory/FileMappingHelper.h"
 #include <cassert>
 #include <cstdint>
+#include <boost/filesystem.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/filesystem.hpp>
 
 SHARELIB_BEGIN_NAMESPACE
 
-FileMappingHelper::FileMappingHelper(const wchar_t * pFile)
+FileMappingHelper::FileMappingHelper(const wchar_t *pFile)
     : m_fileSize(0)
     , m_writedSize(0)
     , m_readSize(0)
 {
-    boost::filesystem::path filePath{ pFile };
+    boost::filesystem::path filePath{pFile};
     Init(filePath);
 }
 
-FileMappingHelper::FileMappingHelper(const char * pFile)
+FileMappingHelper::FileMappingHelper(const char *pFile)
     : m_fileSize(0)
     , m_writedSize(0)
     , m_readSize(0)
 {
-    boost::filesystem::path filePath{ pFile };
+    boost::filesystem::path filePath{pFile};
     Init(filePath);
 }
 
@@ -38,7 +38,7 @@ uint64_t FileMappingHelper::GetFileSize()
 
 void FileMappingHelper::SeekWrite(int64_t offset, TSeekType type /*= TSeekType::TSEEK_CURRENT*/)
 {
-     SeekImpl(m_writedSize, offset, type);
+    SeekImpl(m_writedSize, offset, type);
 }
 
 void FileMappingHelper::SeekRead(int64_t offset, TSeekType type /*= TSeekType::TSEEK_CURRENT*/)
@@ -56,7 +56,7 @@ uint64_t FileMappingHelper::GetReadPos()
     return m_readSize;
 }
 
-bool FileMappingHelper::WriteBytes(const void * pBits, size_t nBytes)
+bool FileMappingHelper::WriteBytes(const void *pBits, size_t nBytes)
 {
     if (!pBits || !nBytes)
     {
@@ -69,23 +69,22 @@ bool FileMappingHelper::WriteBytes(const void * pBits, size_t nBytes)
     try
     {
         m_spMappedRegion.reset();
-        boost::interprocess::mapped_region region{ 
-            *m_spFileMapping, 
-            boost::interprocess::mode_t::read_write, 
-            (boost::interprocess::offset_t)m_writedSize, 
-            nBytes };
+        boost::interprocess::mapped_region region{*m_spFileMapping,
+                                                  boost::interprocess::mode_t::read_write,
+                                                  (boost::interprocess::offset_t)m_writedSize,
+                                                  nBytes};
         std::memcpy(region.get_address(), pBits, nBytes);
         m_writedSize += nBytes;
         return true;
     }
-    catch (const std::exception&)
+    catch (const std::exception &)
     {
         assert(!"WriteBytes Failed");
         return false;
     }
 }
 
-size_t FileMappingHelper::ReadBytes(void * pBuffer, size_t bufferSize)
+size_t FileMappingHelper::ReadBytes(void *pBuffer, size_t bufferSize)
 {
     if (!pBuffer || (bufferSize == 0))
     {
@@ -99,23 +98,22 @@ size_t FileMappingHelper::ReadBytes(void * pBuffer, size_t bufferSize)
     try
     {
         m_spMappedRegion.reset();
-        boost::interprocess::mapped_region region{ 
-            *m_spFileMapping, 
-            boost::interprocess::mode_t::read_write, 
-            (boost::interprocess::offset_t)m_readSize, 
-            copySize };
+        boost::interprocess::mapped_region region{*m_spFileMapping,
+                                                  boost::interprocess::mode_t::read_write,
+                                                  (boost::interprocess::offset_t)m_readSize,
+                                                  copySize};
         std::memcpy(pBuffer, region.get_address(), copySize);
         m_readSize += copySize;
         return copySize;
     }
-    catch (const std::exception&)
+    catch (const std::exception &)
     {
         assert(!"ReadBytes Failed");
         return 0;
     }
 }
 
-void * FileMappingHelper::LockBits(uint64_t offset, size_t nLockBytes)
+void *FileMappingHelper::LockBits(uint64_t offset, size_t nLockBytes)
 {
     if (m_fileSize < offset + (uint64_t)nLockBytes)
     {
@@ -123,14 +121,14 @@ void * FileMappingHelper::LockBits(uint64_t offset, size_t nLockBytes)
     }
     try
     {
-        m_spMappedRegion = std::make_unique<boost::interprocess::mapped_region>( 
-            *m_spFileMapping, 
-            boost::interprocess::mode_t::read_write, 
+        m_spMappedRegion = std::make_unique<boost::interprocess::mapped_region>(
+            *m_spFileMapping,
+            boost::interprocess::mode_t::read_write,
             (boost::interprocess::offset_t)offset,
             nLockBytes);
         return m_spMappedRegion->get_address();
     }
-    catch (const std::exception&)
+    catch (const std::exception &)
     {
         assert(!"LockBits Failed");
         return nullptr;
@@ -142,13 +140,14 @@ void FileMappingHelper::UnLockBits()
     m_spMappedRegion.reset();
 }
 
-void FileMappingHelper::Init(const boost::filesystem::path & filePath)
+void FileMappingHelper::Init(const boost::filesystem::path &filePath)
 {
-    m_spFileMapping = std::make_unique<boost::interprocess::file_mapping>(filePath.string().c_str(), boost::interprocess::mode_t::read_write);
+    m_spFileMapping = std::make_unique<boost::interprocess::file_mapping>(
+        filePath.string().c_str(), boost::interprocess::mode_t::read_write);
     m_fileSize = boost::filesystem::file_size(filePath);
 }
 
-void FileMappingHelper::SeekImpl(uint64_t & prevSize, int64_t offset, TSeekType type)
+void FileMappingHelper::SeekImpl(uint64_t &prevSize, int64_t offset, TSeekType type)
 {
     switch (type)
     {

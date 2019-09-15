@@ -1,13 +1,13 @@
 ﻿#pragma once
 #include <cstdint>
-#pragma warning(disable:4201)
+#pragma warning(disable : 4201)
 #include "glm/glm.hpp"
 
-namespace ShaderUtility{
-    using glm::uint;
-    using glm::uvec2;
-    using glm::ivec2;
-    using glm::uvec4;
+namespace ShaderUtility {
+using glm::uint;
+using glm::uvec2;
+using glm::ivec2;
+using glm::uvec4;
 
 /** 从xmrig里复制过来的 64位无符号乘法
 @param[in] multiplier 乘数1
@@ -58,4 +58,4 @@ ivec2 i64_negative(ivec2 var);
 */
 ivec2 i64_divide(ivec2 var1, int i);
 
-}
+} // namespace ShaderUtility

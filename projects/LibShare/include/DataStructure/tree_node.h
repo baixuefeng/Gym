@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include <type_traits>
 #include <cassert>
 #include <memory>
+#include <type_traits>
 #include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
@@ -9,15 +9,15 @@ SHARELIB_BEGIN_NAMESPACE
 /** 注意，该类中的接口是有用意的，故意和pugixml的接口相同，这样traverse_tree_node的算法就两个都可以用了
 */
 
-
 /** 浸入式树形结构
 @param[in] Derived 派生类传给这个模板参数
 @param[in] Tags 自定义参数，用于多重继承
 */
-template<class Derived, class ...Tags>
+template<class Derived, class... Tags>
 class tree_node
 {
     SHARELIB_DISABLE_COPY_CLASS(tree_node);
+
 public:
     tree_node();
     // 会自动删除它所有的子结点, 并把自己从树中移除
@@ -25,13 +25,13 @@ public:
 
     Derived *root() const;
     bool is_root() const;
-	inline size_t child_count() const{ return m_uChildCount; }
-    inline Derived *parent() const{ return m_pParent; }
-    inline Derived *previous_sibling() const{ return m_pPrevSibling; }
-    inline Derived *next_sibling() const{ return m_pNextSibling; }
-    inline Derived *first_child() const{ return m_pFirstChild; }
-    inline Derived *last_child() const{ return m_pLastChild; }
-	
+    inline size_t child_count() const { return m_uChildCount; }
+    inline Derived *parent() const { return m_pParent; }
+    inline Derived *previous_sibling() const { return m_pPrevSibling; }
+    inline Derived *next_sibling() const { return m_pNextSibling; }
+    inline Derived *first_child() const { return m_pFirstChild; }
+    inline Derived *last_child() const { return m_pLastChild; }
+
     /** 获取第N个子结点，从0开始计数，时间复杂度O(n)
     @param[in] nth 子结点索引
     @return 成功返回子结点的指针，下标超出返回nullptr
@@ -51,7 +51,7 @@ public:
     @param[in] pNewNode 新结点
     @param[in] posType 插入位置
     */
-    void insert_tree_node(Derived * pNewNode, TInsertPos posType = TInsertPos::AsLastChild);
+    void insert_tree_node(Derived *pNewNode, TInsertPos posType = TInsertPos::AsLastChild);
 
 public:
     //--------------------------------------
@@ -75,7 +75,7 @@ public:
     @param[in] bNextSibling 如果为true, 返回移除结点的下一个兄弟结点, 否则返回它的上一个兄弟结点
     */
     template<class Deletor>
-    static Derived *destroy_tree_node(Derived *pNode, Deletor && d, bool bNextSibling = true);
+    static Derived *destroy_tree_node(Derived *pNode, Deletor &&d, bool bNextSibling = true);
 
     /** 销毁所有子结点，自身不会被销毁, 使用delete删除结点
     @param[in] pNode 结点
@@ -87,18 +87,18 @@ public:
     @param[in] d 删除器，d(Derived*)
     */
     template<class Deletor>
-    static void destroy_children(Derived *pNode, Deletor && d);
+    static void destroy_children(Derived *pNode, Deletor &&d);
 
 private:
     //插入结点
-    void prepend_child(Derived *pChild); //对应 AsFirstChild
-    void append_child(Derived *pChild); //对应 AsLastChild
+    void prepend_child(Derived *pChild);     //对应 AsFirstChild
+    void append_child(Derived *pChild);      //对应 AsLastChild
     void prepend_sibling(Derived *pSibling); //对应 AsPrevSibling
-    void append_sibling(Derived *pSibling); //对应 AsNextSibling
+    void append_sibling(Derived *pSibling);  //对应 AsNextSibling
 
     //销毁结点的辅助函数
     template<class Deletor>
-    static Derived *destroy_tree_node_helper(Derived *pNode, Deletor && d);
+    static Derived *destroy_tree_node_helper(Derived *pNode, Deletor &&d);
 
 private:
     size_t m_uChildCount;

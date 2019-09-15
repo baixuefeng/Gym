@@ -1,13 +1,13 @@
 ﻿#include "stdafx.h"
 #include "TestUnit/WindowTest.h"
 #include "Resource.h"
-#include "ui/Utility/Matrix2D.h"
 #include "UI/GraphicLayer/ConfigEngine/XmlResourceMgr.h"
+#include "ui/Utility/Matrix2D.h"
 
 BEGIN_SHARELIBTEST_NAMESPACE
 
-TestWindow::TestWindow():
-m_rootLayer(this)
+TestWindow::TestWindow()
+    : m_rootLayer(this)
 {
     m_rootLayer.SetD2DRenderType(shr::D2DRenderPack::Auto);
 
@@ -96,7 +96,10 @@ void TestWindow::OnFinalMessage(_In_ HWND /*hWnd*/)
     PostQuitMessage(0);
 }
 
-LRESULT TestWindow::OnUserPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/)
+LRESULT TestWindow::OnUserPaint(UINT /*uMsg*/,
+                                WPARAM /*wParam*/,
+                                LPARAM /*lParam*/,
+                                BOOL & /*bHandled*/)
 {
     CPaintDC dc(*this);
     CRect rcWnd = shr::BorderlessWindowHandler::GetBorderlessDrawRect(*this);
@@ -112,8 +115,8 @@ LRESULT TestWindow::OnUserPaint(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
     ATL::CComPtr<IDWriteTextLayout> spTextLayout;
 
     const std::wstring str = L"abcd晃炒更之";
-    m_dwrite.m_spDWriteFactory->CreateTextLayout(str.c_str(), (UINT32)str.size(), spTextFormat, FLT_MAX, FLT_MAX, &spTextLayout);
-
+    m_dwrite.m_spDWriteFactory->CreateTextLayout(
+        str.c_str(), (UINT32)str.size(), spTextFormat, FLT_MAX, FLT_MAX, &spTextLayout);
 
     m_memDc.BitBltDraw(dc);
     m_memDc.RestoreDC(nState);

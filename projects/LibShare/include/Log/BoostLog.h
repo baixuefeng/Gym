@@ -11,7 +11,7 @@
 #include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
-namespace log{
+namespace log {
 
 /** 初始化日志系统。
 *  多线程安全，可重入。
@@ -91,7 +91,7 @@ void RemoveAllLogs();
 /** 日志source单例定义
 */
 BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(global_logger,
-    boost::log::sources::severity_channel_logger_mt<LogLevel>)
+                                       boost::log::sources::severity_channel_logger_mt<LogLevel>)
 
 } // namespace log
 SHARELIB_END_NAMESPACE
@@ -99,5 +99,4 @@ SHARELIB_END_NAMESPACE
 /** 示例： SHARE_LOG("net_work", info) << "connect sucess!";
  */
 #define SHARE_LOG(channel, level)                                                                  \
-    BOOST_LOG_CHANNEL_SEV(                                                                         \
-        ::shr::log::global_logger::get(), channel, ::shr::log::LogLevel::level)
+    BOOST_LOG_CHANNEL_SEV(::shr::log::global_logger::get(), channel, ::shr::log::LogLevel::level)

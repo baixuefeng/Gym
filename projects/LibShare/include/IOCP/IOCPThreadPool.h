@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
 #include <future>
 #include <windows.h>
+#include "MacroDefBase.h"
 //线程池回调函数不允许使用ExitThread
 #pragma deprecated(ExitThread)
 
@@ -16,16 +16,14 @@ SHARELIB_BEGIN_NAMESPACE
 //---------------------------------------
 
 //异步IO完成的回调函数，注意，会有多个线程同时调用此函数
-typedef void(*TPFOnIOCompleted)(
-    DWORD dwErrno,//ERROR_SUCCESS表示成功
-    DWORD dwNumberOfBytesTransferred,
-    LPOVERLAPPED pOverlapped);
+typedef void (*TPFOnIOCompleted)(DWORD dwErrno, //ERROR_SUCCESS表示成功
+                                 DWORD dwNumberOfBytesTransferred,
+                                 LPOVERLAPPED pOverlapped);
 
 //异步任务回调
-typedef void(*TPFIOCPAsyncCallBack)(
-    DWORD /*dwErrno*/, //该参数不使用
-    DWORD dwNumberOfBytesTransferred,
-    void *pVoid);
+typedef void (*TPFIOCPAsyncCallBack)(DWORD /*dwErrno*/, //该参数不使用
+                                     DWORD dwNumberOfBytesTransferred,
+                                     void *pVoid);
 
 class IOCPThreadPool
 {
@@ -35,7 +33,7 @@ public:
     IOCPThreadPool();
     ~IOCPThreadPool();
 
-//----创建和销毁不是多线程安全的，不要多个线程针对一个对象同时调用--------------------------------
+    //----创建和销毁不是多线程安全的，不要多个线程针对一个对象同时调用--------------------------------
 
     /** 创建IOCP、线程池，并且二者关联在一起。
     注意防止因线程池数量导致的死锁：一个异步函数执行了一个等待操作，需要后一个异步函数使其解除等待，
@@ -49,11 +47,11 @@ public:
     */
     void CloseIOCPThreadPool();
 
-//----下面的接口是多线程安全的--------------------------------------------------------------
+    //----下面的接口是多线程安全的--------------------------------------------------------------
 
     //线程池是否创建成功
     explicit operator bool() const;
-    bool operator !() const;
+    bool operator!() const;
 
     /** 设置线程池中的线程空闲退出的时间，每次退出一个线程，
     @param[in] dwSeconds 空闲退出时间，0表示无穷.默认值为10.
@@ -76,10 +74,9 @@ public:
     @param[in] pVoid 自定义回调参数
     @return 操作是否成功
     */
-    bool AsyncCall(
-        TPFIOCPAsyncCallBack pfOnIOCompleted,
-        DWORD dwNumberOfBytesTransferred,
-        void *pVoid);
+    bool AsyncCall(TPFIOCPAsyncCallBack pfOnIOCompleted,
+                   DWORD dwNumberOfBytesTransferred,
+                   void *pVoid);
 
     /** IOCP异步调用，在AsyncCall的基础上再次封装，使其形成类型安全的、支持
     Lambda表达式调用的一个接口
@@ -87,8 +84,7 @@ public:
     @return std::future
     */
     template<class _Callable>
-    std::future<std::result_of_t<typename std::decay_t<_Callable>()> >
-        AsyncCall(_Callable && callObj)
+    std::future<std::result_of_t<typename std::decay_t<_Callable>()>> AsyncCall(_Callable &&callObj)
     {
         using resultType = std::result_of_t<typename std::decay_t<_Callable>()>;
         using taskType = std::packaged_task<resultType()>;
@@ -97,7 +93,7 @@ public:
         {
             return std::future<resultType>();
         }
-        taskType * pTask = new taskType(std::forward<_Callable>(callObj));
+        taskType *pTask = new taskType(std::forward<_Callable>(callObj));
         if (!AsyncCall(AsyncCallHelper<taskType>, 0, pTask))
         {
             delete pTask;
@@ -113,21 +109,23 @@ private:
     /** AsyncCall 的辅助函数
     */
     template<class taskType>
-    static void AsyncCallHelper(DWORD /*dwErrno*/, DWORD /*dwNumberOfBytesTransferred*/, void *pVoid)
+    static void AsyncCallHelper(DWORD /*dwErrno*/,
+                                DWORD /*dwNumberOfBytesTransferred*/,
+                                void *pVoid)
     {
-        taskType* pTask = (taskType*)pVoid;
+        taskType *pTask = (taskType *)pVoid;
         (*pTask)();
         delete pTask;
     }
 
     /** 线程池工作线程
     */
-    static unsigned int __stdcall IOCPWorkThread(void * pVoid);
+    static unsigned int __stdcall IOCPWorkThread(void *pVoid);
 
 private:
     //Iocp内部实现
     struct IOCPContex;
-    IOCPContex* m_pIOCPContex;
+    IOCPContex *m_pIOCPContex;
 };
 
 SHARELIB_END_NAMESPACE

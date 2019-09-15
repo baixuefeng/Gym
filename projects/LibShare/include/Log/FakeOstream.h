@@ -7,22 +7,17 @@ SHARELIB_BEGIN_NAMESPACE
 
 struct FakeOstream
 {
-    template<class T> FakeOstream & operator <<(T &&)
+    template<class T>
+    FakeOstream &operator<<(T &&)
     {
         return *this;
     }
-    FakeOstream & operator<<(std::wostream & (*)(std::wostream &))
-    {
-        return *this;
-    }
-    FakeOstream & Printf(...)
-    {
-        return *this;
-    }
+    FakeOstream &operator<<(std::wostream &(*)(std::wostream &)) { return *this; }
+    FakeOstream &Printf(...) { return *this; }
 };
 
 template<class T>
-FakeOstream & operator << (FakeOstream && os, T &&)
+FakeOstream &operator<<(FakeOstream &&os, T &&)
 {
     return os;
 }

@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include <memory>
 #include <atomic>
-#include <vector>
-#include <string>
-#include <initializer_list>
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
+#include <initializer_list>
+#include <memory>
+#include <string>
+#include <vector>
 #include "MacroDefBase.h"
 #include "curl/curl.h"
 
@@ -18,40 +18,43 @@ bool InitGlobalLibcurl();
 class CurlSlist
 {
     SHARELIB_DISABLE_COPY_CLASS(CurlSlist);
+
 public:
     CurlSlist();
-    CurlSlist(curl_slist * pList);
+    CurlSlist(curl_slist *pList);
     ~CurlSlist();
-    CurlSlist(CurlSlist && other);
-    CurlSlist & operator =(CurlSlist && other);
+    CurlSlist(CurlSlist &&other);
+    CurlSlist &operator=(CurlSlist &&other);
     operator curl_slist *() const;
-    curl_slist * Data() const;
-    void Attatch(curl_slist * pList);
-    curl_slist * Detach();
-    
-    bool Append(const char * pData);
+    curl_slist *Data() const;
+    void Attatch(curl_slist *pList);
+    curl_slist *Detach();
+
+    bool Append(const char *pData);
     void FreeAll();
 
 private:
-    curl_slist * m_pSlist;
+    curl_slist *m_pSlist;
 };
 
 //----------------------------------------------------------
 
 //信息类型辅助类
-template<CURLINFO infoIndex>struct CurlInfoTypeHelper;
+template<CURLINFO infoIndex>
+struct CurlInfoTypeHelper;
 
 //----------------------------------------------------------
 
 class CurlEasyHandle
 {
     SHARELIB_DISABLE_COPY_CLASS(CurlEasyHandle);
+
 public:
     CurlEasyHandle();
     ~CurlEasyHandle();
-    CurlEasyHandle(CurlEasyHandle && other);
-    CurlEasyHandle & operator =(CurlEasyHandle && other);
-    operator CURL * () const;
+    CurlEasyHandle(CurlEasyHandle &&other);
+    CurlEasyHandle &operator=(CurlEasyHandle &&other);
+    operator CURL *() const;
 
     //重置所有设置到默认状态
     void ResetAllOption();
@@ -63,7 +66,7 @@ public:
     bool SetHeaderBody(bool bHeader, bool bBody);
 
     //设置地址
-    bool SetUrl(const char * pUrl);
+    bool SetUrl(const char *pUrl);
 
     //设置是否允许3xx跳转，默认false
     bool SetFollowLocation(bool bEnable);
@@ -72,17 +75,17 @@ public:
     The headers must not be CRLF-terminated, because libcurl adds CRLF after each header item. 
      */
     bool AddHttpHeaders(std::initializer_list<const char *> iniList);
-    bool AddHttpHeaders(const std::vector<std::string> & headers);
+    bool AddHttpHeaders(const std::vector<std::string> &headers);
 
     /** 设置cookie
     @param[in] cookie
     */
-    bool SetCookie(const char* pCookie);
+    bool SetCookie(const char *pCookie);
 
     /* 设置http为POST方式, 并且设置Post字段, nSize为0表示pPostFields以\0结尾.
     格式类似于"name1=value1&name2=value2", 这种方式的POST不必设置读回调
      */
-    bool SetPostFields(const char * pPostFields, size_t nSize = 0);
+    bool SetPostFields(const char *pPostFields, size_t nSize = 0);
 
     /* 设置http为POST方式, post的内容用读回调传入, nPostSize用来指定上传的内容大小,
     如果为0表示使用 chunked transfer-encoding 方式, 并且会自动在http头中加入该字段
@@ -116,7 +119,7 @@ public:
 
     /** 设置SSL证书，如果SetSSLVerify设置bVerifyPeer为false，则证书不必要提供
     */
-    bool SetSSLCAPath(const char * pCAPath);
+    bool SetSSLCAPath(const char *pCAPath);
 
     /* 设置代理,比如"127.0.0.1:8888",这样Fiddler就可以截获libcurl收发的信息
     http://
@@ -132,26 +135,26 @@ public:
     socks5h://
     SOCKS5 Proxy. Proxy resolves URL hostname.
     */
-    bool SetProxy(const char * pProxy);
+    bool SetProxy(const char *pProxy);
 
     /** 设置HTTP头回调, 接收服务器响应
     @tparam[in] callableObj 调用原型:  Func(const char * pBuffer, size_t nBytes)
     */
     template<class Callable>
-    bool SetHeaderCallback(Callable && callableObj);
+    bool SetHeaderCallback(Callable &&callableObj);
 
     /** 设置写回调, 接收服务器响应
     @tparam[in] callableObj 调用原型:  Func(const char * pBuffer, size_t nBytes)
     */
     template<class Callable>
-    bool SetWriteCallback(Callable && callableObj);
+    bool SetWriteCallback(Callable &&callableObj);
 
     /** 设置读回调, 上传或者POST时使用
     @tparam[in] callableObj 调用原型:  size_t Func(char * pOutBuffer, size_t nBufferSize);
         数据复制到pOutBurrfer中, pOutBuffer的大小为nBufferSize, 返回实际复制的数据大小
     */
     template<class Callable>
-    bool SetReadCallback(Callable && callableObj);
+    bool SetReadCallback(Callable &&callableObj);
 
     /** 设置进度回调, 上传或者下载时使用
     @tparam[in] callableObj 调用原型: bool Func(int64_t nDownloadTotal, 
@@ -162,18 +165,18 @@ public:
         返回true表示继续, 否则中断
     */
     template<class Callable>
-    bool SetProgressCallback(Callable && callableObj);
+    bool SetProgressCallback(Callable &&callableObj);
 
     /** 设置调试回调
     @tparam[in] callableObj 调用原型:  Func(curl_infotype type, const char * pBuffer, size_t nSize)
     */
     template<class Callable>
-    bool SetDebugCallback(Callable && callableObj);
+    bool SetDebugCallback(Callable &&callableObj);
 
     //获取信息
     template<CURLINFO infoIndex>
-    auto GetInfo(typename CurlInfoTypeHelper<infoIndex>::type defaultValue = std::decay_t<decltype(defaultValue)>{})
-        ->std::decay_t<decltype(defaultValue)>
+    auto GetInfo(typename CurlInfoTypeHelper<infoIndex>::type defaultValue =
+                     std::decay_t<decltype(defaultValue)>{}) -> std::decay_t<decltype(defaultValue)>
     {
         //32位，当匹配double类型时，且该函数放到类外实现，就会崩溃；64位没问题，匹配其它类型没问题，或者原封不动放到类内也没问题。怪哉！
         if (m_pEasyHandle)
@@ -190,34 +193,37 @@ public:
     }
 
 private:
-    using header_callback = size_t(*)(char * pBuffer, size_t nSize, size_t nItems, void * pParam);
+    using header_callback = size_t (*)(char *pBuffer, size_t nSize, size_t nItems, void *pParam);
 
     //header_callback
     template<class CallableType>
-    static size_t HeaderCallback(char * pBuffer, size_t nSize, size_t nItems, void * pParam);
+    static size_t HeaderCallback(char *pBuffer, size_t nSize, size_t nItems, void *pParam);
 
     //curl_write_callback
     template<class CallableType>
-    static size_t WriteCallback(char * pBuffer, size_t nSize, size_t nItems, void * pParam);
+    static size_t WriteCallback(char *pBuffer, size_t nSize, size_t nItems, void *pParam);
 
     //curl_read_callback
     template<class CallableType>
-    static size_t ReadCallback(char * pBuffer, size_t nSize, size_t nItems, void * pParam);
+    static size_t ReadCallback(char *pBuffer, size_t nSize, size_t nItems, void *pParam);
 
     //curl_xferinfo_callback
     template<class CallableType>
-    static int ProgressCallback(void * clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+    static int ProgressCallback(void *clientp,
+                                curl_off_t dltotal,
+                                curl_off_t dlnow,
+                                curl_off_t ultotal,
+                                curl_off_t ulnow);
 
     //curl_debug_callback
     template<class CallableType>
-    static int DebugCallback(
-        CURL * handle,      /* the handle/transfer this concerns */
-        curl_infotype type, /* what kind of data */
-        char * data,        /* points to the data */
-        size_t size,        /* size of the data pointed to */
-        void * pParam);     /* whatever the user please */
+    static int DebugCallback(CURL *handle,       /* the handle/transfer this concerns */
+                             curl_infotype type, /* what kind of data */
+                             char *data,         /* points to the data */
+                             size_t size,        /* size of the data pointed to */
+                             void *pParam);      /* whatever the user please */
 
-    CURL * m_pEasyHandle;
+    CURL *m_pEasyHandle;
     CURLcode m_errCode;
     CurlSlist m_headerList;
     std::shared_ptr<void> m_spHeaderLambda;
@@ -232,14 +238,15 @@ private:
 class CurlMultiHandle
 {
     SHARELIB_DISABLE_COPY_CLASS(CurlMultiHandle);
+
 public:
     CurlMultiHandle();
     ~CurlMultiHandle();
-    operator CURLM * () const;
+    operator CURLM *() const;
     CURLMcode GetLastErrCode();
 
-    bool AddEasyHandle(const CurlEasyHandle & easyHandle);
-    bool RemoveEasyHandle(const CurlEasyHandle & easyHandle);
+    bool AddEasyHandle(const CurlEasyHandle &easyHandle);
+    bool RemoveEasyHandle(const CurlEasyHandle &easyHandle);
 
     //执行结果
     enum TPerformResult
@@ -258,10 +265,10 @@ public:
     //中止执行, 唯一的可以跨线程调用的接口
     void Terminate();
 
-    std::vector<CURLMsg*> GetInfoRead();
+    std::vector<CURLMsg *> GetInfoRead();
 
 private:
-    CURLM * m_pMultiHandle;
+    CURLM *m_pMultiHandle;
     CURLMcode m_errCode;
     std::atomic<bool> m_bTerminate;
 };

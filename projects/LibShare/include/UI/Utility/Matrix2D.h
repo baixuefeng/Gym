@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
-#include <windows.h>
 #include <d2d1helper.h>
 #include <dwrite.h>
+#include <windows.h>
+#include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -18,17 +18,17 @@ public:
     /** 从XFORM初始化自己
     @param [in] mx XFORM格式的矩阵
     */
-    Matrix2D(const XFORM& mx);
+    Matrix2D(const XFORM &mx);
 
     /** 从D2D的矩阵初始化自己
     @param [in] mx D2D矩阵
     */
-    Matrix2D(const D2D1::Matrix3x2F & mx);
+    Matrix2D(const D2D1::Matrix3x2F &mx);
 
     /** 从DWRITE的矩阵初始化自己
     @param[in] mx DWRITE的矩阵
     */
-    Matrix2D(const DWRITE_MATRIX & mx);
+    Matrix2D(const DWRITE_MATRIX &mx);
 
     /** 转换为XFORM
     */
@@ -67,31 +67,31 @@ public:
     @param [in] mx 要乘的矩阵
     @param [in] prepend true表示 mx 左乘当前矩阵, false表示右乘当前矩阵
     */
-    void Multiply(const Matrix2D& mx, bool prepend = true);
+    void Multiply(const Matrix2D &mx, bool prepend = true);
 
     /** 矩阵乘法
     @param[in] mx 乘数
     @return 乘积
     */
-    Matrix2D operator *(const Matrix2D & mx) const;
+    Matrix2D operator*(const Matrix2D &mx) const;
 
     /** 用另一个矩阵右乘当前矩阵
     @param[in] mx 要乘的矩阵
     @return 乘积
     */
-    Matrix2D & operator *=(const Matrix2D & mx);
+    Matrix2D &operator*=(const Matrix2D &mx);
 
     /** 矩阵除法
     @param[in] mx 除数
     @return 商
     */
-    Matrix2D operator /(const Matrix2D & mx) const;
+    Matrix2D operator/(const Matrix2D &mx) const;
 
     /** 除以另一个矩阵
     @param[in] mx 除数
     @return 商
     */
-    Matrix2D & operator /=(const Matrix2D & mx);
+    Matrix2D &operator/=(const Matrix2D &mx);
 
     /** 平移变换
     @param [in] fX X方向平移量
@@ -150,7 +150,7 @@ public:
     @param [in,out] pPt 点数组的起始指针
     @param [in] nCount 点数组的个数
     */
-    void TransformPoints(POINT * pPt, unsigned nCount) const;
+    void TransformPoints(POINT *pPt, unsigned nCount) const;
 
     /** 2D变换矩阵的实际数据(3X2矩阵)
     */

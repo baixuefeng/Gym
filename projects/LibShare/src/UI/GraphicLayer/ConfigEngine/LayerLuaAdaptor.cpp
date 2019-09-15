@@ -1,50 +1,45 @@
 ﻿#include "lua/lua_wrapper.h"
 #include "UI/GraphicLayer/ConfigEngine/LayerLuaAdaptor.h"
-#include "UI/GraphicLayer/Layers/GraphicLayer.h"
 #include <cassert>
+#include "UI/GraphicLayer/Layers/GraphicLayer.h"
 
 using shr::lua_istream;
 using shr::lua_ostream;
 
-static lua_istream & operator >> (lua_istream & is, RECT & rc)
+static lua_istream &operator>>(lua_istream &is, RECT &rc)
 {
     is >> rc.left >> rc.top >> rc.right >> rc.bottom;
     return is;
 }
 
-static lua_ostream & operator << (lua_ostream & os, const RECT & rc)
+static lua_ostream &operator<<(lua_ostream &os, const RECT &rc)
 {
-    os << lua_ostream::table_begin
-        << rc.left << rc.top << rc.right << rc.bottom
-        << lua_ostream::table_end;
+    os << lua_ostream::table_begin << rc.left << rc.top << rc.right << rc.bottom
+       << lua_ostream::table_end;
     return os;
 }
 
-static lua_istream & operator >> (lua_istream & is, POINT & pt)
+static lua_istream &operator>>(lua_istream &is, POINT &pt)
 {
     is >> pt.x >> pt.y;
     return is;
 }
 
-static lua_ostream & operator << (lua_ostream & os, const POINT & pt)
+static lua_ostream &operator<<(lua_ostream &os, const POINT &pt)
 {
-    os << lua_ostream::table_begin
-        << pt.x << pt.y
-        << lua_ostream::table_end;
+    os << lua_ostream::table_begin << pt.x << pt.y << lua_ostream::table_end;
     return os;
 }
 
-static lua_istream & operator >> (lua_istream & is, SIZE & sz)
+static lua_istream &operator>>(lua_istream &is, SIZE &sz)
 {
     is >> sz.cx >> sz.cy;
     return is;
 }
 
-static lua_ostream & operator << (lua_ostream & os, const SIZE & sz)
+static lua_ostream &operator<<(lua_ostream &os, const SIZE &sz)
 {
-    os << lua_ostream::table_begin
-        << sz.cx << sz.cy
-        << lua_ostream::table_end;
+    os << lua_ostream::table_begin << sz.cx << sz.cy << lua_ostream::table_end;
     return os;
 }
 

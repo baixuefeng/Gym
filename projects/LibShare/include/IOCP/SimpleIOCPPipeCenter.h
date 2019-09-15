@@ -1,12 +1,12 @@
 ﻿#pragma once
+#include <cstdint>
 #include <string>
 #include <unordered_map>
-#include <cstdint>
 #include <Windows.h>
 #include <atlbase.h>
 #include <atlmem.h>
-#include "MacroDefBase.h"
 #include "IOCP/IOCPThreadPool.h"
+#include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -26,19 +26,19 @@ public:
     @param [in] dwNumOfRun 同时激活的线程数，如果为0，取CPU个数值；如果比dwNumOfMax大，取dwNumOfMax
     @param [in] dwNumOfMax 线程池中最大等待线程数，如果为0，取CPU个数值 * 2
     */
-    IOCPThreadPool & GetThreadPool(DWORD dwNumOfRun = 0, DWORD dwNumOfMax = 0);
+    IOCPThreadPool &GetThreadPool(DWORD dwNumOfRun = 0, DWORD dwNumOfMax = 0);
 
     /** 创建命名管道, 注意, 返回的管道句柄不要使用CloseHandle关闭
     @param[in,out] name 管道名。如果为空，则自动生成一个名字，并返回；如果非空，则使用它来创建Pipe
     @return 成功返回管道句柄, 否则返回 NULL
     */
-    HANDLE CreatePipe(std::wstring & name);
+    HANDLE CreatePipe(std::wstring &name);
 
     /** 连接服务器, 注意, 返回的管道句柄不要使用CloseHandle关闭
     @param[in] name 管道名
     @return 成功返回管道句柄, 否则返回 NULL
     */
-    HANDLE ConnectToServer(const std::wstring & name);
+    HANDLE ConnectToServer(const std::wstring &name);
 
     /** 获取命名管道的名字 
     @param[in] hPipe 管道句柄
@@ -51,7 +51,7 @@ public:
     @param[in] pUserData 用户自定义数据
     @return 操作是否成功
     */
-    bool AsyncWaitForClientConnect(HANDLE hPipe, void * pUserData);
+    bool AsyncWaitForClientConnect(HANDLE hPipe, void *pUserData);
 
     /** 发送缓存区，把要发送的数据添加进缓存区，而后用AsyncSend发送。
     */
@@ -60,8 +60,8 @@ public:
     public:
         /** 移动构造
         */
-        SendBuffer(SendBuffer && other);
-        
+        SendBuffer(SendBuffer &&other);
+
         /** 析构函数
         */
         ~SendBuffer();
@@ -71,7 +71,7 @@ public:
         @param[in] nDataLength 数据长度
         @return 添加是否成功
         */
-        bool AddData(const void * pData, uint32_t nDataLength);
+        bool AddData(const void *pData, uint32_t nDataLength);
 
     private:
         friend class SimpleIOCPPipeCenter;
@@ -82,7 +82,7 @@ public:
 
         /** 内部缓存数据 
         */
-        TPipeOverLapped * m_pOvlp;
+        TPipeOverLapped *m_pOvlp;
     };
 
     /** 获取一个发送缓存，用于向其中填写要发送的数据，而后交给AsyncSend发送出去
@@ -97,7 +97,7 @@ public:
     @param[in] pUserData 用户自定义数据
     @return 操作是否成功
     */
-    bool AsyncSend(HANDLE hPipe, SendBuffer && buffer, void * pUserData);
+    bool AsyncSend(HANDLE hPipe, SendBuffer &&buffer, void *pUserData);
 
     /** 异步接收,操作结果通过 OnReceive 回调
     @param[in] hPipe 从 CreatePipe 返回的管道句柄
@@ -106,7 +106,7 @@ public:
     @param[in] pUserData 用户自定义数据
     @return 操作是否成功
     */
-    bool AsyncReceive(HANDLE hPipe, uint32_t nHeaderSize, void * pUserData);
+    bool AsyncReceive(HANDLE hPipe, uint32_t nHeaderSize, void *pUserData);
 
     /** 关闭管道
     */
@@ -119,14 +119,14 @@ public:
     void CloseAllPipes();
 
 protected:
-//----回调函数，注意，这些是多线程回调，与投递异步请求的线程不在同一线程，注意多线程安全问题-----------------
+    //----回调函数，注意，这些是多线程回调，与投递异步请求的线程不在同一线程，注意多线程安全问题-----------------
 
     /** 有客户端连接上来回调
     @param[in] bSuccess 连接是否成功
     @param[in] hPipe AsyncWaitForClientConnect中传入的参数hPipe
     @param[in] pUserData AsyncWaitForClientConnect中传入的参数pUserData
     */
-    virtual void OnClientConnected(bool bSuccess, HANDLE hPipe, void * pUserData) = 0;
+    virtual void OnClientConnected(bool bSuccess, HANDLE hPipe, void *pUserData) = 0;
 
     /** 发送回调
     @param[in] bSuccess 发送是否成功
@@ -136,7 +136,12 @@ protected:
     @param[in] nNumberOfBytesTransferred 实际成功发送的数据长度
     @param[in] pUserData AsyncSend中传入的参数pUserData
     */
-    virtual void OnSend(bool bSuccess, HANDLE hPipe, void * pData, size_t nDataLength, size_t nNumberOfBytesTransferred, void * pUserData) = 0;
+    virtual void OnSend(bool bSuccess,
+                        HANDLE hPipe,
+                        void *pData,
+                        size_t nDataLength,
+                        size_t nNumberOfBytesTransferred,
+                        void *pUserData) = 0;
 
     /** 从接收到的数据包头中解析出数据总长(包含包头本身的大小)
     @param[in] hPipe AsyncReceive中传入的参数hPipe
@@ -145,7 +150,10 @@ protected:
     @param[in] pUserData AsyncReceive中传入的参数pUserData
     @return 数据总长(包含包头本身的大小)
     */
-    virtual uint32_t GetDataLengthFromHeader(HANDLE hPipe, const void * pHeader, uint32_t nHeaderSize, void * pUserData) = 0;
+    virtual uint32_t GetDataLengthFromHeader(HANDLE hPipe,
+                                             const void *pHeader,
+                                             uint32_t nHeaderSize,
+                                             void *pUserData) = 0;
 
     /** 接收回调, 如果成功, 会是一条完整的数据, 即数据总长等于从数据包头中解析出来的数据总长
     @param[in] bSuccess 接收是否成功
@@ -154,7 +162,11 @@ protected:
     @param[in] nDataLength 实际接收到的数据长度
     @param[in] pUserData AsyncReceive中传入的参数pUserData
     */
-    virtual void OnReceive(bool bSuccess, HANDLE hPipe, void * pData, size_t nDataLength, void * pUserData) = 0;
+    virtual void OnReceive(bool bSuccess,
+                           HANDLE hPipe,
+                           void *pData,
+                           size_t nDataLength,
+                           void *pUserData) = 0;
 
 private:
     /** 检查管道句柄是否合法
@@ -165,31 +177,32 @@ private:
     /** 分配一个OVERLAPPED结构
     @param[in] nDataLength 最大数据长度
     */
-    TPipeOverLapped * AllocOverLapped(uint32_t nDataLength);
+    TPipeOverLapped *AllocOverLapped(uint32_t nDataLength);
 
     /** 重新分配TPipeOverLapped结构的大小
     @param[in,out] pOvlp TPipeOverLapped结构指针
     @param[in] nDataLength 最大数据长度
     @return 是否成功
     */
-    bool ReallocOverLapped(TPipeOverLapped * & pOvlp, uint32_t nNewDataLength);
+    bool ReallocOverLapped(TPipeOverLapped *&pOvlp, uint32_t nNewDataLength);
 
     /** 线程池IO完成回调
     @param[in] dwErrno 错误代码
     @param[in] dwNumberOfBytesTransferred 成功传输的数据长度
     @param[in] pOverlapped 回调参数
     */
-    static void OnIOCompleted(DWORD dwErrno, DWORD dwNumberOfBytesTransferred, LPOVERLAPPED pOverlapped);
+    static void OnIOCompleted(DWORD dwErrno,
+                              DWORD dwNumberOfBytesTransferred,
+                              LPOVERLAPPED pOverlapped);
 
     /** 线程池IO完成回调
     @param[in] dwErrno 错误代码
     @param[in] dwNumberOfBytesTransferred 成功传输的数据长度
     @param[in] pOvlp 回调参数
     */
-    void OnIOCompletedImpl(DWORD dwErrno, DWORD dwNumberOfBytesTransferred, TPipeOverLapped* pOvlp);
+    void OnIOCompletedImpl(DWORD dwErrno, DWORD dwNumberOfBytesTransferred, TPipeOverLapped *pOvlp);
 
 private:
-
     //线程池
     IOCPThreadPool m_threadPool;
 

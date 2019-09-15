@@ -11,7 +11,10 @@ SHARELIB_BEGIN_NAMESPACE
 @return 返回true表示成功等待到pred为true的事件
 */
 template<class TLock, class TConditionVariable, class TPred>
-static bool WaitCondition(TLock & lock, TConditionVariable & conVar, TPred && pred, int64_t nMilliseconds)
+static bool WaitCondition(TLock &lock,
+                          TConditionVariable &conVar,
+                          TPred &&pred,
+                          int64_t nMilliseconds)
 {
     std::unique_lock<TLock> autoLock(lock);
     if (nMilliseconds < 0)
@@ -25,7 +28,8 @@ static bool WaitCondition(TLock & lock, TConditionVariable & conVar, TPred && pr
     }
     else
     {
-        return conVar.wait_for(autoLock, std::chrono::milliseconds(nMilliseconds), std::forward<TPred>(pred));
+        return conVar.wait_for(
+            autoLock, std::chrono::milliseconds(nMilliseconds), std::forward<TPred>(pred));
     }
 }
 
@@ -34,12 +38,11 @@ static bool WaitCondition(TLock & lock, TConditionVariable & conVar, TPred && pr
 EventLock::EventLock(bool bManualReset, bool bInitialState)
     : m_bManualReset(bManualReset)
     , m_bActive(bInitialState)
-{
-}
+{}
 
 void EventLock::SetEvent()
 {
-    std::unique_lock<decltype(m_lock)> lock{ m_lock };
+    std::unique_lock<decltype(m_lock)> lock{m_lock};
     if (!m_bActive)
     {
         m_bActive = true;
@@ -56,14 +59,13 @@ void EventLock::SetEvent()
 
 void EventLock::ResetEvent()
 {
-    std::unique_lock<decltype(m_lock)> lock{ m_lock };
+    std::unique_lock<decltype(m_lock)> lock{m_lock};
     m_bActive = false;
 }
 
 bool EventLock::Wait(int64_t nMilliseconds /*= -1*/)
 {
-    auto && pred = [this]()->bool
-    {
+    auto &&pred = [this]() -> bool {
         if (m_bActive && !m_bManualReset)
         {
             m_bActive = false;
@@ -81,17 +83,15 @@ bool EventLock::Wait(int64_t nMilliseconds /*= -1*/)
 
 Semaphore::Semaphore(size_t nInitCount)
     : m_count(nInitCount)
-{
-}
+{}
 
-bool Semaphore::Acquire(size_t nCount, int64_t nMilliseconds/* = -1*/)
+bool Semaphore::Acquire(size_t nCount, int64_t nMilliseconds /* = -1*/)
 {
-	if (nCount == 0)
-	{
-		return true;
-	}
-    auto && pred = [nCount, this]()->bool
+    if (nCount == 0)
     {
+        return true;
+    }
+    auto &&pred = [nCount, this]() -> bool {
         if (m_count >= nCount)
         {
             m_count -= nCount;
@@ -104,7 +104,7 @@ bool Semaphore::Acquire(size_t nCount, int64_t nMilliseconds/* = -1*/)
 
 size_t Semaphore::Release(size_t nCount, bool bNotifyAll /*= true*/)
 {
-    std::unique_lock<decltype(m_lock)> autuLock{ m_lock };
+    std::unique_lock<decltype(m_lock)> autuLock{m_lock};
     if (nCount > 0)
     {
         m_count += nCount;

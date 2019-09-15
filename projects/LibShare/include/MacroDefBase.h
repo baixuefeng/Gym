@@ -3,31 +3,31 @@
 #if defined(_WIN32) && defined(_MSC_VER)
 
 //自动链接静态库
-#ifdef      _M_IX86
-#define     SHARELIB_PLATFORM_CONFIG "_x86"
-#else
-#define     SHARELIB_PLATFORM_CONFIG "_x64"
-#endif
+#    ifdef _M_IX86
+#        define SHARELIB_PLATFORM_CONFIG "_x86"
+#    else
+#        define SHARELIB_PLATFORM_CONFIG "_x64"
+#    endif
 
 //_DLL: Defined when /MD or /MDd (Multithreaded DLL) is specified.
-#ifdef      _DLL
-#define     SHARELIB_RUNTIMELIB_CONFIG "_MD"
-#else
-#define     SHARELIB_RUNTIMELIB_CONFIG "_MT"
-#endif
+#    ifdef _DLL
+#        define SHARELIB_RUNTIMELIB_CONFIG "_MD"
+#    else
+#        define SHARELIB_RUNTIMELIB_CONFIG "_MT"
+#    endif
 
-#ifdef      _DEBUG
-#define     SHARELIB_RELEASE_CONFIG "d"
-#else
-#define     SHARELIB_RELEASE_CONFIG
-#endif
+#    ifdef _DEBUG
+#        define SHARELIB_RELEASE_CONFIG "d"
+#    else
+#        define SHARELIB_RELEASE_CONFIG
+#    endif
 
-#if !defined(SHARELIB_NO_AUTO_LINK) && (defined(_CONSOLE) || !defined(_LIB))
+#    if !defined(SHARELIB_NO_AUTO_LINK) && (defined(_CONSOLE) || !defined(_LIB))
 //#pragma comment(lib, "libShare" SHARELIB_PLATFORM_CONFIG SHARELIB_RUNTIMELIB_CONFIG SHARELIB_RELEASE_CONFIG ".lib")
-#endif
-#undef      SHARELIB_PLATFORM_CONFIG
-#undef      SHARELIB_RUNTIMELIB_CONFIG
-#undef      SHARELIB_RELEASE_CONFIG
+#    endif
+#    undef SHARELIB_PLATFORM_CONFIG
+#    undef SHARELIB_RUNTIMELIB_CONFIG
+#    undef SHARELIB_RELEASE_CONFIG
 
 /* 一些有用的宏
 _LIB     工程为静态库或控件台程序时会定义该宏
@@ -36,22 +36,20 @@ _WINDLL  工程为动态库时会定义该宏
 
 #endif
 
-
 //命名空间
 #ifndef SHARELIB_BEGIN_NAMESPACE
-#define SHARELIB_BEGIN_NAMESPACE namespace shr {
+#    define SHARELIB_BEGIN_NAMESPACE namespace shr {
 #endif
 #ifndef SHARELIB_END_NAMESPACE
-#define SHARELIB_END_NAMESPACE }
+#    define SHARELIB_END_NAMESPACE }
 #endif
 
 //禁用复制
 #ifndef SHARELIB_DISABLE_COPY_CLASS
-#define SHARELIB_DISABLE_COPY_CLASS(className) \
-    className(const className &) = delete;\
-    className & operator =(const className &) = delete
+#    define SHARELIB_DISABLE_COPY_CLASS(className)                                                 \
+        className(const className &) = delete;                                                     \
+        className &operator=(const className &) = delete
 #endif
-
 
 /* 注释规则
 1. 大的分割块用 //----注释内容--------, 不缩进,顶头

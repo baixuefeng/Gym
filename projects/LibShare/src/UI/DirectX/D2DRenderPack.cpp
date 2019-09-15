@@ -1,6 +1,6 @@
 ﻿#include "UI/DirectX/D2DRenderPack.h"
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <mutex>
 #include <atlbase.h>
@@ -8,26 +8,28 @@
 
 SHARELIB_BEGIN_NAMESPACE
 #pragma warning(push)
-#pragma warning(disable:4995)
+#pragma warning(disable : 4995)
 
 //角度转化为弧度
 #ifndef TO_RADIAN
-#define TO_RADIAN(degree) ((degree) * 0.01745329252)
+#    define TO_RADIAN(degree) ((degree)*0.01745329252)
 #endif
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+#    define M_PI 3.14159265358979323846
 #endif
 
 // 离屏渲染时的隐藏的辅助窗口
-class D2DRenderPack::OffScreenWnd :
-    public ATL::CWindowImpl<OffScreenWnd, ATL::CWindow, ATL::CFrameWinTraits>
+class D2DRenderPack::OffScreenWnd
+    : public ATL::CWindowImpl<OffScreenWnd, ATL::CWindow, ATL::CFrameWinTraits>
 {
     BEGIN_MSG_MAP(OffScreenWnd)
     END_MSG_MAP()
 };
 
-D2DRenderPack::RectClipGuard::RectClipGuard(D2DRenderPack & render, const RECT & rcClip, bool bAntiAliasing/* = false*/)
+D2DRenderPack::RectClipGuard::RectClipGuard(D2DRenderPack &render,
+                                            const RECT &rcClip,
+                                            bool bAntiAliasing /* = false*/)
     : m_render(render)
 {
     m_render.PushClipRect(rcClip, bAntiAliasing);
@@ -38,7 +40,8 @@ D2DRenderPack::RectClipGuard::~RectClipGuard()
     m_render.PopClipRect();
 }
 
-D2DRenderPack::RenderLayerGuard::RenderLayerGuard(D2DRenderPack & render, const D2D1_LAYER_PARAMETERS & layerParam)
+D2DRenderPack::RenderLayerGuard::RenderLayerGuard(D2DRenderPack &render,
+                                                  const D2D1_LAYER_PARAMETERS &layerParam)
     : m_render(render)
 {
     m_render.PushD2DLayer(layerParam);
@@ -49,7 +52,7 @@ D2DRenderPack::RenderLayerGuard::~RenderLayerGuard()
     m_render.PopD2DLayer();
 }
 
-D2DRenderPack::DrawingStateGuard::DrawingStateGuard(D2DRenderPack & render)
+D2DRenderPack::DrawingStateGuard::DrawingStateGuard(D2DRenderPack &render)
     : m_render(render)
 {
     m_render.PushDrawingState();
@@ -63,10 +66,9 @@ D2DRenderPack::DrawingStateGuard::~DrawingStateGuard()
 D2DRenderPack::CachedResID::CachedResID()
     : m_cacheID(0)
     , m_pRenderPack(nullptr)
-{
-}
+{}
 
-D2DRenderPack::CachedResID::CachedResID(CachedResID && other)
+D2DRenderPack::CachedResID::CachedResID(CachedResID &&other)
 {
     m_cacheID = other.m_cacheID;
     other.m_cacheID = 0;
@@ -74,7 +76,7 @@ D2DRenderPack::CachedResID::CachedResID(CachedResID && other)
     other.m_pRenderPack = nullptr;
 }
 
-D2DRenderPack::CachedResID & D2DRenderPack::CachedResID::operator=(CachedResID && other)
+D2DRenderPack::CachedResID &D2DRenderPack::CachedResID::operator=(CachedResID &&other)
 {
     if (this != &other)
     {
@@ -115,8 +117,8 @@ void D2DRenderPack::CachedResID::Detach()
 D2DRenderPack::D2DRenderPack()
     : m_nUserResID(0)
 {
-    m_statePool.push_back(ATL::CComPtr<ID2D1DrawingStateBlock>());//添加一个空指针作为哨兵
-    m_layerPool.push_back(ATL::CComPtr<ID2D1Layer>());//添加一个空指针作为哨兵
+    m_statePool.push_back(ATL::CComPtr<ID2D1DrawingStateBlock>()); //添加一个空指针作为哨兵
+    m_layerPool.push_back(ATL::CComPtr<ID2D1Layer>()); //添加一个空指针作为哨兵
 }
 
 D2DRenderPack::~D2DRenderPack()
@@ -133,21 +135,16 @@ D2DRenderPack::~D2DRenderPack()
 
 bool D2DRenderPack::CreateD2DFactory()
 {
-    using TD2DCreateFunc = HRESULT(WINAPI*)(
-        _In_ D2D1_FACTORY_TYPE factoryType,
-        _In_ REFIID riid,
-        _In_opt_ CONST D2D1_FACTORY_OPTIONS *pFactoryOptions,
-        _Out_ void **ppIFactory
-        );
+    using TD2DCreateFunc = HRESULT(WINAPI *)(_In_ D2D1_FACTORY_TYPE factoryType,
+                                             _In_ REFIID riid,
+                                             _In_opt_ CONST D2D1_FACTORY_OPTIONS * pFactoryOptions,
+                                             _Out_ void **ppIFactory);
 
     static TD2DCreateFunc s_d2dCreateFunc = nullptr;
     static std::once_flag s_d2dInitFlags;
     if (!s_d2dCreateFunc)
     {
-        std::call_once(
-            s_d2dInitFlags,
-            [this]()
-        {
+        std::call_once(s_d2dInitFlags, [this]() {
             HMODULE hD2D = ::LoadLibrary(L"d2d1.dll");
             if (hD2D)
             {
@@ -159,15 +156,14 @@ bool D2DRenderPack::CreateD2DFactory()
             return false;
         }
     }
-    
+
     HRESULT hr = S_OK;
     if (!m_spD2DFactory)
     {
-        hr = s_d2dCreateFunc(
-            D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED,
-            __uuidof(ID2D1Factory),
-            nullptr,
-            (void**)&m_spD2DFactory);
+        hr = s_d2dCreateFunc(D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED,
+                             __uuidof(ID2D1Factory),
+                             nullptr,
+                             (void **)&m_spD2DFactory);
         assert(SUCCEEDED(hr));
         if (!m_spD2DFactory || FAILED(hr))
         {
@@ -186,7 +182,10 @@ bool D2DRenderPack::CreateD2DFactory()
    5.基于WICbitmap的Render不能硬件加速.
    */
 
-bool D2DRenderPack::PrepareRender(HWND hWnd, const SIZE & szRender, TRenderType renderType, float fDPI/* = 1.0f*/)
+bool D2DRenderPack::PrepareRender(HWND hWnd,
+                                  const SIZE &szRender,
+                                  TRenderType renderType,
+                                  float fDPI /* = 1.0f*/)
 {
     if (!CreateD2DFactory())
     {
@@ -217,13 +216,14 @@ bool D2DRenderPack::PrepareRender(HWND hWnd, const SIZE & szRender, TRenderType 
         }
     }
 
-    assert(!m_statePool.front().m_T);//检查是否配对
-    assert(!m_layerPool.front().m_T);//检查是否配对
-    assert(m_clipStack.empty());//检查是否配对
+    assert(!m_statePool.front().m_T); //检查是否配对
+    assert(!m_layerPool.front().m_T); //检查是否配对
+    assert(m_clipStack.empty());      //检查是否配对
     HRESULT hr = S_OK;
     if (!m_spD2DHwndRender)
     {
-        D2D1_RENDER_TARGET_TYPE d2dRender = D2D1_RENDER_TARGET_TYPE::D2D1_RENDER_TARGET_TYPE_DEFAULT;
+        D2D1_RENDER_TARGET_TYPE d2dRender =
+            D2D1_RENDER_TARGET_TYPE::D2D1_RENDER_TARGET_TYPE_DEFAULT;
         switch (renderType)
         {
         case D2DRenderPack::Hardware:
@@ -238,9 +238,8 @@ bool D2DRenderPack::PrepareRender(HWND hWnd, const SIZE & szRender, TRenderType 
         hr = m_spD2DFactory->CreateHwndRenderTarget(
             D2D1::RenderTargetProperties(
                 d2dRender,
-                D2D1::PixelFormat(
-                    DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM, 
-                    D2D1_ALPHA_MODE::D2D1_ALPHA_MODE_PREMULTIPLIED),
+                D2D1::PixelFormat(DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
+                                  D2D1_ALPHA_MODE::D2D1_ALPHA_MODE_PREMULTIPLIED),
                 96.f * fDPI,
                 96.f * fDPI,
                 D2D1_RENDER_TARGET_USAGE::D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE,
@@ -275,7 +274,8 @@ bool D2DRenderPack::PrepareRender(HWND hWnd, const SIZE & szRender, TRenderType 
                 nullptr,
                 nullptr,
                 &pixelFormt,
-                D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS::D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_GDI_COMPATIBLE,
+                D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS::
+                    D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_GDI_COMPATIBLE,
                 &m_spD2DOffScreenRender);
             assert(SUCCEEDED(hr));
             if (FAILED(hr))
@@ -313,16 +313,17 @@ void D2DRenderPack::ClearRenderRes()
     assert(m_clipStack.empty());
     //ClearUserRes();
     ReleaseAllD2DResourceCache();
-    
+
     m_spSolidBrush.Release();
     m_spD2DRender.Release();
 }
 
-void D2DRenderPack::PushClipRect(const RECT & rcClip, bool bAntiAliasing /*= false*/)
+void D2DRenderPack::PushClipRect(const RECT &rcClip, bool bAntiAliasing /*= false*/)
 {
-    m_spD2DRender->PushAxisAlignedClip(
-        CD2DRectF(rcClip), 
-        bAntiAliasing ? D2D1_ANTIALIAS_MODE::D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE::D2D1_ANTIALIAS_MODE_ALIASED);
+    m_spD2DRender->PushAxisAlignedClip(CD2DRectF(rcClip),
+                                       bAntiAliasing
+                                           ? D2D1_ANTIALIAS_MODE::D2D1_ANTIALIAS_MODE_PER_PRIMITIVE
+                                           : D2D1_ANTIALIAS_MODE::D2D1_ANTIALIAS_MODE_ALIASED);
 
     SaveCurrentClip(rcClip);
 }
@@ -334,7 +335,7 @@ void D2DRenderPack::PopClipRect()
     RestoreCurrentClip();
 }
 
-void D2DRenderPack::PushD2DLayer(const D2D1_LAYER_PARAMETERS & layerParam)
+void D2DRenderPack::PushD2DLayer(const D2D1_LAYER_PARAMETERS &layerParam)
 {
     HRESULT hr = S_OK;
     //m_layerPool的前面存放正在使用的 ID2DLayer, 后面存放空闲的 ID2DLayer, 中间以一个空指针作为哨兵
@@ -390,7 +391,7 @@ bool D2DRenderPack::IsClipEmpty()
     return m_clipStack.top().IsRectEmpty();
 }
 
-bool D2DRenderPack::IsRectInClip(const RECT & rcTest)
+bool D2DRenderPack::IsRectInClip(const RECT &rcTest)
 {
     if (m_clipStack.empty())
     {
@@ -404,7 +405,7 @@ bool D2DRenderPack::IsRectInClip(const RECT & rcTest)
 
 void D2DRenderPack::PushDrawingState()
 {
-    //m_statePool的前面存放正在使用的 ID2D1DrawingStateBlock, 后面存放空闲的 ID2D1DrawingStateBlock, 
+    //m_statePool的前面存放正在使用的 ID2D1DrawingStateBlock, 后面存放空闲的 ID2D1DrawingStateBlock,
     // 中间以一个空指针作为哨兵
     if (m_statePool.back().m_T)
     {
@@ -434,17 +435,15 @@ void D2DRenderPack::PopDrawingState()
     }
 }
 
-ATL::CComPtr<ID2D1Bitmap> D2DRenderPack::CreateD2DBitmap(const SIZE & sz, const void * pBitmapData)
+ATL::CComPtr<ID2D1Bitmap> D2DRenderPack::CreateD2DBitmap(const SIZE &sz, const void *pBitmapData)
 {
     ATL::CComPtr<ID2D1Bitmap> spBitmap;
-    HRESULT hr= m_spD2DRender->CreateBitmap(
+    HRESULT hr = m_spD2DRender->CreateBitmap(
         D2D1::SizeU(sz.cx, sz.cy),
         pBitmapData,
         sz.cx * 4,
-        D2D1::BitmapProperties(
-            D2D1::PixelFormat(
-                DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
-                D2D1_ALPHA_MODE::D2D1_ALPHA_MODE_PREMULTIPLIED)),
+        D2D1::BitmapProperties(D2D1::PixelFormat(DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM,
+                                                 D2D1_ALPHA_MODE::D2D1_ALPHA_MODE_PREMULTIPLIED)),
         &spBitmap);
     assert(SUCCEEDED(hr));
     if (!spBitmap || FAILED(hr))
@@ -454,7 +453,7 @@ ATL::CComPtr<ID2D1Bitmap> D2DRenderPack::CreateD2DBitmap(const SIZE & sz, const 
     return spBitmap;
 }
 
-D2DRenderPack::CachedResID D2DRenderPack::CacheD2DResource(ID2D1Resource * pResource)
+D2DRenderPack::CachedResID D2DRenderPack::CacheD2DResource(ID2D1Resource *pResource)
 {
     if (!pResource)
     {
@@ -467,7 +466,7 @@ D2DRenderPack::CachedResID D2DRenderPack::CacheD2DResource(ID2D1Resource * pReso
     return std::move(id);
 }
 
-ATL::CComPtr<ID2D1Resource> D2DRenderPack::GetCachedD2DResource(const CachedResID & resID)
+ATL::CComPtr<ID2D1Resource> D2DRenderPack::GetCachedD2DResource(const CachedResID &resID)
 {
     if ((resID.m_cacheID == 0) || (resID.m_pRenderPack != this) || m_userResCache.empty())
     {
@@ -487,7 +486,7 @@ ATL::CComPtr<ID2D1Resource> D2DRenderPack::GetCachedD2DResource(const CachedResI
     }
 }
 
-void D2DRenderPack::ReleaseD2DResourceCache(const CachedResID & resID)
+void D2DRenderPack::ReleaseD2DResourceCache(const CachedResID &resID)
 {
     if ((resID.m_cacheID == 0) || (resID.m_pRenderPack != this) || m_userResCache.empty())
     {
@@ -502,13 +501,12 @@ void D2DRenderPack::ReleaseAllD2DResourceCache()
     //m_nUserResID不能清0，设备改变会调用此函数，但外部缓存不知道，m_nUserResID只增不减
 }
 
-void D2DRenderPack::CalculateArcPoint(
-    const RECT & ellipseBound,
-    float angleStart,
-    float angleSweep,
-    D2D1_POINT_2F & ptStart,
-    D2D1_POINT_2F & ptEnd,
-    D2D1_SIZE_F & szRadius)
+void D2DRenderPack::CalculateArcPoint(const RECT &ellipseBound,
+                                      float angleStart,
+                                      float angleSweep,
+                                      D2D1_POINT_2F &ptStart,
+                                      D2D1_POINT_2F &ptEnd,
+                                      D2D1_SIZE_F &szRadius)
 {
     double a = (double)(ellipseBound.right - ellipseBound.left) / 2.0;
     double b = (double)(ellipseBound.bottom - ellipseBound.top) / 2.0;
@@ -523,7 +521,7 @@ void D2DRenderPack::CalculateArcPoint(
     ptEnd.y = float(b * std::sin(TO_RADIAN(angleStart + angleSweep)) + centerY);
 }
 
-void D2DRenderPack::CalculateCosBezire(float fPiLength, D2D1_POINT_2F * pBezierPts)
+void D2DRenderPack::CalculateCosBezire(float fPiLength, D2D1_POINT_2F *pBezierPts)
 {
     fPiLength = (fPiLength > 0 ? fPiLength : -fPiLength);
     float fUnitOne = (float)(fPiLength / M_PI);
@@ -537,7 +535,7 @@ void D2DRenderPack::CalculateCosBezire(float fPiLength, D2D1_POINT_2F * pBezierP
     pBezierPts[3].y = fUnitOne;
 }
 
-void D2DRenderPack::CalculateTransRect(CD2DRectF & rect)
+void D2DRenderPack::CalculateTransRect(CD2DRectF &rect)
 {
     D2D1::Matrix3x2F mx;
     m_spD2DRender->GetTransform(&mx);
@@ -551,7 +549,7 @@ void D2DRenderPack::CalculateTransRect(CD2DRectF & rect)
     rect.bottom = (std::max)((std::max)((std::max)(lt.y, rt.y), rb.y), lb.y);
 }
 
-void D2DRenderPack::SaveCurrentClip(const CD2DRectF & rcClip)
+void D2DRenderPack::SaveCurrentClip(const CD2DRectF &rcClip)
 {
     CD2DRectF rcTransClip = rcClip;
     CalculateTransRect(rcTransClip);
@@ -582,28 +580,28 @@ void D2DRenderPack::ClearUserRes()
         HRESULT hr = S_OK;
 
         //设备无关资源
-        hr = it->second->QueryInterface(__uuidof(ID2D1DrawingStateBlock), (void**)&spTemp);
+        hr = it->second->QueryInterface(__uuidof(ID2D1DrawingStateBlock), (void **)&spTemp);
         if (spTemp && SUCCEEDED(hr))
         {
             ++it;
             continue;
         }
 
-        hr = it->second->QueryInterface(__uuidof(ID2D1Geometry), (void**)&spTemp);
+        hr = it->second->QueryInterface(__uuidof(ID2D1Geometry), (void **)&spTemp);
         if (spTemp && SUCCEEDED(hr))
         {
             ++it;
             continue;
         }
 
-        hr = it->second->QueryInterface(__uuidof(ID2D1StrokeStyle), (void**)&spTemp);
+        hr = it->second->QueryInterface(__uuidof(ID2D1StrokeStyle), (void **)&spTemp);
         if (spTemp && SUCCEEDED(hr))
         {
             ++it;
             continue;
         }
 
-        hr = it->second->QueryInterface(__uuidof(ID2D1SimplifiedGeometrySink), (void**)&spTemp);
+        hr = it->second->QueryInterface(__uuidof(ID2D1SimplifiedGeometrySink), (void **)&spTemp);
         if (spTemp && SUCCEEDED(hr))
         {
             //ID2D1GeometrySink 也包含在内

@@ -1,36 +1,38 @@
 ﻿#include "targetver.h"
-#include <cassert>
-#include <future>
+#include "UI/GraphicLayer/ConfigEngine/XmlResourceMgr.h"
 #include <atomic>
-#include <mutex>
-#include <condition_variable>
-#include <locale>
+#include <cassert>
 #include <codecvt>
+#include <condition_variable>
+#include <future>
+#include <locale>
+#include <mutex>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include "pugixml/pugixml.hpp"
-#include "UI/GraphicLayer/ConfigEngine/XmlResourceMgr.h"
+#include "DataStructure/traverse_tree_node.h"
 #include "UI/GraphicLayer/ConfigEngine/XmlAttributeUtility.h"
 #include "UI/Utility/GdiplusUtility.h"
-#include "DataStructure/traverse_tree_node.h"
-#pragma warning(disable:4458)
+#include "pugixml/pugixml.hpp"
+#pragma warning(disable : 4458)
 #include <GdiPlus.h>
-#pragma warning(default:4458)
+#pragma warning(default : 4458)
 
 SHARELIB_BEGIN_NAMESPACE
 
-static bool DecodePicture(const wchar_t * pPicture, TBitmapInfo & bitmapInfo)
+static bool DecodePicture(const wchar_t *pPicture, TBitmapInfo &bitmapInfo)
 {
     if (!InitializeGdiplus())
     {
         return false;
     }
-    std::unique_ptr<Gdiplus::Bitmap> spBitmap{ Gdiplus::Bitmap::FromFile(pPicture) };
+    std::unique_ptr<Gdiplus::Bitmap> spBitmap{Gdiplus::Bitmap::FromFile(pPicture)};
     if (spBitmap && spBitmap->GetWidth() > 0 && spBitmap->GetHeight() > 0)
     {
-        Gdiplus::Rect rcBitmap{ 0, 0, (int)spBitmap->GetWidth(), (int)spBitmap->GetHeight() };
+        Gdiplus::Rect rcBitmap{0, 0, (int)spBitmap->GetWidth(), (int)spBitmap->GetHeight()};
         Gdiplus::BitmapData data;
-        if (Gdiplus::Ok == spBitmap->LockBits(&rcBitmap, Gdiplus::ImageLockMode::ImageLockModeRead, PixelFormat32bppPARGB, &data))
+        if (Gdiplus::Ok ==
+            spBitmap->LockBits(
+                &rcBitmap, Gdiplus::ImageLockMode::ImageLockModeRead, PixelFormat32bppPARGB, &data))
         {
             auto nSize = 4 * spBitmap->GetWidth() * spBitmap->GetHeight();
             bitmapInfo.m_spBitmapData.reset(new uint8_t[nSize]{0});
@@ -47,11 +49,9 @@ static bool DecodePicture(const wchar_t * pPicture, TBitmapInfo & bitmapInfo)
 
 //--------------------------------------------------------------------------------
 
-TBitmapInfo::TBitmapInfo()
-{
-}
+TBitmapInfo::TBitmapInfo() {}
 
-TBitmapInfo::TBitmapInfo(TBitmapInfo && other)
+TBitmapInfo::TBitmapInfo(TBitmapInfo &&other)
 {
     m_spBitmapData = std::move(other.m_spBitmapData);
     m_nWidth = other.m_nWidth;
@@ -62,7 +62,7 @@ TBitmapInfo::TBitmapInfo(TBitmapInfo && other)
     m_nMarginBottom = other.m_nMarginBottom;
 }
 
-TBitmapInfo& TBitmapInfo::operator=(TBitmapInfo && other)
+TBitmapInfo &TBitmapInfo::operator=(TBitmapInfo &&other)
 {
     if (this != &other)
     {
@@ -77,8 +77,8 @@ TBitmapInfo& TBitmapInfo::operator=(TBitmapInfo && other)
     return *this;
 }
 
-std::shared_ptr<std::unordered_map<std::wstring, TBitmapInfo> > 
-LoadSkinFromXml(const wchar_t * pXmlFilePath)
+std::shared_ptr<std::unordered_map<std::wstring, TBitmapInfo>> LoadSkinFromXml(
+    const wchar_t *pXmlFilePath)
 {
     if (!pXmlFilePath)
     {
@@ -86,20 +86,21 @@ LoadSkinFromXml(const wchar_t * pXmlFilePath)
     }
     try
     {
-        auto & cvtFacet = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale());
-        std::wstring_convert<std::codecvt_utf16<wchar_t> > cvt{ &cvtFacet };
-        boost::interprocess::file_mapping fileMap{ cvt.to_bytes(pXmlFilePath).c_str(), boost::interprocess::mode_t::read_only };
-        boost::interprocess::mapped_region region{ fileMap, boost::interprocess::mode_t::read_only };
+        auto &cvtFacet = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale());
+        std::wstring_convert<std::codecvt_utf16<wchar_t>> cvt{&cvtFacet};
+        boost::interprocess::file_mapping fileMap{cvt.to_bytes(pXmlFilePath).c_str(),
+                                                  boost::interprocess::mode_t::read_only};
+        boost::interprocess::mapped_region region{fileMap, boost::interprocess::mode_t::read_only};
         return LoadSkinFromXml(region.get_address(), region.get_size());
     }
-    catch (const std::exception&)
+    catch (const std::exception &)
     {
         return nullptr;
     }
 }
 
-std::shared_ptr<std::unordered_map<std::wstring, TBitmapInfo> > 
-LoadSkinFromXml(const void * pData, size_t nLength)
+std::shared_ptr<std::unordered_map<std::wstring, TBitmapInfo>> LoadSkinFromXml(const void *pData,
+                                                                               size_t nLength)
 {
     assert(pData && nLength);
     if (!pData || (nLength == 0))
@@ -122,60 +123,59 @@ LoadSkinFromXml(const void * pData, size_t nLength)
 
     traverse_tree_node_t2b(
         xmlDoc.first_child(),
-        [&spSkinMap, &mapLock, &notifyLock, &cvLock, &nCount](pugi::xml_node & node, int nDepth)->int
-    {
-        if (nDepth == 0)
-        {
-            return 1;
-        }
-        ++nCount;
-        std::async(
-            [&spSkinMap, &mapLock, &notifyLock, &cvLock, &nCount, node]()
-        {
-            auto attr = node.attribute(L"Path");
-            if (attr)
+        [&spSkinMap, &mapLock, &notifyLock, &cvLock, &nCount](pugi::xml_node &node,
+                                                              int nDepth) -> int {
+            if (nDepth == 0)
             {
-                TBitmapInfo bitmapInfo;
-                if (DecodePicture(attr.value(), bitmapInfo))
+                return 1;
+            }
+            ++nCount;
+            std::async([&spSkinMap, &mapLock, &notifyLock, &cvLock, &nCount, node]() {
+                auto attr = node.attribute(L"Path");
+                if (attr)
                 {
-                    attr = node.attribute(L"Margin");
-                    if (attr)
+                    TBitmapInfo bitmapInfo;
+                    if (DecodePicture(attr.value(), bitmapInfo))
                     {
-                        RECT margin{ 0 };
-                        XmlAttributeUtility::ReadXmlValue(attr.value(), margin);
-                        bitmapInfo.m_nMarginLeft = margin.left;
-                        bitmapInfo.m_nMarginTop = margin.top;
-                        bitmapInfo.m_nMarginRight = margin.right;
-                        bitmapInfo.m_nMarginBottom = margin.bottom;
-                    }
-
-                    {
-                        std::lock_guard<std::mutex> lock{ mapLock };
-                        auto it = spSkinMap->find(node.name());
-                        if (it == spSkinMap->end())
+                        attr = node.attribute(L"Margin");
+                        if (attr)
                         {
-                            spSkinMap->insert(std::make_pair(node.name(), std::move(bitmapInfo)));
+                            RECT margin{0};
+                            XmlAttributeUtility::ReadXmlValue(attr.value(), margin);
+                            bitmapInfo.m_nMarginLeft = margin.left;
+                            bitmapInfo.m_nMarginTop = margin.top;
+                            bitmapInfo.m_nMarginRight = margin.right;
+                            bitmapInfo.m_nMarginBottom = margin.bottom;
                         }
-                        else
+
                         {
-                            it->second = std::move(bitmapInfo);
+                            std::lock_guard<std::mutex> lock{mapLock};
+                            auto it = spSkinMap->find(node.name());
+                            if (it == spSkinMap->end())
+                            {
+                                spSkinMap->insert(
+                                    std::make_pair(node.name(), std::move(bitmapInfo)));
+                            }
+                            else
+                            {
+                                it->second = std::move(bitmapInfo);
+                            }
                         }
                     }
                 }
-            }
 
-            if (--nCount == 0)
-            {
-                std::unique_lock<std::mutex> lock{ notifyLock };
-                cvLock.notify_all();
-            }
+                if (--nCount == 0)
+                {
+                    std::unique_lock<std::mutex> lock{notifyLock};
+                    cvLock.notify_all();
+                }
+            });
+
+            return 0;
         });
 
-        return 0;
-    });
-
     {
-        std::unique_lock<std::mutex> lock{ notifyLock };
+        std::unique_lock<std::mutex> lock{notifyLock};
         if (nCount > 0)
         {
             cvLock.wait(lock);

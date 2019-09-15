@@ -1,21 +1,19 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
 #include <cstdint>
 #include <memory>
 #include <boost/core/noncopyable.hpp>
+#include "MacroDefBase.h"
 
-namespace boost
-{
-    namespace interprocess
-    {
-        class file_mapping;
-        class mapped_region;
-    }
-    namespace filesystem
-    {
-        class path;
-    }
+namespace boost {
+namespace interprocess {
+class file_mapping;
+class mapped_region;
+} // namespace interprocess
+
+namespace filesystem {
+class path;
 }
+} // namespace boost
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -23,15 +21,14 @@ SHARELIB_BEGIN_NAMESPACE
 并且每次读写只映射文件的一部分, 而不是整个的文件, 因此内存占用也很小;
 限制: 文件大小固定, 在传给该类之前已经固定好, 读、写都不能越界
 */
-class FileMappingHelper
-    : private boost::noncopyable
+class FileMappingHelper : private boost::noncopyable
 {
 public:
     /** 构造函数
     @param[in] pFile 文件，如果映射失败抛出异常
     */
-    explicit FileMappingHelper(const wchar_t * pFile);
-    explicit FileMappingHelper(const char * pFile);
+    explicit FileMappingHelper(const wchar_t *pFile);
+    explicit FileMappingHelper(const char *pFile);
 
     ~FileMappingHelper();
 
@@ -39,7 +36,7 @@ public:
     */
     uint64_t GetFileSize();
 
-//----定位操作-----------------------------------------------------
+    //----定位操作-----------------------------------------------------
 
     enum TSeekType
     {
@@ -60,21 +57,21 @@ public:
     uint64_t GetWritePos();
     uint64_t GetReadPos();
 
-//----读写操作-----------------------------------------------------
+    //----读写操作-----------------------------------------------------
 
     /** 写入数据,会自动更新写入位置.文件需要有 GENERIC_READ | GENERIC_WRITE 属性
     @param[in] pBits 数据指针
     @param[in] nBytes 数据大小
     @return 是否成功，如果失败，一个字节也不会写入
     */
-    bool WriteBytes(const void * pBits, size_t nBytes);
+    bool WriteBytes(const void *pBits, size_t nBytes);
 
     /** 读取数据,会自动更新读取位置,文件需要有 GENERIC_READ 属性
     @param[out] pBuffer 外部缓存
     @param[in] bufferSize 缓存大小
     @return 返回实际读取的数据大小
     */
-    size_t ReadBytes(void * pBuffer, size_t bufferSize);
+    size_t ReadBytes(void *pBuffer, size_t bufferSize);
 
     /** 获取内存指针用于读写, 文件需要有 GENERIC_READ | GENERIC_WRITE 属性.
     注意: LockBits之后不要再次LockBits、WriteBytes或者ReadBytes,他们都会导致前一次获取的内存指针失效.
@@ -82,7 +79,7 @@ public:
     @param[in] nLockBytes 内存块大小,如果实际可操作内存小于该值，返回nullptr
     @return 内存指针,大小等于nLockBytes, 失败返回nullptr
     */
-    void * LockBits(uint64_t offset, size_t nLockBytes);
+    void *LockBits(uint64_t offset, size_t nLockBytes);
 
     /** 释放通过LockBits所获取的内存,释放后内存指针失效
     */
@@ -92,14 +89,14 @@ private:
     /** 初始化
     @param[in] filePath 文件路径
     */
-    void Init(const boost::filesystem::path & filePath);
+    void Init(const boost::filesystem::path &filePath);
 
     /** 定位
     @param[in,out] prevSize 更新之前的大小
     @param[in] offset 偏移值
     @param[in] type 位置类型
     */
-    void SeekImpl(uint64_t & prevSize, int64_t offset, TSeekType type);
+    void SeekImpl(uint64_t &prevSize, int64_t offset, TSeekType type);
 
     /** 文件
     */

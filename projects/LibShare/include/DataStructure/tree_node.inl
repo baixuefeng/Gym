@@ -1,23 +1,23 @@
 ﻿
 SHARELIB_BEGIN_NAMESPACE
 
-template<class Derived, class ...Tags>
-tree_node<Derived, Tags ...>::tree_node()
+template<class Derived, class... Tags>
+tree_node<Derived, Tags...>::tree_node()
 {
     m_uChildCount = 0;
     m_pParent = m_pPrevSibling = m_pNextSibling = m_pFirstChild = m_pLastChild = nullptr;
 }
 
-template<class Derived, class ...Tags>
-tree_node<Derived, Tags ...>::~tree_node()
+template<class Derived, class... Tags>
+tree_node<Derived, Tags...>::~tree_node()
 {
-    destroy_children((Derived*)this);
+    destroy_children((Derived *)this);
     //最后才从树中移除
-    remove_tree_node((Derived*)this);
+    remove_tree_node((Derived *)this);
 }
 
-template<class Derived, class ...Tags>
-Derived *tree_node<Derived, Tags ...>::root() const
+template<class Derived, class... Tags>
+Derived *tree_node<Derived, Tags...>::root() const
 {
     if (!m_pParent)
     {
@@ -31,14 +31,14 @@ Derived *tree_node<Derived, Tags ...>::root() const
     return pRoot;
 }
 
-template<class Derived, class ...Tags>
-bool tree_node<Derived, Tags ...>::is_root() const
+template<class Derived, class... Tags>
+bool tree_node<Derived, Tags...>::is_root() const
 {
     return (m_pParent == nullptr);
 }
 
-template<class Derived, class ...Tags>
-Derived * tree_node<Derived, Tags ...>::nth_child(size_t nth) const
+template<class Derived, class... Tags>
+Derived *tree_node<Derived, Tags...>::nth_child(size_t nth) const
 {
     Derived *pChild = m_pFirstChild;
     while (pChild && nth-- > 0)
@@ -48,8 +48,10 @@ Derived * tree_node<Derived, Tags ...>::nth_child(size_t nth) const
     return pChild;
 }
 
-template<class Derived, class ...Tags>
-void tree_node<Derived, Tags ...>::insert_tree_node(Derived * pNewNode, TInsertPos posType/* = TInsertPos::AsLastChild*/)
+template<class Derived, class... Tags>
+void tree_node<Derived, Tags...>::insert_tree_node(
+    Derived *pNewNode,
+    TInsertPos posType /* = TInsertPos::AsLastChild*/)
 {
     assert(pNewNode);
     assert(pNewNode != this);
@@ -73,8 +75,9 @@ void tree_node<Derived, Tags ...>::insert_tree_node(Derived * pNewNode, TInsertP
     }
 }
 
-template<class Derived, class ...Tags>
-Derived * tree_node<Derived, Tags ...>::remove_tree_node(Derived *pNode, bool bNextSibling/* = true*/)
+template<class Derived, class... Tags>
+Derived *tree_node<Derived, Tags...>::remove_tree_node(Derived *pNode,
+                                                       bool bNextSibling /* = true*/)
 {
     if (!pNode)
     {
@@ -120,15 +123,18 @@ Derived * tree_node<Derived, Tags ...>::remove_tree_node(Derived *pNode, bool bN
     return pReturn;
 }
 
-template<class Derived, class ...Tags>
-Derived * tree_node<Derived, Tags ...>::destroy_tree_node(Derived *pNode, bool bNextSibling/* = true*/)
+template<class Derived, class... Tags>
+Derived *tree_node<Derived, Tags...>::destroy_tree_node(Derived *pNode,
+                                                        bool bNextSibling /* = true*/)
 {
     return destroy_tree_node(pNode, std::default_delete<Derived>(), bNextSibling);
 }
 
-template<class Derived, class ...Tags>
+template<class Derived, class... Tags>
 template<class Deletor>
-Derived * tree_node<Derived, Tags ...>::destroy_tree_node(Derived *pNode, Deletor && d, bool bNextSibling/* = true*/)
+Derived *tree_node<Derived, Tags...>::destroy_tree_node(Derived *pNode,
+                                                        Deletor &&d,
+                                                        bool bNextSibling /* = true*/)
 {
     if (!pNode)
     {
@@ -150,8 +156,8 @@ Derived * tree_node<Derived, Tags ...>::destroy_tree_node(Derived *pNode, Deleto
     return pReturn;
 }
 
-template<class Derived, class ...Tags>
-void tree_node<Derived, Tags ...>::destroy_children(Derived *pNode)
+template<class Derived, class... Tags>
+void tree_node<Derived, Tags...>::destroy_children(Derived *pNode)
 {
     if (!pNode || pNode->child_count() == 0)
     {
@@ -160,9 +166,9 @@ void tree_node<Derived, Tags ...>::destroy_children(Derived *pNode)
     destroy_children(pNode, std::default_delete<Derived>());
 }
 
-template<class Derived, class ...Tags>
+template<class Derived, class... Tags>
 template<class Deletor>
-void tree_node<Derived, Tags ...>::destroy_children(Derived *pNode, Deletor && d)
+void tree_node<Derived, Tags...>::destroy_children(Derived *pNode, Deletor &&d)
 {
     if (!pNode || pNode->child_count() == 0)
     {
@@ -174,8 +180,8 @@ void tree_node<Derived, Tags ...>::destroy_children(Derived *pNode, Deletor && d
     }
 }
 
-template<class Derived, class ...Tags>
-void tree_node<Derived, Tags ...>::prepend_child(Derived *pChild)
+template<class Derived, class... Tags>
+void tree_node<Derived, Tags...>::prepend_child(Derived *pChild)
 {
     assert(pChild);
     if (!pChild)
@@ -200,8 +206,8 @@ void tree_node<Derived, Tags ...>::prepend_child(Derived *pChild)
     ++m_uChildCount;
 }
 
-template<class Derived, class ...Tags>
-void tree_node<Derived, Tags ...>::append_child(Derived *pChild)
+template<class Derived, class... Tags>
+void tree_node<Derived, Tags...>::append_child(Derived *pChild)
 {
     assert(pChild);
     if (!pChild)
@@ -226,8 +232,8 @@ void tree_node<Derived, Tags ...>::append_child(Derived *pChild)
     ++m_uChildCount;
 }
 
-template<class Derived, class ...Tags>
-void tree_node<Derived, Tags ...>::prepend_sibling(Derived *pSibling)
+template<class Derived, class... Tags>
+void tree_node<Derived, Tags...>::prepend_sibling(Derived *pSibling)
 {
     assert(pSibling);
     if (!pSibling)
@@ -255,8 +261,8 @@ void tree_node<Derived, Tags ...>::prepend_sibling(Derived *pSibling)
     m_pPrevSibling = pSibling;
 }
 
-template<class Derived, class ...Tags>
-void tree_node<Derived, Tags ...>::append_sibling(Derived *pSibling)
+template<class Derived, class... Tags>
+void tree_node<Derived, Tags...>::append_sibling(Derived *pSibling)
 {
     assert(pSibling);
     if (!pSibling)
@@ -284,9 +290,9 @@ void tree_node<Derived, Tags ...>::append_sibling(Derived *pSibling)
     m_pNextSibling = pSibling;
 }
 
-template<class Derived, class ...Tags>
+template<class Derived, class... Tags>
 template<class Deletor>
-Derived * tree_node<Derived, Tags ...>::destroy_tree_node_helper(Derived *pNode, Deletor && d)
+Derived *tree_node<Derived, Tags...>::destroy_tree_node_helper(Derived *pNode, Deletor &&d)
 {
     if (!pNode)
     {

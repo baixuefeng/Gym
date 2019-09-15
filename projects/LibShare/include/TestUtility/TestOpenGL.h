@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
 #include <windows.h>
+#include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 

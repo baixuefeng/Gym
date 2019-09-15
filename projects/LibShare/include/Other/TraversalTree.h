@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include "MacroDefBase.h"
-#include <string>
 #include <cstring>
 #include <memory>
+#include <string>
 #include <windows.h>
+#include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -14,7 +14,9 @@ SHARELIB_BEGIN_NAMESPACE
 @param[out] samDesired 遍历子键时，用什么权限打开子键，默认为 KEY_READ
 @return 返回true则遍历该子键，否则不遍历
 */
-typedef bool(*PFProcessKeyFunc)(const std::wstring & path, const std::wstring & keyName, REGSAM & samDesired);
+typedef bool (*PFProcessKeyFunc)(const std::wstring &path,
+                                 const std::wstring &keyName,
+                                 REGSAM &samDesired);
 
 /** 遍历到值时的处理函数
 @param[in] path 注册表路径，只起记录的作用，不会依据此打开注册表
@@ -22,12 +24,11 @@ typedef bool(*PFProcessKeyFunc)(const std::wstring & path, const std::wstring & 
 @param[in] dwValueType 值的类型
 @param[in] dwDataBytes 数据的字节数
 */
-typedef void(*PFProcessValueFunc)(
-    const std::wstring & path, 
-    const std::wstring & valueName, 
-    DWORD dwValueType, 
-    const void *pValueData, 
-    DWORD dwDataBytes);
+typedef void (*PFProcessValueFunc)(const std::wstring &path,
+                                   const std::wstring &valueName,
+                                   DWORD dwValueType,
+                                   const void *pValueData,
+                                   DWORD dwDataBytes);
 
 /** 遍历注册表
 @param[in] path 注册表路径，只起记录的作用，不会依据此打开注册表
@@ -37,13 +38,11 @@ typedef void(*PFProcessValueFunc)(
 @param[in] pfProcessValue 遍历到一个值时的处理函数
 @return 返回系统错误码
 */
-LSTATUS ForEachItemInTheRegKey(
-    const std::wstring & path,
-    HKEY hKey,
-    unsigned int nMaxDepth,
-    PFProcessKeyFunc pfProcessKey,
-    PFProcessValueFunc pfProcessValue);
-
+LSTATUS ForEachItemInTheRegKey(const std::wstring &path,
+                               HKEY hKey,
+                               unsigned int nMaxDepth,
+                               PFProcessKeyFunc pfProcessKey,
+                               PFProcessValueFunc pfProcessValue);
 
 //-------------------------------------------------------------
 
@@ -57,37 +56,35 @@ LSTATUS ForEachItemInTheRegKey(
 @return 返回处理成功与否，Op1、Op2、Op3的返回值不影响函数的总体返回值
 */
 template<class Op1, class Op2, class Op3>
-bool ForEachItemInDirectory(
-    const wchar_t *pDirPath, 
-    unsigned int nMaxDepth,
-    Op1 needRecursion, 
-    Op2 itemOp, 
-    Op3 dirOp);
+bool ForEachItemInDirectory(const wchar_t *pDirPath,
+                            unsigned int nMaxDepth,
+                            Op1 needRecursion,
+                            Op2 itemOp,
+                            Op3 dirOp);
 
 /** 删除目录中的所有文件
 */
-#define DeleteDirectoryWithAllSubitems(dirPath)  \
-ForEachItemInDirectory( \
-    dirPath, \
-    UINT_MAX, \
-    [](const wchar_t *)->bool { return true; }, \
-    ::DeleteFileW, \
-    ::RemoveDirectoryW)
+#define DeleteDirectoryWithAllSubitems(dirPath)                                                    \
+    ForEachItemInDirectory(                                                                        \
+        dirPath,                                                                                   \
+        UINT_MAX,                                                                                  \
+        [](const wchar_t *) -> bool { return true; },                                              \
+        ::DeleteFileW,                                                                             \
+        ::RemoveDirectoryW)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 //----下面是模版函数的实现-------------------------------------
 
 #pragma warning(push)
-#pragma warning(disable:4995)
-#pragma warning(disable:4996)
+#pragma warning(disable : 4995)
+#pragma warning(disable : 4996)
 template<class Op1, class Op2, class Op3>
-bool ForEachItemInDirectory(
-    const wchar_t *pDirPath, 
-    unsigned int nMaxDepth,
-    Op1 needRecursion, 
-    Op2 itemOp, 
-    Op3 dirOp)
+bool ForEachItemInDirectory(const wchar_t *pDirPath,
+                            unsigned int nMaxDepth,
+                            Op1 needRecursion,
+                            Op2 itemOp,
+                            Op3 dirOp)
 {
     if (nMaxDepth == 0)
     {
@@ -107,7 +104,7 @@ bool ForEachItemInDirectory(
 
     //预处理
     std::unique_ptr<wchar_t[]> spTargetDir(new wchar_t[MAX_PATH * 2]{});
-    std::memcpy(spTargetDir.get(), pDirPath, nLenth*sizeof(wchar_t));
+    std::memcpy(spTargetDir.get(), pDirPath, nLenth * sizeof(wchar_t));
     if (pDirPath[nLenth - 1] != L'\\')
     {
         spTargetDir.get()[nLenth] = L'\\';
@@ -130,15 +127,15 @@ bool ForEachItemInDirectory(
 
     do
     {
-        if (ffData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY
-            && std::wcscmp(ffData.cFileName, L".") != 0
-            && std::wcscmp(ffData.cFileName, L"..") != 0)
+        if (ffData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY &&
+            std::wcscmp(ffData.cFileName, L".") != 0 && std::wcscmp(ffData.cFileName, L"..") != 0)
         {
             std::wcscpy(spTargetDir.get() + nLenth, ffData.cFileName);
             //递归处理子目录
             if ((nMaxDepth > 0) && needRecursion(spTargetDir.get()))
             {
-                if (!ForEachItemInDirectory(spTargetDir.get(), nMaxDepth - 1, needRecursion, itemOp, dirOp))
+                if (!ForEachItemInDirectory(
+                        spTargetDir.get(), nMaxDepth - 1, needRecursion, itemOp, dirOp))
                 {
                     return false;
                 }

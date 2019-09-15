@@ -1,7 +1,7 @@
 ﻿#pragma once
+#include <condition_variable>
 #include <cstdint>
 #include <mutex>
-#include <condition_variable>
 #include <boost/core/noncopyable.hpp>
 #include "MacroDefBase.h"
 
@@ -12,8 +12,7 @@ SHARELIB_BEGIN_NAMESPACE
 
 /** 类似windows的Event的锁
 */
-class EventLock :
-    protected boost::noncopyable
+class EventLock : protected boost::noncopyable
 {
 public:
     /** 构造函数
@@ -54,20 +53,19 @@ private:
 
 /** 轻量级的线程同步锁:信号量
 */
-class Semaphore :
-    protected boost::noncopyable
+class Semaphore : protected boost::noncopyable
 {
 public:
     /** 构造函数
     @param[in] nInitCount 初始个数
     */
-	explicit Semaphore(size_t nInitCount);
+    explicit Semaphore(size_t nInitCount);
 
     /** 请求资源, 请求多个的时候要么全部获得, 要么一个也不会获得
     @param[in] nCount 请求的资源数量
     @param[in] nMilliseconds 0表示不等待，<0表示永久等待
     */
-	bool Acquire(size_t nCount, int64_t nMilliseconds = -1);
+    bool Acquire(size_t nCount, int64_t nMilliseconds = -1);
 
     /** 释放资源
     @param[in] nCount 释放的资源个数

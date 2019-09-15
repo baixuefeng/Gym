@@ -1,11 +1,11 @@
 ﻿#include "targetver.h"
 #include "Other/VersionTime.h"
-#include <vector>
 #include <memory>
-#include <windows.h>
+#include <vector>
 #include <atlfile.h>
-#include <strsafe.h>
 #include <atlwinverapi.h>
+#include <strsafe.h>
+#include <windows.h>
 
 //使用Version相关的函数需要引入的库
 #pragma comment(lib, "Version.lib")
@@ -14,9 +14,14 @@ SHARELIB_BEGIN_NAMESPACE
 
 // 文件名为空表示获取当前模块文件的时间。
 // 三种类型的时间：创建时间，最后访问时间，修改时间
-enum class TTimeType{ CREATE, LASTACCESS, MODIFY };
+enum class TTimeType
+{
+    CREATE,
+    LASTACCESS,
+    MODIFY
+};
 
-static bool GetLocaleFileTime(const wchar_t * pkszFileName, TTimeType emTimeType, SYSTEMTIME & stTime)
+static bool GetLocaleFileTime(const wchar_t *pkszFileName, TTimeType emTimeType, SYSTEMTIME &stTime)
 {
     ATL::CAtlFile file;
     HRESULT hr = E_FAIL;
@@ -25,11 +30,12 @@ static bool GetLocaleFileTime(const wchar_t * pkszFileName, TTimeType emTimeType
         //获取模块句柄
         HMODULE hModule = NULL;
         if (!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-            reinterpret_cast<LPCWSTR>(GetLocaleFileTime), &hModule))
+                                  reinterpret_cast<LPCWSTR>(GetLocaleFileTime),
+                                  &hModule))
         {
             return false;
         }
-        wchar_t szName[MAX_PATH] = { 0 };
+        wchar_t szName[MAX_PATH] = {0};
         ::GetModuleFileNameW(hModule, szName, MAX_PATH);
 
         hr = file.Create(szName, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
@@ -63,14 +69,13 @@ static bool GetLocaleFileTime(const wchar_t * pkszFileName, TTimeType emTimeType
     //时间转换
     bRel &= ::FileTimeToLocalFileTime(&stFTime1, &stFTime2);
     bRel &= ::FileTimeToSystemTime(&stFTime2, &stTime);
-    return !!bRel;//消除编译器警告
+    return !!bRel; //消除编译器警告
 }
 
 //如果文件名为空，则获取当前模块文件的信息
-static bool GetFileVersionInfoString(
-    const wchar_t * pwkszFileName,
-    TVersionKey emVersionKey,
-    std::wstring & wstrVersionString)
+static bool GetFileVersionInfoString(const wchar_t *pwkszFileName,
+                                     TVersionKey emVersionKey,
+                                     std::wstring &wstrVersionString)
 {
     //选取文件名
     std::wstring strName;
@@ -79,7 +84,8 @@ static bool GetFileVersionInfoString(
         strName.assign(MAX_PATH + 1, L'\0');
         HMODULE hModule = NULL;
         if (!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
-            reinterpret_cast<LPCWSTR>(GetFileVersionInfoString), &hModule))
+                                  reinterpret_cast<LPCWSTR>(GetFileVersionInfoString),
+                                  &hModule))
         {
             return false;
         }
@@ -92,7 +98,8 @@ static bool GetFileVersionInfoString(
 
     bool bXpOs = true; //XP系统
     std::vector<BYTE> byVersion;
-    IFDYNAMICGETCACHEDFUNCTION(L"version.dll", GetFileVersionInfoSizeExW, pfnGetFileVersionInfoSizeExW)
+    IFDYNAMICGETCACHEDFUNCTION(
+        L"version.dll", GetFileVersionInfoSizeExW, pfnGetFileVersionInfoSizeExW)
     {
         IFDYNAMICGETCACHEDFUNCTION(L"version.dll", GetFileVersionInfoExW, pfnGetFileVersionInfoExW)
         {
@@ -137,46 +144,44 @@ static bool GetFileVersionInfoString(
         WORD wCodePage;
     } *pstLanguageCode = NULL;
     UINT uiTranslateBytes = 0;
-    if (!::VerQueryValueW(&byVersion[0], L"\\VarFileInfo\\Translation",
-        reinterpret_cast<LPVOID *>(&pstLanguageCode), &uiTranslateBytes))
+    if (!::VerQueryValueW(&byVersion[0],
+                          L"\\VarFileInfo\\Translation",
+                          reinterpret_cast<LPVOID *>(&pstLanguageCode),
+                          &uiTranslateBytes))
     {
         return false;
     }
 
     //预先把可以使用的所有键名列出来，用枚举值参传，如果拼写不正确编译器报错。
     //相反如果直接通过字符串传参，拼写错误编译器不报错，却会导致运行时错误。
-    static const wchar_t * VERSION_KEY_NAMES[] =
-    {
-        L"Comments",
-        L"InternalName",
-        L"OriginalFilename",
-        L"ProductName",
-        L"FileDescription",
-        L"CompanyName",
-        L"LegalCopyright",
-        L"LegalTrademarks",
-        L"SpecialBuild",
-        L"PrivateBuild",
-        L"FileVersion",
-        L"ProductVersion"
-    };
+    static const wchar_t *VERSION_KEY_NAMES[] = {L"Comments",
+                                                 L"InternalName",
+                                                 L"OriginalFilename",
+                                                 L"ProductName",
+                                                 L"FileDescription",
+                                                 L"CompanyName",
+                                                 L"LegalCopyright",
+                                                 L"LegalTrademarks",
+                                                 L"SpecialBuild",
+                                                 L"PrivateBuild",
+                                                 L"FileVersion",
+                                                 L"ProductVersion"};
 
     //获取具体版本信息字符串
-    wchar_t wszSubBlock[100] = { 0 };
-    if (FAILED(::StringCbPrintfW(
-        wszSubBlock,
-        sizeof(wszSubBlock),
-        L"\\StringFileInfo\\%04x%04x\\%s",
-        pstLanguageCode[0].wLanguage,
-        pstLanguageCode[0].wCodePage, //? 代码页的选择，如何支持多国语言
-        VERSION_KEY_NAMES[(int)emVersionKey])))
+    wchar_t wszSubBlock[100] = {0};
+    if (FAILED(::StringCbPrintfW(wszSubBlock,
+                                 sizeof(wszSubBlock),
+                                 L"\\StringFileInfo\\%04x%04x\\%s",
+                                 pstLanguageCode[0].wLanguage,
+                                 pstLanguageCode[0].wCodePage, //? 代码页的选择，如何支持多国语言
+                                 VERSION_KEY_NAMES[(int)emVersionKey])))
     {
         return false;
     }
-    wchar_t * pVersionInfo = NULL;//获取的版本信息只有UNICODE字符串，没有ANSI字符串
+    wchar_t *pVersionInfo = NULL; //获取的版本信息只有UNICODE字符串，没有ANSI字符串
     UINT uiVersionChars = 0;
-    if (!::VerQueryValueW(&byVersion[0], wszSubBlock,
-        reinterpret_cast<LPVOID *>(&pVersionInfo), &uiVersionChars))
+    if (!::VerQueryValueW(
+            &byVersion[0], wszSubBlock, reinterpret_cast<LPVOID *>(&pVersionInfo), &uiVersionChars))
     {
         return false;
     }
@@ -191,15 +196,16 @@ std::wstring GetModuleModifyTime(const wchar_t *pModuleName)
     SYSTEMTIME stTime{};
     if (GetLocaleFileTime(pModuleName, TTimeType::MODIFY, stTime))
     {
-        wchar_t szTime[100] = { 0 };
-        ::StringCbPrintfW(szTime, sizeof(szTime),
-            L"%04u-%02u-%02u %02u:%02u:%02u",
-            stTime.wYear,
-            stTime.wMonth,
-            stTime.wDay,
-            stTime.wHour,
-            stTime.wMinute,
-            stTime.wSecond);
+        wchar_t szTime[100] = {0};
+        ::StringCbPrintfW(szTime,
+                          sizeof(szTime),
+                          L"%04u-%02u-%02u %02u:%02u:%02u",
+                          stTime.wYear,
+                          stTime.wMonth,
+                          stTime.wDay,
+                          stTime.wHour,
+                          stTime.wMinute,
+                          stTime.wSecond);
         return szTime;
     }
     else
@@ -208,7 +214,8 @@ std::wstring GetModuleModifyTime(const wchar_t *pModuleName)
     }
 }
 
-std::wstring GetModuleVersion(const wchar_t *pModuleName, TVersionKey key/* = TVersionKey::ProductVersion*/)
+std::wstring GetModuleVersion(const wchar_t *pModuleName,
+                              TVersionKey key /* = TVersionKey::ProductVersion*/)
 {
     std::wstring wstrTemp;
     if (GetFileVersionInfoString(pModuleName, key, wstrTemp))

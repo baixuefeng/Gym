@@ -6,17 +6,13 @@ SHARELIB_BEGIN_NAMESPACE
 
 IMPLEMENT_RUNTIME_DYNAMIC_CREATE(GraphicScrollLayer, GraphicLayer::RegisterLayerClassesInfo)
 
-GraphicScrollLayer::GraphicScrollLayer():
-    m_bUseSysSetting(true),
-    m_nLinesSys(0),
-    m_nCharsSys(0)
-{
-}
+GraphicScrollLayer::GraphicScrollLayer()
+    : m_bUseSysSetting(true)
+    , m_nLinesSys(0)
+    , m_nCharsSys(0)
+{}
 
-GraphicScrollLayer::~GraphicScrollLayer()
-{
-
-}
+GraphicScrollLayer::~GraphicScrollLayer() {}
 
 void GraphicScrollLayer::SetVerticalScrollUnit(int32_t nUnit)
 {
@@ -56,7 +52,11 @@ int32_t GraphicScrollLayer::GetHorizontalScrollUnit()
     return m_nCharsSys;
 }
 
-bool shr::GraphicScrollLayer::OnLayerMsgMouse(GraphicLayer * pLayer, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & lResult)
+bool GraphicScrollLayer::OnLayerMsgMouse(GraphicLayer *pLayer,
+                                         UINT uMsg,
+                                         WPARAM wParam,
+                                         LPARAM lParam,
+                                         LRESULT &lResult)
 {
     if (WM_MOUSEWHEEL == uMsg)
     {

@@ -1,12 +1,12 @@
 ﻿#include "targetver.h"
 #include "IOCP/IOCPThreadPool.h"
-#include <chrono>
-#include <cassert>
 #include <atomic>
-#include <mutex>
-#include <exception>
+#include <cassert>
+#include <chrono>
 #include <condition_variable>
+#include <exception>
 #include <memory>
+#include <mutex>
 #include <process.h>
 
 SHARELIB_BEGIN_NAMESPACE
@@ -27,8 +27,7 @@ struct IOCPThreadPool::IOCPContex
         , m_dwBusyNum(0)
         , m_hIOCP(nullptr)
         , m_dwTimerOut(10000)
-    {
-    }
+    {}
 
     ~IOCPContex()
     {
@@ -73,7 +72,8 @@ struct IOCPThreadPool::IOCPContex
     */
     bool AddThread()
     {
-        HANDLE hThread = (HANDLE)::_beginthreadex(0, STACK_SIZE, IOCPWorkThread, this, CREATE_SUSPENDED, 0);
+        HANDLE hThread =
+            (HANDLE)::_beginthreadex(0, STACK_SIZE, IOCPWorkThread, this, CREATE_SUSPENDED, 0);
         if (nullptr != hThread)
         {
             //由启动者增加计数，避免启动者退出、但新线程还没有执行增加计数的代码导致计数错误
@@ -106,7 +106,7 @@ struct IOCPThreadPool::IOCPContex
     std::atomic<DWORD> m_dwBusyNum;
 
     //线程锁
-	std::mutex m_threadLock;
+    std::mutex m_threadLock;
 
     //当前时间
     std::chrono::time_point<std::chrono::system_clock> m_timeCur;
@@ -123,8 +123,7 @@ struct IOCPThreadPool::IOCPContex
 
 IOCPThreadPool::IOCPThreadPool()
     : m_pIOCPContex(nullptr)
-{
-}
+{}
 
 IOCPThreadPool::~IOCPThreadPool()
 {
@@ -150,8 +149,7 @@ bool IOCPThreadPool::CreateIOCPThreadPool(DWORD dwNumOfRun /*= 0*/, DWORD dwNumO
     {
         return false;
     }
-    if (!spIocpContex->InitContext(dwNumOfRun, dwNumOfMax) ||
-        !spIocpContex->AddThread())
+    if (!spIocpContex->InitContext(dwNumOfRun, dwNumOfMax) || !spIocpContex->AddThread())
     {
         return false;
     }
@@ -186,7 +184,7 @@ void IOCPThreadPool::CloseIOCPThreadPool()
 
 IOCPThreadPool::operator bool() const
 {
-    return !this->operator! ();
+    return !this->operator!();
 }
 
 bool IOCPThreadPool::operator!() const
@@ -211,15 +209,15 @@ void IOCPThreadPool::SetExpiryTime(DWORD dwSeconds)
     }
 }
 
-bool IOCPThreadPool::BindDeviceToIOCPThreadPool(HANDLE hFileHandle, TPFOnIOCompleted pfOnIOCompleted)
+bool IOCPThreadPool::BindDeviceToIOCPThreadPool(HANDLE hFileHandle,
+                                                TPFOnIOCompleted pfOnIOCompleted)
 {
     assert(m_pIOCPContex);
     if (m_pIOCPContex == nullptr)
     {
         return false;
     }
-    if ((hFileHandle == nullptr) ||
-        (hFileHandle == INVALID_HANDLE_VALUE))
+    if ((hFileHandle == nullptr) || (hFileHandle == INVALID_HANDLE_VALUE))
     {
         return false;
     }
@@ -228,7 +226,8 @@ bool IOCPThreadPool::BindDeviceToIOCPThreadPool(HANDLE hFileHandle, TPFOnIOCompl
         return false;
     }
 
-    HANDLE h = ::CreateIoCompletionPort(hFileHandle, m_pIOCPContex->m_hIOCP, (ULONG_PTR)pfOnIOCompleted, 0);
+    HANDLE h = ::CreateIoCompletionPort(
+        hFileHandle, m_pIOCPContex->m_hIOCP, (ULONG_PTR)pfOnIOCompleted, 0);
     if (h != m_pIOCPContex->m_hIOCP)
     {
         assert(!"设备句柄绑定到IOCP失败");
@@ -237,7 +236,9 @@ bool IOCPThreadPool::BindDeviceToIOCPThreadPool(HANDLE hFileHandle, TPFOnIOCompl
     return true;
 }
 
-bool IOCPThreadPool::AsyncCall(TPFIOCPAsyncCallBack pfOnIOCompleted, DWORD dwNumberOfBytesTransferred, void *pVoid)
+bool IOCPThreadPool::AsyncCall(TPFIOCPAsyncCallBack pfOnIOCompleted,
+                               DWORD dwNumberOfBytesTransferred,
+                               void *pVoid)
 {
     assert(m_pIOCPContex);
     if (m_pIOCPContex == nullptr)
@@ -249,12 +250,15 @@ bool IOCPThreadPool::AsyncCall(TPFIOCPAsyncCallBack pfOnIOCompleted, DWORD dwNum
         return false;
     }
 
-    return !!::PostQueuedCompletionStatus(m_pIOCPContex->m_hIOCP, dwNumberOfBytesTransferred, (ULONG_PTR)pfOnIOCompleted, (LPOVERLAPPED)pVoid);
+    return !!::PostQueuedCompletionStatus(m_pIOCPContex->m_hIOCP,
+                                          dwNumberOfBytesTransferred,
+                                          (ULONG_PTR)pfOnIOCompleted,
+                                          (LPOVERLAPPED)pVoid);
 }
 
-unsigned int __stdcall IOCPThreadPool::IOCPWorkThread(void * pVoid)
+unsigned int __stdcall IOCPThreadPool::IOCPWorkThread(void *pVoid)
 {
-    IOCPContex *pIOCPContext = (IOCPContex*)(pVoid);
+    IOCPContex *pIOCPContext = (IOCPContex *)(pVoid);
 
     DWORD dwNumberOfBytesTransferred = 0;
     ULONG_PTR nCompletionKey = 0;
@@ -267,12 +271,11 @@ unsigned int __stdcall IOCPThreadPool::IOCPWorkThread(void * pVoid)
         dwNumberOfBytesTransferred = 0;
         nCompletionKey = 0;
         pOverlapped = nullptr;
-        bOK = ::GetQueuedCompletionStatus(
-            pIOCPContext->m_hIOCP,
-            &dwNumberOfBytesTransferred,
-            &nCompletionKey,
-            &pOverlapped,
-            pIOCPContext->m_dwTimerOut);
+        bOK = ::GetQueuedCompletionStatus(pIOCPContext->m_hIOCP,
+                                          &dwNumberOfBytesTransferred,
+                                          &nCompletionKey,
+                                          &pOverlapped,
+                                          pIOCPContext->m_dwTimerOut);
 
         dwErrno = ::GetLastError();
         if (bOK || (pOverlapped != nullptr))
@@ -299,10 +302,11 @@ unsigned int __stdcall IOCPThreadPool::IOCPWorkThread(void * pVoid)
                 {
                     dwErrno = ERROR_SUCCESS;
                 }
-                ((TPFOnIOCompleted)nCompletionKey)(dwErrno, dwNumberOfBytesTransferred, pOverlapped);
+                ((TPFOnIOCompleted)nCompletionKey)(
+                    dwErrno, dwNumberOfBytesTransferred, pOverlapped);
             }
 #ifdef _DEBUG
-            catch (const std::exception& errMsg)
+            catch (const std::exception &errMsg)
             {
                 ::MessageBoxA(nullptr, errMsg.what(), nullptr, MB_OK);
                 assert(!"TPFOnIOCompleted抛出了异常！");
@@ -317,19 +321,20 @@ unsigned int __stdcall IOCPThreadPool::IOCPWorkThread(void * pVoid)
         }
         else if (!bOK && (WAIT_TIMEOUT == dwErrno))
         {
-            std::unique_lock<decltype(pIOCPContext->m_threadLock)>
-                tryLock{ pIOCPContext->m_threadLock, std::try_to_lock_t() };
+            std::unique_lock<decltype(pIOCPContext->m_threadLock)> tryLock{
+                pIOCPContext->m_threadLock, std::try_to_lock_t()};
             if (tryLock)
             {
                 /* 满足这两个条件的时候, 每隔 m_dwTimerOut 时间减少一个线程。
                 1.当前线程池中总线程数大于正在工作线程数的2倍；2.当前线程池中总线程数大于2。
                 */
-                if ((pIOCPContext->m_dwBusyNum * 2 < pIOCPContext->m_dwCurrNum) && 
+                if ((pIOCPContext->m_dwBusyNum * 2 < pIOCPContext->m_dwCurrNum) &&
                     (pIOCPContext->m_dwCurrNum > 2))
                 {
                     using namespace std::chrono;
                     if ((pIOCPContext->m_timeCur.time_since_epoch().count() == 0) ||
-                        (duration_cast<milliseconds>(system_clock::now() - pIOCPContext->m_timeCur).count() >= pIOCPContext->m_dwTimerOut - 100))
+                        (duration_cast<milliseconds>(system_clock::now() - pIOCPContext->m_timeCur)
+                             .count() >= pIOCPContext->m_dwTimerOut - 100))
                     {
                         pIOCPContext->m_timeCur = system_clock::now();
                         break;

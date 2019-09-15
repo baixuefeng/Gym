@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
-#include <Windows.h>
 #include <Guiddef.h>
+#include <Windows.h>
+#include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -21,17 +21,17 @@ public:
     NotifyIconMgr();
     ~NotifyIconMgr();
     bool Initialize();
-    NotifyIconMgr(const NotifyIconMgr & other);
-    NotifyIconMgr(NotifyIconMgr && other);
-    NotifyIconMgr& operator =(const NotifyIconMgr& other);
-    NotifyIconMgr& operator =(NotifyIconMgr && other);
+    NotifyIconMgr(const NotifyIconMgr &other);
+    NotifyIconMgr(NotifyIconMgr &&other);
+    NotifyIconMgr &operator=(const NotifyIconMgr &other);
+    NotifyIconMgr &operator=(NotifyIconMgr &&other);
 
-//----数据配置操作---------------------------
+    //----数据配置操作---------------------------
 
     // hNotifyWnd, nNotifyId, notifyGuid不清除，其它清除
     void ClearConfig();
 
-/** 
+    /** 
 uMsg为WM_NULL表示不设置
 uMsg 消息回调参数含义：
 LOWORD(lParam) contains notification events, such as NIN_BALLOONSHOW, NIN_POPUPOPEN, or 
@@ -46,38 +46,38 @@ GET_Y_LPARAM(wParam) returns the Y anchor coordinate for notification events and
                      defined for the X anchor.
 */
     void SetNotifyWndAndMsg(HWND hNotifyWnd, UINT uMsg);
-    void GetNotifyWndAndMsg(HWND & hNotifyWnd, UINT & uMsg);
+    void GetNotifyWndAndMsg(HWND &hNotifyWnd, UINT &uMsg);
 
     /** 未设置GUID时，windows用hNotifyWnd和nNotifyId一起标识一个托盘图标；
         win7及以上可以设置GUID，此时忽略nNotifyId，只用GUID标识托盘图标。
     */
     void SetIcon(HICON icon, UINT nNotifyId);
-    void GetIcon(HICON & icon, UINT & nNotifyId);
+    void GetIcon(HICON &icon, UINT &nNotifyId);
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    void SetIcon(HICON icon, const GUID & notifyGuid);
-    void GetIcon(HICON & icon, GUID & notifyGuid);
-    bool GetIconBoundingRect(RECT & rcBounds);
+    void SetIcon(HICON icon, const GUID &notifyGuid);
+    void GetIcon(HICON &icon, GUID &notifyGuid);
+    bool GetIconBoundingRect(RECT &rcBounds);
 #endif
 
     //最长128字符
-    void SetTip(wchar_t * pTip);
+    void SetTip(wchar_t *pTip);
 
     //各个值互斥
     enum InfoIconType
     {
-        NoIcon           = 0x00000000, //NIIF_NONE
-        InfoIcon         = 0x00000001, //NIIF_INFO
-        WarningIcon      = 0x00000002, //NIIF_WARNING
-        ErrorIcon        = 0x00000003, //NIIF_ERROR
-        UserIcon         = 0x00000004, //NIIF_USER
+        NoIcon = 0x00000000,      //NIIF_NONE
+        InfoIcon = 0x00000001,    //NIIF_INFO
+        WarningIcon = 0x00000002, //NIIF_WARNING
+        ErrorIcon = 0x00000003,   //NIIF_ERROR
+        UserIcon = 0x00000004,    //NIIF_USER
     };
 
     //各个值不互斥,可以位或
     enum InfoIconType2
     {
-        NoSound          = 0x00000010, //NIIF_NOSOUND
+        NoSound = 0x00000010, //NIIF_NOSOUND
 #if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
-        LargeIcon        = 0x00000020, //NIIF_LARGE_ICON
+        LargeIcon = 0x00000020, //NIIF_LARGE_ICON
 #endif
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
         RespectQuietTime = 0x00000080, //NIIF_RESPECT_QUIET_TIME
@@ -88,9 +88,9 @@ GET_Y_LPARAM(wParam) returns the Y anchor coordinate for notification events and
     DWORD GetInfoIconType();
 
     //最长64字符
-    void SetInfoTitle(wchar_t * pInfoTitle);
+    void SetInfoTitle(wchar_t *pInfoTitle);
     //最长256字符
-    void SetInfo(wchar_t * pInfo);
+    void SetInfo(wchar_t *pInfo);
 
 #if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
     void SetBalloonIcon(HICON hBalloonIcon);
@@ -117,10 +117,9 @@ GET_Y_LPARAM(wParam) returns the Y anchor coordinate for notification events and
     static bool IsDllVersionVistaOrLater();
 
 private:
-
     struct IconData;
 
-    IconData* m_pImpl;
+    IconData *m_pImpl;
 };
 
 SHARELIB_END_NAMESPACE

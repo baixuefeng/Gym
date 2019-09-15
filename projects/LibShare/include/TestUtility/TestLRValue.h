@@ -16,14 +16,14 @@ SHARELIB_BEGIN_NAMESPACE
 class LRValue
 {
 public:
-	explicit LRValue(int n = 0);
-	~LRValue();
-	LRValue(const LRValue&);
-	LRValue(LRValue&&);
-	LRValue& operator =(const LRValue&);
-	LRValue& operator =(LRValue&&);
+    explicit LRValue(int n = 0);
+    ~LRValue();
+    LRValue(const LRValue &);
+    LRValue(LRValue &&);
+    LRValue &operator=(const LRValue &);
+    LRValue &operator=(LRValue &&);
 
-	int m_n;
+    int m_n;
 };
 
 SHARELIB_END_NAMESPACE

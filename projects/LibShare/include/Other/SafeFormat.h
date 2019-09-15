@@ -1,29 +1,27 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
+#include <cassert>
+#include <codecvt>
+#include <locale>
 #include <string>
 #include <type_traits>
-#include <cassert>
-#include <locale>
-#include <codecvt>
 #include <boost/format.hpp>
+#include "MacroDefBase.h"
 #include "Other/OstreamCodeConvert.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
-namespace detail
-{
-    template<class TChar>
-    void SafeFormatHelper(boost::basic_format<TChar>&)
-    {
-    }
+namespace detail {
+template<class TChar>
+void SafeFormatHelper(boost::basic_format<TChar> &)
+{}
 
-    template<class TChar, class T1, class ... T2>
-    void SafeFormatHelper(boost::basic_format<TChar>& formater, T1 && param, T2&& ... args)
-    {
-        formater % std::forward<T1>(param);
-        SafeFormatHelper(formater, std::forward<T2>(args)...);
-    }
+template<class TChar, class T1, class... T2>
+void SafeFormatHelper(boost::basic_format<TChar> &formater, T1 &&param, T2 &&... args)
+{
+    formater % std::forward<T1>(param);
+    SafeFormatHelper(formater, std::forward<T2>(args)...);
 }
+} // namespace detail
 
 /** 安全的字符串格式化函数，内部实现是boost::format，可以兼容绝大部分C语言风格的
     格式化方法，另外还扩展了一些独有的格式化方法，详情见
@@ -44,8 +42,8 @@ namespace detail
 @param[in] ...args 参数
 @return 如果出错，返回空字符串；否则返回格式化后的字符串
 */
-template<class TChar, class ... TParam>
-std::basic_string<TChar> SafeFormat(const TChar* pFormat, TParam && ...args)
+template<class TChar, class... TParam>
+std::basic_string<TChar> SafeFormat(const TChar *pFormat, TParam &&... args)
 {
     try
     {
@@ -53,7 +51,7 @@ std::basic_string<TChar> SafeFormat(const TChar* pFormat, TParam && ...args)
         detail::SafeFormatHelper(formater, std::forward<TParam>(args)...);
         return formater.str();
     }
-    catch (const std::exception&/* err*/)
+    catch (const std::exception & /* err*/)
     {
         assert(!"format error");
         return std::basic_string<TChar>();
@@ -62,8 +60,8 @@ std::basic_string<TChar> SafeFormat(const TChar* pFormat, TParam && ...args)
 
 /** 与SafeFormat相同，区别仅在于字符集转换，固定使用utf8-utf16进行宽窄字符转换
 */
-template<class TChar, class ... TParam>
-std::basic_string<TChar> SafeFormatUtf8(const TChar* pFormat, TParam && ...args)
+template<class TChar, class... TParam>
+std::basic_string<TChar> SafeFormatUtf8(const TChar *pFormat, TParam &&... args)
 {
     try
     {
@@ -72,11 +70,12 @@ std::basic_string<TChar> SafeFormatUtf8(const TChar* pFormat, TParam && ...args)
         obtained directly from a new-expression: the locale is responsible
         for calling the matching delete from its own destructor.
         */
-        boost::basic_format<TChar> formater(pFormat, std::locale{ std::locale(), new std::codecvt_utf8_utf16<wchar_t> });
+        boost::basic_format<TChar> formater(
+            pFormat, std::locale{std::locale(), new std::codecvt_utf8_utf16<wchar_t>});
         detail::SafeFormatHelper(formater, std::forward<TParam>(args)...);
         return formater.str();
     }
-    catch (const std::exception&/* err*/)
+    catch (const std::exception & /* err*/)
     {
         assert(!"format error");
         return std::basic_string<TChar>();

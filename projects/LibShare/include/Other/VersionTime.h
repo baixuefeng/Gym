@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "MacroDefBase.h"
 #include <string>
+#include "MacroDefBase.h"
 
 /*!
  * \file VersionTime.h
@@ -32,7 +32,8 @@ enum class TVersionKey
 };
 
 // 获取(如果参数为空)当前模块程序的版本号，如果在动态库中使用，则获取动态库本身的版本号
-std::wstring GetModuleVersion(const wchar_t *pModuleName, TVersionKey key = TVersionKey::ProductVersion);
+std::wstring GetModuleVersion(const wchar_t *pModuleName,
+                              TVersionKey key = TVersionKey::ProductVersion);
 
 // 获取(如果参数为空)当前模块程序的内部产品名称，如果在动态库中使用，则获取动态库本身的内部产品名称
 std::wstring GetModuleProductName(const wchar_t *pModuleName);

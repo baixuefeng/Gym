@@ -4,7 +4,7 @@
 SHARELIB_BEGIN_NAMESPACE
 
 template<class _TreeNode, class _Callable>
-void traverse_tree_node_t2b(_TreeNode && rootNode, _Callable && func)
+void traverse_tree_node_t2b(_TreeNode &&rootNode, _Callable &&func)
 {
     int nDepth = 0;
     if (func(rootNode, nDepth) <= 0)
@@ -26,8 +26,7 @@ void traverse_tree_node_t2b(_TreeNode && rootNode, _Callable && func)
             {
                 return;
             }
-            else if (res > 0
-                && to_reference(cur).first_child())
+            else if (res > 0 && to_reference(cur).first_child())
             {
                 ++nDepth;
                 cur = to_reference(cur).first_child();
@@ -38,9 +37,8 @@ void traverse_tree_node_t2b(_TreeNode && rootNode, _Callable && func)
             }
             else
             {
-                while (!to_reference(cur).next_sibling()
-                    && cur != rootNode
-                    && to_reference(cur).parent())
+                while (!to_reference(cur).next_sibling() && cur != rootNode &&
+                       to_reference(cur).parent())
                 {
                     --nDepth;
                     cur = to_reference(cur).parent();
@@ -56,7 +54,7 @@ void traverse_tree_node_t2b(_TreeNode && rootNode, _Callable && func)
 }
 
 template<class _TreeNode, class _Callable>
-void traverse_tree_node_b2t(_TreeNode && rootNode, _Callable && func)
+void traverse_tree_node_b2t(_TreeNode &&rootNode, _Callable &&func)
 {
     int nDepth = 0;
 
@@ -86,9 +84,8 @@ void traverse_tree_node_b2t(_TreeNode && rootNode, _Callable && func)
                 }
                 else
                 {
-                    while (!to_reference(cur).next_sibling()
-                        && cur != rootNode
-                        && to_reference(cur).parent())
+                    while (!to_reference(cur).next_sibling() && cur != rootNode &&
+                           to_reference(cur).parent())
                     {
                         --nDepth;
                         cur = to_reference(cur).parent();
@@ -115,7 +112,7 @@ void traverse_tree_node_b2t(_TreeNode && rootNode, _Callable && func)
 }
 
 template<class _TreeNode, class _Callable>
-void traverse_tree_node_reverse_t2b(_TreeNode && rootNode, _Callable && func)
+void traverse_tree_node_reverse_t2b(_TreeNode &&rootNode, _Callable &&func)
 {
     int nDepth = 0;
     if (func(rootNode, nDepth) <= 0)
@@ -137,8 +134,7 @@ void traverse_tree_node_reverse_t2b(_TreeNode && rootNode, _Callable && func)
             {
                 return;
             }
-            else if (res > 0
-                && to_reference(cur).last_child())
+            else if (res > 0 && to_reference(cur).last_child())
             {
                 ++nDepth;
                 cur = to_reference(cur).last_child();
@@ -149,9 +145,8 @@ void traverse_tree_node_reverse_t2b(_TreeNode && rootNode, _Callable && func)
             }
             else
             {
-                while (!to_reference(cur).previous_sibling()
-                    && cur != rootNode
-                    && to_reference(cur).parent())
+                while (!to_reference(cur).previous_sibling() && cur != rootNode &&
+                       to_reference(cur).parent())
                 {
                     --nDepth;
                     cur = to_reference(cur).parent();
@@ -167,7 +162,7 @@ void traverse_tree_node_reverse_t2b(_TreeNode && rootNode, _Callable && func)
 }
 
 template<class _TreeNode, class _Callable>
-void traverse_tree_node_reverse_b2t(_TreeNode && rootNode, _Callable && func)
+void traverse_tree_node_reverse_b2t(_TreeNode &&rootNode, _Callable &&func)
 {
     int nDepth = 0;
 
@@ -197,9 +192,8 @@ void traverse_tree_node_reverse_b2t(_TreeNode && rootNode, _Callable && func)
                 }
                 else
                 {
-                    while (!to_reference(cur).previous_sibling()
-                        && cur != rootNode
-                        && to_reference(cur).parent())
+                    while (!to_reference(cur).previous_sibling() && cur != rootNode &&
+                           to_reference(cur).parent())
                     {
                         --nDepth;
                         cur = to_reference(cur).parent();

@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include <string>
-#include <locale>
 #include <codecvt>
 #include <cstdlib>
+#include <locale>
+#include <string>
 #include <type_traits>
 #include "MacroDefBase.h"
 #include "lua_wrapper_base.h"
@@ -19,11 +19,10 @@ SHARELIB_BEGIN_NAMESPACE
 */
 struct lua_table_key_t
 {
-    explicit lua_table_key_t(const char * pKey)
+    explicit lua_table_key_t(const char *pKey)
         : m_pKey(pKey)
-    {
-    }
-    const char * m_pKey;
+    {}
+    const char *m_pKey;
 };
 
 //----往lua栈上push数据-----------------------------------
@@ -34,50 +33,51 @@ lua_ostream & operator << (lua_ostream & os, const T & value);
 class lua_ostream
 {
     SHARELIB_DISABLE_COPY_CLASS(lua_ostream);
+
 public:
-    explicit lua_ostream(lua_State * pLua);
+    explicit lua_ostream(lua_State *pLua);
 
-    lua_State * get() const;
+    lua_State *get() const;
 
-//----数值类型--------------------------
-    lua_ostream & operator << (bool value);
-    lua_ostream & operator << (char value);
-    lua_ostream & operator << (unsigned char value);
-    lua_ostream & operator << (wchar_t value);
-    lua_ostream & operator << (short value);
-    lua_ostream & operator << (unsigned short value);
-    lua_ostream & operator << (int value);
-    lua_ostream & operator << (unsigned int value);
-    lua_ostream & operator << (long value);
-    lua_ostream & operator << (unsigned long value);
-    lua_ostream & operator << (long long value);
-    lua_ostream & operator << (unsigned long long value);
-    lua_ostream & operator << (float value);
-    lua_ostream & operator << (double value);
-    lua_ostream & operator << (long double value);
+    //----数值类型--------------------------
+    lua_ostream &operator<<(bool value);
+    lua_ostream &operator<<(char value);
+    lua_ostream &operator<<(unsigned char value);
+    lua_ostream &operator<<(wchar_t value);
+    lua_ostream &operator<<(short value);
+    lua_ostream &operator<<(unsigned short value);
+    lua_ostream &operator<<(int value);
+    lua_ostream &operator<<(unsigned int value);
+    lua_ostream &operator<<(long value);
+    lua_ostream &operator<<(unsigned long value);
+    lua_ostream &operator<<(long long value);
+    lua_ostream &operator<<(unsigned long long value);
+    lua_ostream &operator<<(float value);
+    lua_ostream &operator<<(double value);
+    lua_ostream &operator<<(long double value);
 
-//----char字符串----------------------------
-    lua_ostream & operator << (char * value);
-    lua_ostream & operator << (const char * value);
+    //----char字符串----------------------------
+    lua_ostream &operator<<(char *value);
+    lua_ostream &operator<<(const char *value);
     template<class T1, class T2>
-    lua_ostream & operator << (const std::basic_string<char, T1, T2> & value)
+    lua_ostream &operator<<(const std::basic_string<char, T1, T2> &value)
     {
         return (*this) << (const char *)value.c_str();
     }
 
-//----wchar_t字符串----------------------------
-    lua_ostream & operator << (wchar_t * value);
-    lua_ostream & operator << (const wchar_t * value);
+    //----wchar_t字符串----------------------------
+    lua_ostream &operator<<(wchar_t *value);
+    lua_ostream &operator<<(const wchar_t *value);
     template<class T1, class T2>
-    lua_ostream & operator << (const std::basic_string<wchar_t, T1, T2> & value)
+    lua_ostream &operator<<(const std::basic_string<wchar_t, T1, T2> &value)
     {
         try
         {
 #ifdef LUA_CODE_UTF8
-            std::wstring_convert < std::codecvt_utf8_utf16<wchar_t> > cvt;
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
-            auto & fct = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale{});
-            std::wstring_convert<std::remove_reference_t<decltype(fct)> > cvt(&fct);
+            auto &fct = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale{});
+            std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
             return (*this) << cvt.to_bytes(value).c_str();
         }
@@ -88,37 +88,39 @@ public:
         }
     }
 
-//----指针----------------------------
+    //----指针----------------------------
     template<class T>
-    lua_ostream & operator << (T * value)
+    lua_ostream &operator<<(T *value)
     {
         ::lua_pushlightuserdata(m_pLua, value);
         check_table_push();
         return *this;
     }
 
-//----table----------------------------
-    struct table_begin_t{};
+    //----table----------------------------
+    struct table_begin_t
+    {};
     static const table_begin_t table_begin;
-    struct table_end_t{};
+    struct table_end_t
+    {};
     static const table_end_t table_end;
 
     /*必须配对使用, 表示table输出的起止, 不支持嵌套.
     一个配对的table操作之后, 栈顶便是这个新加入的table
     */
-    lua_ostream & operator << (table_begin_t);
-    lua_ostream & operator << (table_end_t);
+    lua_ostream &operator<<(table_begin_t);
+    lua_ostream &operator<<(table_end_t);
 
     /* 先输出key到lua中, 再把值输出到lua栈上, 栈顶的的值便取该名字
     */
-    lua_ostream & operator << (lua_table_key_t key);
+    lua_ostream &operator<<(lua_table_key_t key);
 
     /** 用于存入嵌套的table时。外层lua_ostream << table_begin；
     而后重新构造一个lua_ostream，存入完整的内层table；
     之后把嵌套的子table插入到外层table中。
     @param[in] subTable 里面存入了一个完整的内存table
     */
-    void insert_subtable(lua_ostream & subTable);
+    void insert_subtable(lua_ostream &subTable);
 
 private:
     /* 写入数据实现：
@@ -128,7 +130,7 @@ private:
     */
     void check_table_push();
 
-    lua_State * const m_pLua;
+    lua_State *const m_pLua;
     int m_tableIndex;
 };
 
@@ -144,10 +146,11 @@ lua_istream & operator >> (lua_istream & is, T & value);
 class lua_istream
 {
     SHARELIB_DISABLE_COPY_CLASS(lua_istream);
+
 public:
-    lua_istream(lua_State * pLua, int stackIndex);
+    lua_istream(lua_State *pLua, int stackIndex);
     ~lua_istream();
-    lua_State * get() const;
+    lua_State *get() const;
     int index() const;
 
     //数据是否已读完,同一个lua_istream对象,一旦读完就不能再读,如果要重复读,可以重新构造一个
@@ -155,31 +158,31 @@ public:
 
     //上次读取是否成功, 不会影响下次的读取, 继续读取的话, 上次失败的也会跳过
     bool bad() const;
-    operator void*() const; //用于bool判断
+    operator void *() const; //用于bool判断
 
     //栈顶的值是否是一个嵌套的子table。首先要求自身是一个table
     bool is_subtable() const;
 
-//----数值类型--------------------------
-    lua_istream & operator >> (bool & value);
-    lua_istream & operator >> (char & value);
-    lua_istream & operator >> (unsigned char & value);
-    lua_istream & operator >> (wchar_t & value);
-    lua_istream & operator >> (short & value);
-    lua_istream & operator >> (unsigned short & value);
-    lua_istream & operator >> (int & value);
-    lua_istream & operator >> (unsigned int & value);
-    lua_istream & operator >> (long & value);
-    lua_istream & operator >> (unsigned long & value);
-    lua_istream & operator >> (long long & value);
-    lua_istream & operator >> (unsigned long long & value);
-    lua_istream & operator >> (float & value);
-    lua_istream & operator >> (double & value);
-    lua_istream & operator >> (long double & value);
+    //----数值类型--------------------------
+    lua_istream &operator>>(bool &value);
+    lua_istream &operator>>(char &value);
+    lua_istream &operator>>(unsigned char &value);
+    lua_istream &operator>>(wchar_t &value);
+    lua_istream &operator>>(short &value);
+    lua_istream &operator>>(unsigned short &value);
+    lua_istream &operator>>(int &value);
+    lua_istream &operator>>(unsigned int &value);
+    lua_istream &operator>>(long &value);
+    lua_istream &operator>>(unsigned long &value);
+    lua_istream &operator>>(long long &value);
+    lua_istream &operator>>(unsigned long long &value);
+    lua_istream &operator>>(float &value);
+    lua_istream &operator>>(double &value);
+    lua_istream &operator>>(long double &value);
 
-//----char字符串----------------------------
+    //----char字符串----------------------------
     template<class T1, class T2>
-    lua_istream & operator >> (std::basic_string<char, T1, T2> & value)
+    lua_istream &operator>>(std::basic_string<char, T1, T2> &value)
     {
         if (!m_isEof)
         {
@@ -193,9 +196,9 @@ public:
         return *this;
     }
 
-//----wchar_t字符串----------------------------
+    //----wchar_t字符串----------------------------
     template<class T1, class T2>
-    lua_istream & operator >> (std::basic_string<wchar_t, T1, T2> & value)
+    lua_istream &operator>>(std::basic_string<wchar_t, T1, T2> &value)
     {
         std::string temp;
         if ((*this) >> temp)
@@ -203,10 +206,10 @@ public:
             try
             {
 #ifdef LUA_CODE_UTF8
-                std::wstring_convert < std::codecvt_utf8_utf16<wchar_t> > cvt;
+                std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
-                auto & fct = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale{});
-                std::wstring_convert<std::remove_reference_t<decltype(fct)> > cvt(&fct);
+                auto &fct = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale{});
+                std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
                 value = cvt.from_bytes(temp);
             }
@@ -219,33 +222,33 @@ public:
         return *this;
     }
 
-//----指针----------------------------
+    //----指针----------------------------
     template<class T>
-    lua_istream & operator >> (T * & value)
+    lua_istream &operator>>(T *&value)
     {
         if (!m_isEof)
         {
             m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TLIGHTUSERDATA);
             if (m_isOK)
             {
-                value = (T*)::lua_touserdata(m_pLua, get_value_index());
+                value = (T *)::lua_touserdata(m_pLua, get_value_index());
             }
             next();
         }
         return *this;
     }
 
-//----table----------------------------
+    //----table----------------------------
     /* 先 >>key, 而后 >>变量, 就表示把table中指定名字的值读取到变量
      */
-    lua_istream & operator >> (lua_table_key_t key);
+    lua_istream &operator>>(lua_table_key_t key);
 
     /* 如果值是table，可以依次连续读取table元素到变量。但不支持table嵌套的情况下连续读取。
     table嵌套时，前面的读完之后，栈顶就是子table(is_subtable为true)，这时构造一个新的lua_istream(pLua, -1); 
     用这个新的lua_istream就可以连续读取子table中的变量了。
     读取完毕子table后，传给这个函数，进行栈清理
     */
-    void cleanup_subtable(lua_istream & subTable);
+    void cleanup_subtable(lua_istream &subTable);
 
 private:
     /* 读取数据实现:
@@ -258,7 +261,7 @@ private:
     int get_value_index();
     void next();
 
-    lua_State * const m_pLua;
+    lua_State *const m_pLua;
     const int m_stackIndex;
     const int m_top;
     bool m_isEof;
@@ -275,8 +278,7 @@ private:
     用于参数的自定义类型, 必须重载 lua_istream 的 >> 运算符;
     用于返回值的自定义类型, 必须重载 lua_ostream 的 << 运算符;
 */
-template<class T, 
-    bool isEnum = std::is_enum<std::decay_t<T>>::value>
+template<class T, bool isEnum = std::is_enum<std::decay_t<T>>::value>
 struct lua_io_dispatcher
 {
     /** 数据push到lua栈上
@@ -284,7 +286,7 @@ struct lua_io_dispatcher
     @param[in] value 数据
     @return lua栈上增加的个数
     */
-    static int to_lua(lua_State * pL, const T & value)
+    static int to_lua(lua_State *pL, const T &value)
     {
         auto n = ::lua_gettop(pL);
         lua_ostream os(pL);
@@ -298,7 +300,7 @@ struct lua_io_dispatcher
     @param[in] index lua栈上的索引位置
     @return 转换后的C++数据
     */
-    static T from_lua(lua_State * pL, int index, T defaultValue = T{})
+    static T from_lua(lua_State *pL, int index, T defaultValue = T{})
     {
         lua_stack_guard_checker checker(pL);
         T temp{};
@@ -319,12 +321,12 @@ template<class T>
 struct lua_io_dispatcher<T, true>
 {
     using _UType = typename std::underlying_type_t<T>;
-    static int to_lua(lua_State * pL, T value)
+    static int to_lua(lua_State *pL, T value)
     {
         return lua_io_dispatcher<_UType>::to_lua(pL, static_cast<_UType>(value));
     }
 
-    static T from_lua(lua_State * pL, int index, T defaultValue = T{})
+    static T from_lua(lua_State *pL, int index, T defaultValue = T{})
     {
         lua_stack_guard_checker checker(pL);
         return static_cast<T>(lua_io_dispatcher<_UType>::from_lua(pL, index, defaultValue));
@@ -333,16 +335,16 @@ struct lua_io_dispatcher<T, true>
 
 //const char*类型特化
 template<>
-struct lua_io_dispatcher<const char*, false>
+struct lua_io_dispatcher<const char *, false>
 {
-    static int to_lua(lua_State * pL, const char* value)
+    static int to_lua(lua_State *pL, const char *value)
     {
         lua_ostream os(pL);
         os << value;
         return 1;
     }
 
-    static const char* from_lua(lua_State * pL, int index, const char * defaultValue = "")
+    static const char *from_lua(lua_State *pL, int index, const char *defaultValue = "")
     {
         lua_stack_guard_checker checker(pL);
         if (::lua_type(pL, index) == LUA_TSTRING)
@@ -355,52 +357,42 @@ struct lua_io_dispatcher<const char*, false>
 
 //char*类型特化
 template<>
-struct lua_io_dispatcher<char*, false>
-    : public lua_io_dispatcher<const char*, false>
-{
-};
+struct lua_io_dispatcher<char *, false> : public lua_io_dispatcher<const char *, false>
+{};
 
-namespace Internal
-{
-    /* 为了解决wchar_t* 类型的模板特化.
+namespace Internal {
+/* 为了解决wchar_t* 类型的模板特化.
     如果像其它类型一样返回const wchar_t*的话, 函数内部的临时变量销毁之后，返回的指针就成了野指针。
     const char* 不存在这个问题，因为指针所指的内容在lua内部保存着，没有被销毁。
     因此在需要返回const wchar_t*的地方，改为返回StdWstringWrapper，而它可以隐式转化为const wchar_t*，
     这样内部的临时变量经StdWstringWrapper转接之后，生命期延长，避免了野指针的情况
     */
-    struct StdWstringWrapper
-    {
-        StdWstringWrapper(std::wstring && stdstr)
-        {
-            m_str.swap(stdstr);
-        }
+struct StdWstringWrapper
+{
+    StdWstringWrapper(std::wstring &&stdstr) { m_str.swap(stdstr); }
 
-        operator const wchar_t *() const
-        {
-            return m_str.c_str();
-        }
+    operator const wchar_t *() const { return m_str.c_str(); }
 
-        operator wchar_t *() const
-        {
-            return (wchar_t *)m_str.c_str();
-        }
+    operator wchar_t *() const { return (wchar_t *)m_str.c_str(); }
 
-        std::wstring m_str;
-    };
-}
+    std::wstring m_str;
+};
+} // namespace Internal
 
 //const wchar_t*类型特化
 template<>
-struct lua_io_dispatcher<const wchar_t*, false>
+struct lua_io_dispatcher<const wchar_t *, false>
 {
-    static int to_lua(lua_State * pL, const wchar_t* value)
+    static int to_lua(lua_State *pL, const wchar_t *value)
     {
         lua_ostream os(pL);
         os << value;
         return 1;
     }
 
-    static Internal::StdWstringWrapper from_lua(lua_State * pL, int index, const wchar_t * defaultValue = L"")
+    static Internal::StdWstringWrapper from_lua(lua_State *pL,
+                                                int index,
+                                                const wchar_t *defaultValue = L"")
     {
         lua_stack_guard_checker checker(pL);
         std::wstring temp;
@@ -418,9 +410,7 @@ struct lua_io_dispatcher<const wchar_t*, false>
 
 //wchar_t*类型特化
 template<>
-struct lua_io_dispatcher<wchar_t*, false>
-    : public lua_io_dispatcher<const wchar_t*, false>
-{
-};
+struct lua_io_dispatcher<wchar_t *, false> : public lua_io_dispatcher<const wchar_t *, false>
+{};
 
 SHARELIB_END_NAMESPACE

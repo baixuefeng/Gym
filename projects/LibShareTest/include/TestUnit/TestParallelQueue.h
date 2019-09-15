@@ -8,7 +8,7 @@ BEGIN_SHARELIBTEST_NAMESPACE
 
 struct TestParallelQueue
 {
-	void Test();
+    void Test();
 
     void TestMsgQueue();
 
@@ -16,14 +16,14 @@ private:
     void BeforeTest();
     void AfterTest();
 
-	static unsigned __stdcall PushThread(void *pVoid);
-	static unsigned __stdcall PopThread(void *pVoid);
+    static unsigned __stdcall PushThread(void *pVoid);
+    static unsigned __stdcall PopThread(void *pVoid);
 
     static unsigned __stdcall MsgQueuePushThread(void *pVoid);
     static unsigned __stdcall MsgQueuePopThread(void *pVoid);
 
-	HANDLE m_hEvent = nullptr;
-	size_t m_testCount = 0;
+    HANDLE m_hEvent = nullptr;
+    size_t m_testCount = 0;
     DWORD m_nThreadCount = 0;
     unsigned int m_threadid = 0;
 

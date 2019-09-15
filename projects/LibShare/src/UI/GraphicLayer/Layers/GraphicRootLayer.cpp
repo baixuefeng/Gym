@@ -2,20 +2,22 @@
 #include "UI/GraphicLayer/Layers/GraphicRootLayer.h"
 #include <cmath>
 #include <atlfile.h>
-#include "pugixml/pugixml.hpp"
 #include "DataStructure/traverse_tree_node.h"
-#include "UI/GraphicLayer/ConfigEngine/XmlAttributeUtility.h"
 #include "UI/GraphicLayer/ConfigEngine/LayerLuaAdaptor.h"
+#include "UI/GraphicLayer/ConfigEngine/XmlAttributeUtility.h"
+#include "pugixml/pugixml.hpp"
 
 SHARELIB_BEGIN_NAMESPACE
 
-class GraphicRootLayer::MouseDragMoveHandler :
-    public LayerMsgCallback
+class GraphicRootLayer::MouseDragMoveHandler : public LayerMsgCallback
 {
-    virtual bool OnLayerMsgMouse(GraphicLayer * pLayer, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & /*lResult*/)
+    virtual bool OnLayerMsgMouse(GraphicLayer *pLayer,
+                                 UINT uMsg,
+                                 WPARAM wParam,
+                                 LPARAM lParam,
+                                 LRESULT & /*lResult*/)
     {
-        if ((WM_LBUTTONDOWN == uMsg) || 
-            (WM_LBUTTONDBLCLK == uMsg))
+        if ((WM_LBUTTONDOWN == uMsg) || (WM_LBUTTONDBLCLK == uMsg))
         {
             pLayer->GetMSWindow()->SetCapture();
             pLayer->SetMouseCapture(true);
@@ -28,9 +30,7 @@ class GraphicRootLayer::MouseDragMoveHandler :
             pLayer->SetMouseCapture(false);
             m_bPressed = false;
         }
-        else if ((WM_MOUSEMOVE == uMsg) &&
-            m_bPressed &&
-            (wParam == MK_LBUTTON))
+        else if ((WM_MOUSEMOVE == uMsg) && m_bPressed && (wParam == MK_LBUTTON))
         {
             CPoint pt(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
             pLayer->OffsetOrigin(pt - m_ptOffset);
@@ -46,10 +46,13 @@ class GraphicRootLayer::MouseDragMoveHandler :
     CPoint m_ptOffset;
 };
 
-class GraphicRootLayer::DragMoveWindowHandler:
-    public LayerMsgCallback
+class GraphicRootLayer::DragMoveWindowHandler : public LayerMsgCallback
 {
-    virtual bool OnLayerMsgMouse(GraphicLayer * pLayer, UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, LRESULT & /*lResult*/)
+    virtual bool OnLayerMsgMouse(GraphicLayer *pLayer,
+                                 UINT uMsg,
+                                 WPARAM /*wParam*/,
+                                 LPARAM /*lParam*/,
+                                 LRESULT & /*lResult*/)
     {
         if (WM_LBUTTONDOWN == uMsg)
         {
@@ -66,7 +69,7 @@ class GraphicRootLayer::DragMoveWindowHandler:
 
 extern void InitLayersDynimicCreateInfo();
 
-GraphicRootLayer::GraphicRootLayer(ATL::CWindow* pWnd) 
+GraphicRootLayer::GraphicRootLayer(ATL::CWindow *pWnd)
     : m_pWindow(pWnd)
     , m_renderType(D2DRenderPack::Auto)
     , m_pPaintStart(nullptr)
@@ -97,12 +100,13 @@ GraphicRootLayer::~GraphicRootLayer()
     assert(m_timerData.empty());
 }
 
-void GraphicRootLayer::SetSkinMap(std::shared_ptr<std::unordered_map<std::wstring, TBitmapInfo> > spSkinMap)
+void GraphicRootLayer::SetSkinMap(
+    std::shared_ptr<std::unordered_map<std::wstring, TBitmapInfo>> spSkinMap)
 {
     m_spSkinMap = spSkinMap;
 }
 
-TBitmapInfo * GraphicRootLayer::FindSkinByName(const std::wstring & key)
+TBitmapInfo *GraphicRootLayer::FindSkinByName(const std::wstring &key)
 {
     if (m_spSkinMap && !m_spSkinMap->empty())
     {
@@ -115,7 +119,7 @@ TBitmapInfo * GraphicRootLayer::FindSkinByName(const std::wstring & key)
     return nullptr;
 }
 
-bool GraphicRootLayer::LoadLuaFromXml(const wchar_t * pXmlFilePath)
+bool GraphicRootLayer::LoadLuaFromXml(const wchar_t *pXmlFilePath)
 {
     if (!pXmlFilePath)
     {
@@ -135,7 +139,7 @@ bool GraphicRootLayer::LoadLuaFromXml(const wchar_t * pXmlFilePath)
     return LoadLuaFromXml(fileMapping, fileMapping.GetMappingSize());
 }
 
-bool GraphicRootLayer::LoadLuaFromXml(const void * pData, size_t nLength)
+bool GraphicRootLayer::LoadLuaFromXml(const void *pData, size_t nLength)
 {
     assert(pData && nLength);
     if (!pData || (nLength == 0))
@@ -148,10 +152,7 @@ bool GraphicRootLayer::LoadLuaFromXml(const void * pData, size_t nLength)
         assert(!"解析xml失败");
         return false;
     }
-    traverse_tree_node_t2b(
-        xmlDoc.first_child(),
-        [this](pugi::xml_node & node, int nDepth)->int
-    {
+    traverse_tree_node_t2b(xmlDoc.first_child(), [this](pugi::xml_node &node, int nDepth) -> int {
         if (nDepth == 0)
         {
             return 1;
@@ -181,7 +182,7 @@ bool GraphicRootLayer::LoadLuaFromXml(const void * pData, size_t nLength)
     return true;
 }
 
-lua_state_wrapper* GraphicRootLayer::FindLuaByName(const std::wstring & key)
+lua_state_wrapper *GraphicRootLayer::FindLuaByName(const std::wstring &key)
 {
     auto it = m_luaPool.find(key);
     if (it != m_luaPool.end())
@@ -196,7 +197,7 @@ void GraphicRootLayer::ClearLua()
     m_luaPool.clear();
 }
 
-ATL::CWindow* GraphicRootLayer::GetMSWindow() const
+ATL::CWindow *GraphicRootLayer::GetMSWindow() const
 {
     return m_pWindow;
 }
@@ -214,12 +215,12 @@ bool GraphicRootLayer::IsLayeredWindow()
     }
 }
 
-D2DRenderPack & GraphicRootLayer::D2DRender()
+D2DRenderPack &GraphicRootLayer::D2DRender()
 {
     return m_d2dRenderPack;
 }
 
-DWriteUtility & GraphicRootLayer::DWritePack()
+DWriteUtility &GraphicRootLayer::DWritePack()
 {
     return m_dwrite;
 }
@@ -229,12 +230,12 @@ void GraphicRootLayer::SetD2DRenderType(D2DRenderPack::TRenderType type)
     m_renderType = type;
 }
 
-GraphicLayer * GraphicRootLayer::GetFocusLayer()
+GraphicLayer *GraphicRootLayer::GetFocusLayer()
 {
     return m_pFocusLayer;
 }
 
-void GraphicRootLayer::_OnChildRemoved(GraphicLayer* pChild)
+void GraphicRootLayer::_OnChildRemoved(GraphicLayer *pChild)
 {
     if (pChild == m_pLastMouseHandler)
     {
@@ -255,7 +256,7 @@ void GraphicRootLayer::_OnChildRemoved(GraphicLayer* pChild)
     _FreeTimer(pChild, nullptr);
 }
 
-HANDLE GraphicRootLayer::_AllocTimer(GraphicLayer* pLayer, uint32_t nPeriod)
+HANDLE GraphicRootLayer::_AllocTimer(GraphicLayer *pLayer, uint32_t nPeriod)
 {
     if (pLayer && nPeriod > 0)
     {
@@ -265,7 +266,8 @@ HANDLE GraphicRootLayer::_AllocTimer(GraphicLayer* pLayer, uint32_t nPeriod)
             m_timerDataHeap.Attach(heap.Detach(), true);
             assert(m_timerDataHeap.m_hHeap);
         }
-        LayerTimerData* pTimerData = (LayerTimerData*)m_timerDataHeap.Allocate(sizeof(LayerTimerData));
+        LayerTimerData *pTimerData = (LayerTimerData *)m_timerDataHeap.Allocate(
+            sizeof(LayerTimerData));
         if (pTimerData)
         {
             pTimerData->m_pLayer = pLayer;
@@ -278,12 +280,12 @@ HANDLE GraphicRootLayer::_AllocTimer(GraphicLayer* pLayer, uint32_t nPeriod)
                 assert(m_hTimerQueue);
             }
             if (::CreateTimerQueueTimer(&pTimerData->m_hTimer,
-                m_hTimerQueue,
-                TimerCallbackFunction,
-                pTimerData,
-                nPeriod,
-                nPeriod,
-                WT_EXECUTEDEFAULT))
+                                        m_hTimerQueue,
+                                        TimerCallbackFunction,
+                                        pTimerData,
+                                        nPeriod,
+                                        nPeriod,
+                                        WT_EXECUTEDEFAULT))
             {
                 m_timerData.insert(std::make_pair(pLayer, pTimerData));
                 return pTimerData->m_hTimer;
@@ -297,7 +299,7 @@ HANDLE GraphicRootLayer::_AllocTimer(GraphicLayer* pLayer, uint32_t nPeriod)
     return nullptr;
 }
 
-void GraphicRootLayer::_FreeTimer(GraphicLayer* pLayer, HANDLE hTimer)
+void GraphicRootLayer::_FreeTimer(GraphicLayer *pLayer, HANDLE hTimer)
 {
     if (pLayer && m_hTimerQueue)
     {
@@ -333,7 +335,7 @@ void GraphicRootLayer::_FreeTimer(GraphicLayer* pLayer, HANDLE hTimer)
     }
 }
 
-void GraphicRootLayer::_RegisterCapturedLayer(GraphicLayer * pLayer, bool bCapture)
+void GraphicRootLayer::_RegisterCapturedLayer(GraphicLayer *pLayer, bool bCapture)
 {
     if (bCapture)
     {
@@ -349,7 +351,7 @@ void GraphicRootLayer::_RegisterCapturedLayer(GraphicLayer * pLayer, bool bCaptu
     }
 }
 
-void GraphicRootLayer::_RegisterMouseDragMove(GraphicLayer * pLayer, bool bEnableDragMove)
+void GraphicRootLayer::_RegisterMouseDragMove(GraphicLayer *pLayer, bool bEnableDragMove)
 {
     if (bEnableDragMove)
     {
@@ -368,7 +370,7 @@ void GraphicRootLayer::_RegisterMouseDragMove(GraphicLayer * pLayer, bool bEnabl
     }
 }
 
-void GraphicRootLayer::_RegisterDragMoveWindow(GraphicLayer * pLayer, bool bEnableMoveWindow)
+void GraphicRootLayer::_RegisterDragMoveWindow(GraphicLayer *pLayer, bool bEnableMoveWindow)
 {
     if (bEnableMoveWindow)
     {
@@ -387,13 +389,13 @@ void GraphicRootLayer::_RegisterDragMoveWindow(GraphicLayer * pLayer, bool bEnab
     }
 }
 
-void GraphicRootLayer::_RegisterFocusLayer(GraphicLayer * pLayer, bool bFocus)
+void GraphicRootLayer::_RegisterFocusLayer(GraphicLayer *pLayer, bool bFocus)
 {
     if (bFocus)
     {
         if (pLayer && pLayer != m_pFocusLayer)
         {
-            GraphicLayer* p = m_pFocusLayer;
+            GraphicLayer *p = m_pFocusLayer;
             m_pFocusLayer = pLayer;
             //先赋值,再回调,这样回调响应中获取当前的焦点Layer也是正确的
             if (p)
@@ -407,7 +409,7 @@ void GraphicRootLayer::_RegisterFocusLayer(GraphicLayer * pLayer, bool bFocus)
     {
         if (!pLayer || pLayer == m_pFocusLayer)
         {
-            GraphicLayer* p = m_pFocusLayer;
+            GraphicLayer *p = m_pFocusLayer;
             m_pFocusLayer = nullptr;
             if (p)
             {
@@ -417,7 +419,7 @@ void GraphicRootLayer::_RegisterFocusLayer(GraphicLayer * pLayer, bool bFocus)
     }
 }
 
-void GraphicRootLayer::_RegisterLayeredWndClipRect(const CRect & rcClip)
+void GraphicRootLayer::_RegisterLayeredWndClipRect(const CRect &rcClip)
 {
     if (IsLayeredWindow())
     {
@@ -425,7 +427,7 @@ void GraphicRootLayer::_RegisterLayeredWndClipRect(const CRect & rcClip)
     }
 }
 
-void GraphicRootLayer::_RegisterPaintStart(GraphicLayer * pPaintStart)
+void GraphicRootLayer::_RegisterPaintStart(GraphicLayer *pPaintStart)
 {
     if (!pPaintStart || (pPaintStart == this))
     {
@@ -440,16 +442,12 @@ void GraphicRootLayer::_RegisterPaintStart(GraphicLayer * pPaintStart)
     else if (m_pPaintStart != pPaintStart)
     {
         //首先把两者的父子关系路径分别压栈
-        std::vector<GraphicLayer*> layerPath1, layerPath2;
-        for (GraphicLayer * pCur = pPaintStart;
-            pCur && !pCur->is_root();
-            pCur = pCur->parent())
+        std::vector<GraphicLayer *> layerPath1, layerPath2;
+        for (GraphicLayer *pCur = pPaintStart; pCur && !pCur->is_root(); pCur = pCur->parent())
         {
             layerPath1.push_back(pCur);
         }
-        for (GraphicLayer * pCur = m_pPaintStart;
-            pCur && !pCur->is_root();
-            pCur = pCur->parent())
+        for (GraphicLayer *pCur = m_pPaintStart; pCur && !pCur->is_root(); pCur = pCur->parent())
         {
             layerPath2.push_back(pCur);
         }
@@ -457,10 +455,10 @@ void GraphicRootLayer::_RegisterPaintStart(GraphicLayer * pPaintStart)
 
         //二者依次出栈，进行对比，找出二者共同的路径，成为新的绘制起点，
         //如果没有共同路径，m_pPaintStart置空，表示从根结点绘制
-        GraphicLayer * pStartToFind = nullptr;
+        GraphicLayer *pStartToFind = nullptr;
         for (auto it1 = layerPath1.rbegin(), it2 = layerPath2.rbegin();
-            (it1 != layerPath1.rend()) && (it2 != layerPath2.rend());
-            ++it1, ++it2)
+             (it1 != layerPath1.rend()) && (it2 != layerPath2.rend());
+             ++it1, ++it2)
         {
             if (*it1 != *it2)
             {
@@ -494,7 +492,7 @@ int32_t GraphicRootLayer::_GetSystemWheelSetting(bool bVertical)
         ::SystemParametersInfo(nAction, 0, &nParam, 0);
         nParam = (nParam == 0 ? 3 : nParam);
 
-        LOGFONT logFont{ 0 };
+        LOGFONT logFont{0};
         UINT cbSize = sizeof(logFont);
         ::SystemParametersInfo(SPI_GETICONTITLELOGFONT, cbSize, &logFont, 0);
         if (logFont.lfHeight != 0)
@@ -505,7 +503,7 @@ int32_t GraphicRootLayer::_GetSystemWheelSetting(bool bVertical)
         {
             nParam *= 12;
         }
-        
+
         if (bVertical)
         {
             m_nVerticalPixel = nParam;
@@ -518,7 +516,7 @@ int32_t GraphicRootLayer::_GetSystemWheelSetting(bool bVertical)
     return nParam;
 }
 
-void GraphicRootLayer::OnReadingXmlAttribute(const pugi::xml_attribute & attr)
+void GraphicRootLayer::OnReadingXmlAttribute(const pugi::xml_attribute &attr)
 {
     if (std::wcscmp(L"lrColor", attr.name()) == 0)
     {
@@ -532,34 +530,32 @@ void GraphicRootLayer::OnWritingAttributeToXml(pugi::xml_node node)
     XmlAttributeUtility::WriteValueColorToXml(attr, m_crbg);
 }
 
-LRESULT GraphicRootLayer::OnMouse(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT GraphicRootLayer::OnMouse(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
 {
 #ifdef _DEBUG
     if (uMsg != WM_MOUSEMOVE)
     {
-        const char * p = "debug break point";
+        const char *p = "debug break point";
         (void)(p);
     }
 #endif // _DEBUG
-    
+
     CPoint pt(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
     if ((uMsg == WM_MOUSEWHEEL) || (uMsg == WM_MOUSEHWHEEL))
     {
         m_pWindow->ScreenToClient(&pt);
     }
 
-    GraphicLayer * pHandler = nullptr;
+    GraphicLayer *pHandler = nullptr;
     if (m_bMouseCapture && m_pLastMouseHandler)
     {
         //capture状态时
         CPoint ptOffset;
         bool bOk = true;
-        for (GraphicLayer * pCur = m_pLastMouseHandler;
-            pCur && !pCur->is_root();
-            pCur = pCur->parent())
+        for (GraphicLayer *pCur = m_pLastMouseHandler; pCur && !pCur->is_root();
+             pCur = pCur->parent())
         {
-            if (pCur->IsEnable()
-                && pCur->IsVisible())
+            if (pCur->IsEnable() && pCur->IsVisible())
             {
                 ptOffset += pCur->GetOrigin();
             }
@@ -588,11 +584,11 @@ LRESULT GraphicRootLayer::OnMouse(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
     if (pHandler)
     {
         LRESULT lRes = 0;
-        for (bHandled = FALSE;
-            !bHandled && pHandler && !pHandler->is_root(); 
-            pHandler = pHandler->parent())
+        for (bHandled = FALSE; !bHandled && pHandler && !pHandler->is_root();
+             pHandler = pHandler->parent())
         {
-            bHandled = pHandler->SendLayerMsg(&LayerMsgCallback::OnLayerMsgMouse, uMsg, wParam, MAKELPARAM(pt.x, pt.y), lRes);
+            bHandled = pHandler->SendLayerMsg(
+                &LayerMsgCallback::OnLayerMsgMouse, uMsg, wParam, MAKELPARAM(pt.x, pt.y), lRes);
             //滚轮消息，如果不处理则一直向上查找
             if (uMsg != WM_MOUSEWHEEL && uMsg != WM_MOUSEHWHEEL)
             {
@@ -608,12 +604,13 @@ LRESULT GraphicRootLayer::OnMouse(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL&
     }
 }
 
-LRESULT GraphicRootLayer::OnKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT GraphicRootLayer::OnKey(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL &bHandled)
 {
     if (m_pFocusLayer)
     {
         LRESULT lRes = 0;
-        bHandled = m_pFocusLayer->SendLayerMsg(&LayerMsgCallback::OnLayerMsgKey, uMsg, wParam, lParam, lRes);
+        bHandled = m_pFocusLayer->SendLayerMsg(
+            &LayerMsgCallback::OnLayerMsgKey, uMsg, wParam, lParam, lRes);
     }
     else
     {
@@ -676,7 +673,7 @@ void GraphicRootLayer::OnPaint(WTL::CDCHandle /*dc*/)
 
     //绘制大小, 也是裁剪大小
     CRect rcDraw;
-    PAINTSTRUCT ps{ 0 };
+    PAINTSTRUCT ps{0};
     if (bLayered)
     {
         if (m_rcLayeredWndClip.IsRectEmpty())
@@ -708,9 +705,10 @@ void GraphicRootLayer::OnPaint(WTL::CDCHandle /*dc*/)
     }
 }
 
-void GraphicRootLayer::DrawAllLayers(const CSize & szRender, const CRect & rcDraw, bool bLayeredWnd)
+void GraphicRootLayer::DrawAllLayers(const CSize &szRender, const CRect &rcDraw, bool bLayeredWnd)
 {
-    if (!rcDraw.IsRectEmpty() && m_d2dRenderPack.PrepareRender(*m_pWindow, szRender, m_renderType, 1.0f))
+    if (!rcDraw.IsRectEmpty() &&
+        m_d2dRenderPack.PrepareRender(*m_pWindow, szRender, m_renderType, 1.0f))
     {
         m_d2dRenderPack.m_spD2DRender->BeginDraw();
         m_d2dRenderPack.m_spD2DRender->SetTransform(D2D1::Matrix3x2F::Identity());
@@ -718,11 +716,12 @@ void GraphicRootLayer::DrawAllLayers(const CSize & szRender, const CRect & rcDra
         {
             D2DRenderPack::DrawingStateGuard drawingState(m_d2dRenderPack);
             D2DRenderPack::RectClipGuard drawClip(m_d2dRenderPack, rcDraw);
-            m_d2dRenderPack.m_spD2DRender->Clear(D2D1::ColorF(GetBgColor(), COLOR32_GetA(GetBgColor()) / 255.f));
+            m_d2dRenderPack.m_spD2DRender->Clear(
+                D2D1::ColorF(GetBgColor(), COLOR32_GetA(GetBgColor()) / 255.f));
             m_fastPath.clear();
             if (m_pPaintStart && (m_pPaintStart != first_child()))
             {
-/* 绘制起点功能:
+                /* 绘制起点功能:
 [问题起源]一个不大面积的动画,测试下来CPU,GPU占用很高
 [问题分析]把动画的绘制代码全屏蔽了,结果CPU,GPU占用仍然很高,说明不是动画本身的问题.结合代码及测试验证，发现
         原因在于: 绘制是从根结点起,递归遍历所有的结点, 凡是与无效区域有交集的都会重绘, 这样一来, 动画结点
@@ -747,12 +746,11 @@ void GraphicRootLayer::DrawAllLayers(const CSize & szRender, const CRect & rcDra
         7.当绘制区域大于绘制起点的区域时,清空绘制起点.
 */
                 CRect rcStart = m_pPaintStart->GetLayerBounds();
-                MapPointToRoot(m_pPaintStart, (CPoint*)&rcStart, 2);
+                MapPointToRoot(m_pPaintStart, (CPoint *)&rcStart, 2);
                 if ((rcStart & rcDraw) == rcDraw)
                 {
-                    for (GraphicLayer * pLayer = m_pPaintStart;
-                        pLayer && !pLayer->is_root();
-                        pLayer = pLayer->parent())
+                    for (GraphicLayer *pLayer = m_pPaintStart; pLayer && !pLayer->is_root();
+                         pLayer = pLayer->parent())
                     {
                         m_fastPath.push_back(pLayer);
                     }
@@ -760,7 +758,7 @@ void GraphicRootLayer::DrawAllLayers(const CSize & szRender, const CRect & rcDra
                 }
             }
             RecursiveDraw(m_d2dRenderPack, first_child(), m_fastPath);
-            m_pPaintStart = nullptr;//绘制之后起点清空
+            m_pPaintStart = nullptr; //绘制之后起点清空
             m_fastPath.clear();
         }
 
@@ -770,24 +768,27 @@ void GraphicRootLayer::DrawAllLayers(const CSize & szRender, const CRect & rcDra
         {
             hr = m_d2dRenderPack.m_spD2DRender->Flush(&tag1, &tag2);
             //层窗口，把绘制内容复制到DC上，再用UpdateLayeredWindow绘制到窗口中
-            ATL::CComQIPtr<ID2D1GdiInteropRenderTarget> spGdiRender = m_d2dRenderPack.m_spD2DRender;//always succeeds
+            ATL::CComQIPtr<ID2D1GdiInteropRenderTarget> spGdiRender =
+                m_d2dRenderPack.m_spD2DRender; //always succeeds
             assert(SUCCEEDED(hr));
             if (SUCCEEDED(hr))
             {
                 HDC hDc = NULL;
-                hr = spGdiRender->GetDC(D2D1_DC_INITIALIZE_MODE::D2D1_DC_INITIALIZE_MODE_COPY, &hDc);
+                hr = spGdiRender->GetDC(D2D1_DC_INITIALIZE_MODE::D2D1_DC_INITIALIZE_MODE_COPY,
+                                        &hDc);
                 assert(SUCCEEDED(hr));
                 if (SUCCEEDED(hr))
                 {
                     CRect rcLayerWnd = BorderlessWindowHandler::GetBorderlessDrawRect(*m_pWindow);
                     CPoint ptScreen = rcLayerWnd.TopLeft();
                     CSize sz = rcLayerWnd.Size();
-                    BLENDFUNCTION blend = { 0 };
+                    BLENDFUNCTION blend = {0};
                     blend.BlendOp = AC_SRC_OVER;
                     blend.SourceConstantAlpha = 255;
                     blend.AlphaFormat = AC_SRC_ALPHA;
-                    POINT ptSrc{ 0 };
-                    ::UpdateLayeredWindow(*m_pWindow, NULL, &ptScreen, &sz, hDc, &ptSrc, 0, &blend, ULW_ALPHA);
+                    POINT ptSrc{0};
+                    ::UpdateLayeredWindow(
+                        *m_pWindow, NULL, &ptScreen, &sz, hDc, &ptSrc, 0, &blend, ULW_ALPHA);
                     CRect temp;
                     spGdiRender->ReleaseDC(&temp);
                 }
@@ -802,7 +803,9 @@ void GraphicRootLayer::DrawAllLayers(const CSize & szRender, const CRect & rcDra
     }
 }
 
-void GraphicRootLayer::RecursiveDraw(D2DRenderPack & d2dRender, GraphicLayer * pDefaultPath, std::vector<GraphicLayer*> & fastPath)
+void GraphicRootLayer::RecursiveDraw(D2DRenderPack &d2dRender,
+                                     GraphicLayer *pDefaultPath,
+                                     std::vector<GraphicLayer *> &fastPath)
 {
     if (!fastPath.empty())
     {
@@ -810,17 +813,14 @@ void GraphicRootLayer::RecursiveDraw(D2DRenderPack & d2dRender, GraphicLayer * p
         pDefaultPath = fastPath.back();
         fastPath.pop_back();
     }
-    for (GraphicLayer* pCur = pDefaultPath;
-        pCur && pCur->IsVisible();
-        pCur = pCur->next_sibling())
+    for (GraphicLayer *pCur = pDefaultPath; pCur && pCur->IsVisible(); pCur = pCur->next_sibling())
     {
         D2DRenderPack::DrawingStateGuard matrixGuard(d2dRender);
         //坐标转换
         D2D1::Matrix3x2F d2dMxOld;
         d2dRender.m_spD2DRender->GetTransform(&d2dMxOld);
-        D2D1::Matrix3x2F d2dMxCur = D2D1::Matrix3x2F::Translation(
-            (FLOAT)pCur->GetOrigin().x, 
-            (FLOAT)pCur->GetOrigin().y);
+        D2D1::Matrix3x2F d2dMxCur = D2D1::Matrix3x2F::Translation((FLOAT)pCur->GetOrigin().x,
+                                                                  (FLOAT)pCur->GetOrigin().y);
         d2dMxCur = d2dMxCur * d2dMxOld;
         d2dRender.m_spD2DRender->SetTransform(d2dMxCur);
 
@@ -840,12 +840,13 @@ void GraphicRootLayer::RecursiveDraw(D2DRenderPack & d2dRender, GraphicLayer * p
             {
                 //背景
                 d2dRender.m_spSolidBrush->SetColor(D2D1::ColorF(crbg, COLOR32_GetA(crbg) / 255.f));
-                d2dRender.m_spD2DRender->FillRectangle(CD2DRectF(pCur->GetLayerBounds()), d2dRender.m_spSolidBrush);
+                d2dRender.m_spD2DRender->FillRectangle(CD2DRectF(pCur->GetLayerBounds()),
+                                                       d2dRender.m_spSolidBrush);
             }
             //个性化绘制
             pCur->Paint(d2dRender);
         }
-        
+
         assert(fastPath.empty() || (pCur->child_count() > 0));
         //递归绘制子Layer
         if (pCur->child_count() > 0)
@@ -859,7 +860,7 @@ void GraphicRootLayer::RecursiveDraw(D2DRenderPack & d2dRender, GraphicLayer * p
 
 LRESULT GraphicRootLayer::OnLayerTimerMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam)
 {
-/* WPARAM必须传入Layer指针,否则当出现这种情况时,会导致野指针崩溃:
+    /* WPARAM必须传入Layer指针,否则当出现这种情况时,会导致野指针崩溃:
         1.定时器消息发送成功; 2.定时器消息还未来得及处理,子Layer销毁; 3.收到定时器消息. 
 [解决办法] WPARAM传入Layer指针, 收到此消息时通过WPARAM的指针值到定时器数据池
         中查找该Layer是否存在.这样可以确保Layer指针的合法性. 出现上面的情境时:
@@ -873,7 +874,8 @@ LRESULT GraphicRootLayer::OnLayerTimerMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM l
         if (it->second == (LayerTimerData *)lParam)
         {
             //检查timer的合法性：有可能定时器已经删除，但定时器已经成功PostMessage了。
-            it->second->m_pLayer->SendLayerMsg(&LayerMsgCallback::OnLayerMsgTimer, it->second->m_hTimer);
+            it->second->m_pLayer->SendLayerMsg(&LayerMsgCallback::OnLayerMsgTimer,
+                                               it->second->m_hTimer);
             break;
         }
     }
@@ -882,7 +884,7 @@ LRESULT GraphicRootLayer::OnLayerTimerMsg(UINT /*uMsg*/, WPARAM wParam, LPARAM l
 
 LRESULT GraphicRootLayer::OnLayerInternalUse(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam)
 {
-    GraphicLayer* pLayer = (GraphicLayer*)wParam;
+    GraphicLayer *pLayer = (GraphicLayer *)wParam;
     if (pLayer)
     {
         pLayer->OnLayerInternalMsg(lParam);
@@ -916,20 +918,17 @@ void GraphicRootLayer::OnSettingChange(UINT uFlags, LPCTSTR /*lpszSection*/)
     }
 }
 
-void GraphicRootLayer::NotifyMouseInOut(GraphicLayer * pMouseIn)
+void GraphicRootLayer::NotifyMouseInOut(GraphicLayer *pMouseIn)
 {
     if (m_pLastMouseHandler != pMouseIn)
     {
-        if (m_pLastMouseHandler
-            && m_pLastMouseHandler->IsEnable()
-            && m_pLastMouseHandler->IsVisible())
+        if (m_pLastMouseHandler && m_pLastMouseHandler->IsEnable() &&
+            m_pLastMouseHandler->IsVisible())
         {
             m_pLastMouseHandler->SendLayerMsg(&LayerMsgCallback::OnLayerMsgMouseInOut, false);
-            GraphicLayer * pParent = m_pLastMouseHandler;
-            while (pParent->IsMouseInOutLinkParent()
-                && pParent->parent()
-                && (pParent->parent() != pMouseIn)
-                && !pParent->parent()->is_root())
+            GraphicLayer *pParent = m_pLastMouseHandler;
+            while (pParent->IsMouseInOutLinkParent() && pParent->parent() &&
+                   (pParent->parent() != pMouseIn) && !pParent->parent()->is_root())
             {
                 pParent = pParent->parent();
                 pParent->SendLayerMsg(&LayerMsgCallback::OnLayerMsgMouseInOut, false);
@@ -939,15 +938,14 @@ void GraphicRootLayer::NotifyMouseInOut(GraphicLayer * pMouseIn)
         if (pMouseIn)
         {
             pMouseIn->SendLayerMsg(&LayerMsgCallback::OnLayerMsgMouseInOut, true);
-            GraphicLayer * pParent = pMouseIn;
-            while (pParent->IsMouseInOutLinkParent()
-                && pParent->parent()
-                && !pParent->parent()->is_root())
+            GraphicLayer *pParent = pMouseIn;
+            while (pParent->IsMouseInOutLinkParent() && pParent->parent() &&
+                   !pParent->parent()->is_root())
             {
                 pParent = pParent->parent();
                 pParent->SendLayerMsg(&LayerMsgCallback::OnLayerMsgMouseInOut, true);
             }
-            TRACKMOUSEEVENT tme{ sizeof(tme) };
+            TRACKMOUSEEVENT tme{sizeof(tme)};
             tme.dwFlags = TME_LEAVE;
             tme.hwndTrack = GetMSWindow()->m_hWnd;
             ::TrackMouseEvent(&tme);
@@ -956,11 +954,9 @@ void GraphicRootLayer::NotifyMouseInOut(GraphicLayer * pMouseIn)
     }
 }
 
-void GraphicRootLayer::NotifyFocus(GraphicLayer * pMouse, UINT uMsg)
+void GraphicRootLayer::NotifyFocus(GraphicLayer *pMouse, UINT uMsg)
 {
-    if ((uMsg == WM_LBUTTONDOWN) ||
-        (uMsg == WM_RBUTTONDOWN) ||
-        (uMsg == WM_MBUTTONDOWN) ||
+    if ((uMsg == WM_LBUTTONDOWN) || (uMsg == WM_RBUTTONDOWN) || (uMsg == WM_MBUTTONDOWN) ||
         (uMsg == WM_XBUTTONDOWN))
     {
         if (pMouse && pMouse->IsEnable() && pMouse->IsVisible() && pMouse->IsEnableFocus())
@@ -970,14 +966,16 @@ void GraphicRootLayer::NotifyFocus(GraphicLayer * pMouse, UINT uMsg)
     }
 }
 
-void __stdcall GraphicRootLayer::TimerCallbackFunction(void * lpParameter, BOOLEAN /*TimerOrWaitFired*/)
+void __stdcall GraphicRootLayer::TimerCallbackFunction(void *lpParameter,
+                                                       BOOLEAN /*TimerOrWaitFired*/)
 {
     //pTimerData必须是正确可用的, 这一点是通过 当Layer销毁时同步等待定时器成功结束 来确保的.
-    LayerTimerData * pTimerData = (LayerTimerData *)lpParameter;
+    LayerTimerData *pTimerData = (LayerTimerData *)lpParameter;
     assert(pTimerData);
     if (pTimerData->m_pWindow && pTimerData->m_pWindow->IsWindow())
     {
-        pTimerData->m_pWindow->PostMessage(LAYER_WM_TIMER_NOTIFY, (WPARAM)pTimerData->m_pLayer, (LPARAM)pTimerData);
+        pTimerData->m_pWindow->PostMessage(
+            LAYER_WM_TIMER_NOTIFY, (WPARAM)pTimerData->m_pLayer, (LPARAM)pTimerData);
     }
 }
 

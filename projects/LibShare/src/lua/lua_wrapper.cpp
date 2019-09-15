@@ -3,26 +3,25 @@
 
 SHARELIB_BEGIN_NAMESPACE
 
-static const char * LUA_CHUNK_FUNC_NAME = "COMPILED_LUA_FUNC";
+static const char *LUA_CHUNK_FUNC_NAME = "COMPILED_LUA_FUNC";
 
 //-------------------------------------------------------------
 
 lua_state_wrapper::lua_state_wrapper()
     : m_pLuaState(nullptr)
-{
-}
+{}
 
-lua_state_wrapper::lua_state_wrapper(lua_state_wrapper&& lua2)
+lua_state_wrapper::lua_state_wrapper(lua_state_wrapper &&lua2)
 {
     m_pLuaState = lua2.m_pLuaState;
     lua2.m_pLuaState = nullptr;
 }
 
-lua_state_wrapper& lua_state_wrapper::operator=(lua_state_wrapper&& lua2)
+lua_state_wrapper &lua_state_wrapper::operator=(lua_state_wrapper &&lua2)
 {
     if (this != &lua2)
     {
-        lua_State* p = m_pLuaState;
+        lua_State *p = m_pLuaState;
         m_pLuaState = lua2.m_pLuaState;
         lua2.m_pLuaState = p;
     }
@@ -62,43 +61,43 @@ void lua_state_wrapper::close()
     }
 }
 
-void lua_state_wrapper::attach(lua_State * pState)
+void lua_state_wrapper::attach(lua_State *pState)
 {
     assert(!m_pLuaState);
     m_pLuaState = pState;
 }
 
-lua_State * lua_state_wrapper::detach()
+lua_State *lua_state_wrapper::detach()
 {
     auto p = m_pLuaState;
     m_pLuaState = nullptr;
     return p;
 }
 
-lua_State* lua_state_wrapper::get_raw_state()
+lua_State *lua_state_wrapper::get_raw_state()
 {
     return m_pLuaState;
 }
 
-lua_state_wrapper::operator lua_State*()
+lua_state_wrapper::operator lua_State *()
 {
     return m_pLuaState;
 }
 
-void * lua_state_wrapper::alloc_user_data(const char * pName, size_t size)
+void *lua_state_wrapper::alloc_user_data(const char *pName, size_t size)
 {
     assert(m_pLuaState);
     if (m_pLuaState && pName)
     {
         lua_stack_guard_checker check(m_pLuaState);
-        void* p = ::lua_newuserdata(m_pLuaState, size);
+        void *p = ::lua_newuserdata(m_pLuaState, size);
         ::lua_setglobal(m_pLuaState, pName);
         return p;
     }
     return nullptr;
 }
 
-bool lua_state_wrapper::do_lua_file(const char * pFileName)
+bool lua_state_wrapper::do_lua_file(const char *pFileName)
 {
     assert(m_pLuaState);
     auto err = LUA_ERRERR;
@@ -110,15 +109,15 @@ bool lua_state_wrapper::do_lua_file(const char * pFileName)
     return (err == LUA_OK);
 }
 
-bool lua_state_wrapper::do_lua_file(const wchar_t * pFileName)
+bool lua_state_wrapper::do_lua_file(const wchar_t *pFileName)
 {
     try
     {
 #ifdef LUA_CODE_UTF8
-        std::wstring_convert < std::codecvt_utf8_utf16<wchar_t> > cvt;
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
-        auto & fct = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale{});
-        std::wstring_convert<std::remove_reference_t<decltype(fct)> > cvt(&fct);
+        auto &fct = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale{});
+        std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
         return do_lua_file(cvt.to_bytes(pFileName).c_str());
     }
@@ -129,7 +128,7 @@ bool lua_state_wrapper::do_lua_file(const wchar_t * pFileName)
     }
 }
 
-bool lua_state_wrapper::do_lua_string(const char * pString)
+bool lua_state_wrapper::do_lua_string(const char *pString)
 {
     assert(m_pLuaState);
     auto err = LUA_ERRERR;
@@ -141,15 +140,15 @@ bool lua_state_wrapper::do_lua_string(const char * pString)
     return (err == LUA_OK);
 }
 
-bool lua_state_wrapper::do_lua_string(const wchar_t * pString)
+bool lua_state_wrapper::do_lua_string(const wchar_t *pString)
 {
     try
     {
 #ifdef LUA_CODE_UTF8
-        std::wstring_convert < std::codecvt_utf8_utf16<wchar_t> > cvt;
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
-        auto & fct = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale{});
-        std::wstring_convert<std::remove_reference_t<decltype(fct)> > cvt(&fct);
+        auto &fct = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale{});
+        std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
         return do_lua_file(cvt.to_bytes(pString).c_str());
     }
@@ -160,13 +159,14 @@ bool lua_state_wrapper::do_lua_string(const wchar_t * pString)
     }
 }
 
-bool lua_state_wrapper::load_lua_file(const char * pFileName)
+bool lua_state_wrapper::load_lua_file(const char *pFileName)
 {
     assert(m_pLuaState);
     auto err = LUA_ERRERR;
     if (pFileName && *pFileName && m_pLuaState)
     {
-        std::string luaStr = std::string(LUA_CHUNK_FUNC_NAME) + R"*( = loadfile([=====[)*" + pFileName + R"*(]=====]))*";
+        std::string luaStr = std::string(LUA_CHUNK_FUNC_NAME) + R"*( = loadfile([=====[)*" +
+                             pFileName + R"*(]=====]))*";
         if (do_lua_string(luaStr.c_str()))
         {
             lua_stack_guard stateGuard(m_pLuaState);
@@ -180,15 +180,15 @@ bool lua_state_wrapper::load_lua_file(const char * pFileName)
     return (err == LUA_OK);
 }
 
-bool lua_state_wrapper::load_lua_file(const wchar_t * pFileName)
+bool lua_state_wrapper::load_lua_file(const wchar_t *pFileName)
 {
     try
     {
 #ifdef LUA_CODE_UTF8
-        std::wstring_convert < std::codecvt_utf8_utf16<wchar_t> > cvt;
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
-        auto & fct = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale{});
-        std::wstring_convert<std::remove_reference_t<decltype(fct)> > cvt(&fct);
+        auto &fct = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale{});
+        std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
         return load_lua_file(cvt.to_bytes(pFileName).c_str());
     }
@@ -199,13 +199,14 @@ bool lua_state_wrapper::load_lua_file(const wchar_t * pFileName)
     }
 }
 
-bool lua_state_wrapper::load_lua_string(const char * pString)
+bool lua_state_wrapper::load_lua_string(const char *pString)
 {
     assert(m_pLuaState);
     auto err = LUA_ERRERR;
     if (pString && *pString && m_pLuaState)
     {
-        std::string luaStr = std::string(LUA_CHUNK_FUNC_NAME) + R"*( = load([=====[)*" + pString + R"*(]=====]))*";
+        std::string luaStr = std::string(LUA_CHUNK_FUNC_NAME) + R"*( = load([=====[)*" + pString +
+                             R"*(]=====]))*";
         if (do_lua_string(luaStr.c_str()))
         {
             lua_stack_guard stateGuard(m_pLuaState);
@@ -219,15 +220,15 @@ bool lua_state_wrapper::load_lua_string(const char * pString)
     return (err == LUA_OK);
 }
 
-bool lua_state_wrapper::load_lua_string(const wchar_t * pString)
+bool lua_state_wrapper::load_lua_string(const wchar_t *pString)
 {
     try
     {
 #ifdef LUA_CODE_UTF8
-        std::wstring_convert < std::codecvt_utf8_utf16<wchar_t> > cvt;
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
-        auto & fct = std::use_facet<std::codecvt_utf16<wchar_t> >(std::locale{});
-        std::wstring_convert<std::remove_reference_t<decltype(fct)> > cvt(&fct);
+        auto &fct = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale{});
+        std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
         return load_lua_string(cvt.to_bytes(pString).c_str());
     }

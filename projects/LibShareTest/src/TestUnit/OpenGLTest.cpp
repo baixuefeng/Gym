@@ -3,13 +3,9 @@
 
 BEGIN_SHARELIBTEST_NAMESPACE
 
-OpenGLWindow::OpenGLWindow()
-{
-}
+OpenGLWindow::OpenGLWindow() {}
 
-OpenGLWindow::~OpenGLWindow()
-{
-}
+OpenGLWindow::~OpenGLWindow() {}
 
 int OpenGLWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
 {
@@ -21,21 +17,21 @@ int OpenGLWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
     m_glslProgram.LinkProgram();
     m_glslProgram.UseProgram();
 
-    const char* UniformNames[] = { "a", "b" };
-    GLint offsets[2] = { 0 };
+    const char *UniformNames[] = {"a", "b"};
+    GLint offsets[2] = {0};
     m_glslProgram.GetUniformBlockOffsets(2, UniformNames, offsets);
     auto uniformBlockIndex = m_glslProgram.GetUniformBlockIndex("var_uniform");
 
     shr::glhBufferMgr uniformBuffer;
     uniformBuffer.Create(shr::BufferTarget::UNIFORM_BUFFER, false);
     uniformBuffer.BindBufferBase(uniformBlockIndex);
-    GLint uniformValue[2] = { 11,22 };
+    GLint uniformValue[2] = {11, 22};
     uniformBuffer.BufferData(sizeof(uniformValue), &uniformValue, shr::BufferUsage::DYNAMIC_DRAW);
-    
+
     shr::glhBufferMgr bfoBuffer;
     bfoBuffer.Create(shr::BufferTarget::SHADER_STORAGE_BUFFER, true);
     bfoBuffer.BindBufferBase(0);
-    GLint bufferValue[10] = { 0 };
+    GLint bufferValue[10] = {0};
     bfoBuffer.BufferData(sizeof(bufferValue), &bufferValue, shr::BufferUsage::DYNAMIC_DRAW);
 
     for (int i = 0; i < sizeof(bufferValue) / sizeof(bufferValue[0]); ++i)
@@ -49,7 +45,8 @@ int OpenGLWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
     textureBuffer.Create(shr::BufferTarget::TEXTURE_BUFFER, true);
     texture.TexBuffer(shr::TextureFormat::RGBA8I, textureBuffer);
     textureBuffer.BufferData(sizeof(bufferValue), bufferValue, shr::BufferUsage::DYNAMIC_READ);
-    texture.BindImageTexture(1, 0, TRUE, 0, shr::TextureAccess::READ_WRITE, shr::TextureFormat::RGBA8I);
+    texture.BindImageTexture(
+        1, 0, TRUE, 0, shr::TextureAccess::READ_WRITE, shr::TextureFormat::RGBA8I);
 
     glDispatchCompute(1, 1, 1);
     glFinish();
@@ -60,15 +57,11 @@ int OpenGLWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
         std::memcpy(bufferValue, p, sizeof(bufferValue));
         bfoBuffer.UnmapBuffer();
     }
-    
-
 
     return 0;
 }
 
-void OpenGLWindow::OnPaint(CDCHandle dc)
-{
-}
+void OpenGLWindow::OnPaint(CDCHandle dc) {}
 
 void OpenGLWindow::OnDestroy()
 {

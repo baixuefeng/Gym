@@ -4,7 +4,8 @@
 
 SHARELIB_BEGIN_NAMESPACE
 
-LRValue::LRValue(int n) :m_n(n)
+LRValue::LRValue(int n)
+    : m_n(n)
 {
     tcoutex << m_n << L"\n";
 }
@@ -14,32 +15,32 @@ LRValue::~LRValue()
     tcoutex << m_n << L"\n";
 }
 
-LRValue::LRValue(const LRValue& other)
+LRValue::LRValue(const LRValue &other)
 {
     m_n = other.m_n + 1;
     tcoutex << m_n << L"\n";
 }
 
-LRValue::LRValue(LRValue&& other)
+LRValue::LRValue(LRValue &&other)
 {
     m_n = other.m_n;
     other.m_n = 0;
     tcoutex << m_n << L"\n";
 }
 
-LRValue& LRValue::operator =(const LRValue& other)
+LRValue &LRValue::operator=(const LRValue &other)
 {
     m_n = other.m_n + 1;
     tcoutex << m_n << L"\n";
-	return *this;
+    return *this;
 }
 
-LRValue& LRValue::operator =(LRValue&& other)
+LRValue &LRValue::operator=(LRValue &&other)
 {
     m_n = other.m_n;
     other.m_n = 0;
     tcoutex << m_n << L"\n";
-	return *this;
+    return *this;
 }
 
 SHARELIB_END_NAMESPACE

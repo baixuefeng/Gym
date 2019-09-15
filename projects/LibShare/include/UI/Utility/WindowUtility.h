@@ -2,11 +2,11 @@
 #include <cstdint>
 #include <Windows.h>
 #include <atlbase.h>
-#include <atlwin.h>
 #include <atltypes.h>
+#include <atlwin.h>
+#include "MacroDefBase.h"
 #include "WTL/atlapp.h"
 #include "WTL/atlcrack.h"
-#include "MacroDefBase.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -16,23 +16,22 @@ bool InitCmnCtrls();
 // 窗口是否为对话框
 bool IsDialogBox(HWND hWnd);
 
-namespace win_dpi
+namespace win_dpi {
+enum DpiAwarenessType
 {
-    enum DpiAwarenessType
-    {
-        ERROR_VALUE = -1,
-        DPI_UNAWARE = 0,
-        SYSTEM_DPI_AWARE = 1,
-        PER_MONITOR_DPI_AWARE = 2
-    };
+    ERROR_VALUE = -1,
+    DPI_UNAWARE = 0,
+    SYSTEM_DPI_AWARE = 1,
+    PER_MONITOR_DPI_AWARE = 2
+};
 
-    bool SetDpiAwareness(DpiAwarenessType type);
+bool SetDpiAwareness(DpiAwarenessType type);
 
-    DpiAwarenessType GetDpiAwareness();
+DpiAwarenessType GetDpiAwareness();
 
-    // 获取系统的DPI设置, 不受当前程序是否识别DPI的设置影响
-    uint32_t GetSystemDPIValue();
-}
+// 获取系统的DPI设置, 不受当前程序是否识别DPI的设置影响
+uint32_t GetSystemDPIValue();
+} // namespace win_dpi
 
 // 把窗口改造为无边框窗口(全部都是客户区), 附带最大化、全屏、拖拉改变窗口大小的功能
 class BorderlessWindowHandler
@@ -40,14 +39,14 @@ class BorderlessWindowHandler
     SHARELIB_DISABLE_COPY_CLASS(BorderlessWindowHandler);
 
     BEGIN_MSG_MAP_EX(BorderlessWindowHandler)
-        m_curMsgWindow = hWnd;
-        MSG_WM_NCCALCSIZE(OnBorderlessNcCalcSize)//拦截此消息
-        MSG_WM_NCACTIVATE(OnBorderlessNcActivate)//拦截此消息
-        MSG_WM_ERASEBKGND(OnBorderlessEraseBkgnd)//拦截此消息
-        MSG_WM_NCPAINT(OnBorderlessNcPaint)//拦截此消息
-        MSG_WM_SIZE(OnBorderlessSize)//不拦截
-        MSG_WM_GETMINMAXINFO(OnBorderlessGetMinMaxInfo)//不拦截
-        MSG_WM_NCHITTEST(OnBorderlessNcHitTest)//只有当满足拖拉改变窗口大小的条件时才拦截
+    m_curMsgWindow = hWnd;
+    MSG_WM_NCCALCSIZE(OnBorderlessNcCalcSize)       //拦截此消息
+    MSG_WM_NCACTIVATE(OnBorderlessNcActivate)       //拦截此消息
+    MSG_WM_ERASEBKGND(OnBorderlessEraseBkgnd)       //拦截此消息
+    MSG_WM_NCPAINT(OnBorderlessNcPaint)             //拦截此消息
+    MSG_WM_SIZE(OnBorderlessSize)                   //不拦截
+    MSG_WM_GETMINMAXINFO(OnBorderlessGetMinMaxInfo) //不拦截
+    MSG_WM_NCHITTEST(OnBorderlessNcHitTest) //只有当满足拖拉改变窗口大小的条件时才拦截
     END_MSG_MAP()
 
 public:
@@ -55,7 +54,7 @@ public:
     */
     BorderlessWindowHandler();
 
-//----全屏显示-----------------------
+    //----全屏显示-----------------------
 
     /** 全屏显示
     */
@@ -69,7 +68,7 @@ public:
     */
     void RestoreFromFullScreen();
 
-//----拖拉改变窗口大小--------------------
+    //----拖拉改变窗口大小--------------------
 
     /** 设置是否允许拖拉改变窗口大小, 默认不允许
     @param[in] bEnable 是否允许
@@ -79,9 +78,9 @@ public:
     /** 设置拖拉改变窗口大小的响应区域, 默认四边都为10
     @param[in] rcRegion 响应区域
     */
-    void SetDragChangeSizeRegion(const CRect& rcRegion);
+    void SetDragChangeSizeRegion(const CRect &rcRegion);
 
-//----static------------------------------------------------
+    //----static------------------------------------------------
 
     /** 获取无边框窗口的绘制区域,屏幕坐标,兼容普通窗口、层窗口、最大化、全屏
     @param[in] hWnd 窗口句柄
@@ -97,7 +96,6 @@ public:
     static CRect GetZoomedRect(HWND hWnd, bool bFullScreen = false);
 
 private:
-
     /** WM_NCCALCSIZE消息响应
     */
     LRESULT OnBorderlessNcCalcSize(BOOL /*bCalcValidRects*/, LPARAM /*lParam*/);
@@ -152,8 +150,8 @@ class MinRestoreHandler
     SHARELIB_DISABLE_COPY_CLASS(MinRestoreHandler);
 
     BEGIN_MSG_MAP_EX(BorderlessWindowHandler)
-        m_curMsgWindow = hWnd;
-        MSG_WM_WINDOWPOSCHANGED(OnMinRestoreWindowPosChanged)//不拦截
+    m_curMsgWindow = hWnd;
+    MSG_WM_WINDOWPOSCHANGED(OnMinRestoreWindowPosChanged) //不拦截
     END_MSG_MAP()
 
 public:
@@ -175,8 +173,8 @@ private:
 class DragFrameHandler
 {
     BEGIN_MSG_MAP_EX(DragFrameHandler)
-        m_curMsgWindow = hWnd;
-        MESSAGE_HANDLER_EX(WM_SYSCOMMAND, OnSysCommand)
+    m_curMsgWindow = hWnd;
+    MESSAGE_HANDLER_EX(WM_SYSCOMMAND, OnSysCommand)
     END_MSG_MAP()
 
 public:

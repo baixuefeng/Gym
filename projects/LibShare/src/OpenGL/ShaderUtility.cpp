@@ -4,12 +4,12 @@ namespace ShaderUtility {
 
 #define UINT_BITS 32
 
-    using glm::umulExtended;
-    using glm::uaddCarry;
-    using glm::abs;
-    using glm::sign;
-    using glm::findMSB;
-    using glm::findLSB;
+using glm::umulExtended;
+using glm::uaddCarry;
+using glm::abs;
+using glm::sign;
+using glm::findMSB;
+using glm::findLSB;
 
 uint64_t u128_mul(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi)
 {
@@ -219,4 +219,4 @@ ivec2 i64_divide(ivec2 var1, int i)
     return res;
 }
 
-}
+} // namespace ShaderUtility

@@ -7,10 +7,10 @@ SHARELIB_BEGIN_NAMESPACE
 //下面是预先占用的消息定义, 用于从真实窗口转接消息, GraphicLayer并不直接使用, 外部也不要使用
 
 //定时器消息
-#define LAYER_WM_TIMER_NOTIFY                          (0x7FFF - 1)
+#define LAYER_WM_TIMER_NOTIFY (0x7FFF - 1)
 
 //内部使用消息, wParam: GraphicLayer *
-#define LAYER_WM_INTERNAL_USE                          (0x7FFF - 2)
+#define LAYER_WM_INTERNAL_USE (0x7FFF - 2)
 
 //----------------------------------------------------------------
 
@@ -22,7 +22,7 @@ struct __declspec(novtable) LayerMsgCallback
 {
     /** 用户自定义消息,UI框架不会发送此消息
     */
-    virtual bool OnLayerMsgUserDefined(GraphicLayer * pLayer, void * pUserData)
+    virtual bool OnLayerMsgUserDefined(GraphicLayer *pLayer, void *pUserData)
     {
         (void)pLayer;
         (void)pUserData;
@@ -32,7 +32,7 @@ struct __declspec(novtable) LayerMsgCallback
     /** 重新排布消息响应
     @param[in] bLayoutChildren 是否排布子Layer,默认为true
     */
-    virtual bool OnLayerMsgLayout(GraphicLayer * pLayer, bool & bLayoutChildren)
+    virtual bool OnLayerMsgLayout(GraphicLayer *pLayer, bool &bLayoutChildren)
     {
         (void)pLayer;
         (void)bLayoutChildren;
@@ -41,7 +41,11 @@ struct __declspec(novtable) LayerMsgCallback
 
     /** 复用系统消息WM_MOUSEFIRST~WM_MOUSELAST,各参数含义不作任何改变,但坐标已经转换为相对pLayer自身的坐标
     */
-    virtual bool OnLayerMsgMouse(GraphicLayer * pLayer, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & lResult)
+    virtual bool OnLayerMsgMouse(GraphicLayer *pLayer,
+                                 UINT uMsg,
+                                 WPARAM wParam,
+                                 LPARAM lParam,
+                                 LRESULT &lResult)
     {
         (void)pLayer;
         (void)uMsg;
@@ -53,7 +57,11 @@ struct __declspec(novtable) LayerMsgCallback
 
     /** 复用系统消息WM_KEYFIRST~WM_KEYLAST,各参数含义不作任何改变
     */
-    virtual bool OnLayerMsgKey(GraphicLayer * pLayer, UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT & lResult)
+    virtual bool OnLayerMsgKey(GraphicLayer *pLayer,
+                               UINT uMsg,
+                               WPARAM wParam,
+                               LPARAM lParam,
+                               LRESULT &lResult)
     {
         (void)pLayer;
         (void)uMsg;
@@ -66,7 +74,7 @@ struct __declspec(novtable) LayerMsgCallback
     /** 鼠标移入、移出消息, 边界触发模式
     @param[in] bIn true表示进入,false表示移出
     */
-    virtual bool OnLayerMsgMouseInOut(GraphicLayer * pLayer, bool bIn)
+    virtual bool OnLayerMsgMouseInOut(GraphicLayer *pLayer, bool bIn)
     {
         (void)pLayer;
         (void)bIn;
@@ -77,7 +85,7 @@ struct __declspec(novtable) LayerMsgCallback
     @param[in] pLayer 获得焦点的目标Layer,非nullptr
     @param[in] pLostFocus 失去焦点的Layer,可能为nullptr
     */
-    virtual bool OnLayerMsgSetFocus(GraphicLayer * pLayer, GraphicLayer * pLostFocus)
+    virtual bool OnLayerMsgSetFocus(GraphicLayer *pLayer, GraphicLayer *pLostFocus)
     {
         (void)pLayer;
         (void)pLostFocus;
@@ -88,7 +96,7 @@ struct __declspec(novtable) LayerMsgCallback
     @param[in] pLayer 失去焦点的目标Layer,非nullptr
     @param[in] pLostFocus 获得焦点的Layer,可能为nullptr
     */
-    virtual bool OnLayerMsgKillFocus(GraphicLayer * pLayer, GraphicLayer * pGetFocus)
+    virtual bool OnLayerMsgKillFocus(GraphicLayer *pLayer, GraphicLayer *pGetFocus)
     {
         (void)pLayer;
         (void)pGetFocus;
@@ -99,7 +107,7 @@ struct __declspec(novtable) LayerMsgCallback
     @param[in] pLayer 目标Layer
     @param[in] hTimer CreateLayerTimer返回的 HANDLE
     */
-    virtual bool OnLayerMsgTimer(GraphicLayer * pLayer, HANDLE hTimer)
+    virtual bool OnLayerMsgTimer(GraphicLayer *pLayer, HANDLE hTimer)
     {
         (void)pLayer;
         (void)hTimer;

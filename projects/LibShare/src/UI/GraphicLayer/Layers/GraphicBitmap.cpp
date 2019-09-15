@@ -1,25 +1,22 @@
 ﻿#include "targetver.h"
 #include "UI/GraphicLayer/Layers/GraphicBitmap.h"
-#include "UI/GraphicLayer/Layers/GraphicLayer.h"
-#include "UI/GraphicLayer/Layers/GraphicRootLayer.h"
 #include <cassert>
 #include <cstring>
 #include <atlfile.h>
+#include "UI/GraphicLayer/Layers/GraphicLayer.h"
+#include "UI/GraphicLayer/Layers/GraphicRootLayer.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
 IMPLEMENT_RUNTIME_DYNAMIC_CREATE(GraphicBitmap, GraphicLayer::RegisterLayerClassesInfo)
 
-GraphicBitmap::GraphicBitmap() :
-m_bLayoutByPictureSize(false)
-{
-}
+GraphicBitmap::GraphicBitmap()
+    : m_bLayoutByPictureSize(false)
+{}
 
-void GraphicBitmap::SetBitmapData(const void * pBitmapData, SIZE sz)
+void GraphicBitmap::SetBitmapData(const void *pBitmapData, SIZE sz)
 {
-    if (pBitmapData
-        && sz.cx > 0
-        && sz.cy > 0)
+    if (pBitmapData && sz.cx > 0 && sz.cy > 0)
     {
         m_szBitmap = sz;
         if (m_bLayoutByPictureSize || GetLayerBounds().IsRectEmpty())
@@ -38,7 +35,7 @@ void GraphicBitmap::SetLayoutByPicture(bool bLayoutByPicture)
     m_bLayoutByPictureSize = bLayoutByPicture;
 }
 
-void GraphicBitmap::OnReadingXmlAttribute(const pugi::xml_attribute & attr)
+void GraphicBitmap::OnReadingXmlAttribute(const pugi::xml_attribute &attr)
 {
     if (std::wcscmp(L"lrSkin", attr.name()) == 0)
     {
@@ -61,7 +58,7 @@ void GraphicBitmap::OnWritingAttributeToXml(pugi::xml_node node)
     __super::OnWritingAttributeToXml(node);
 }
 
-bool GraphicBitmap::OnLayerMsgLayout(GraphicLayer * pLayer, bool & bLayoutChildren)
+bool GraphicBitmap::OnLayerMsgLayout(GraphicLayer *pLayer, bool &bLayoutChildren)
 {
     bool bHandled = __super::OnLayerMsgLayout(pLayer, bLayoutChildren);
     if (m_bLayoutByPictureSize || GetLayerBounds().IsRectEmpty())
@@ -79,7 +76,7 @@ bool GraphicBitmap::OnLayerMsgLayout(GraphicLayer * pLayer, bool & bLayoutChildr
                 auto pBitmapInfo = pRoot->FindSkinByName(m_skin);
                 if (pBitmapInfo)
                 {
-                    m_szBitmap = SIZE{ (LONG)pBitmapInfo->m_nWidth, (LONG)pBitmapInfo->m_nHeight };
+                    m_szBitmap = SIZE{(LONG)pBitmapInfo->m_nWidth, (LONG)pBitmapInfo->m_nHeight};
                     SetLayerBounds(CRect(GetOrigin(), m_szBitmap));
                 }
             }
@@ -88,7 +85,7 @@ bool GraphicBitmap::OnLayerMsgLayout(GraphicLayer * pLayer, bool & bLayoutChildr
     return bHandled;
 }
 
-void GraphicBitmap::Paint(D2DRenderPack & d2dRender)
+void GraphicBitmap::Paint(D2DRenderPack &d2dRender)
 {
     ATL::CComQIPtr<ID2D1Bitmap> spBitmap = d2dRender.GetCachedD2DResource(m_bitmapCacheID);
     if (!spBitmap)
@@ -105,10 +102,9 @@ void GraphicBitmap::Paint(D2DRenderPack & d2dRender)
                 auto pBitmapInfo = pRoot->FindSkinByName(m_skin);
                 if (pBitmapInfo)
                 {
-                    m_szBitmap = SIZE{ (LONG)pBitmapInfo->m_nWidth, (LONG)pBitmapInfo->m_nHeight };
-                    spBitmap = d2dRender.CreateD2DBitmap(
-                        m_szBitmap,
-                        pBitmapInfo->m_spBitmapData.get());
+                    m_szBitmap = SIZE{(LONG)pBitmapInfo->m_nWidth, (LONG)pBitmapInfo->m_nHeight};
+                    spBitmap = d2dRender.CreateD2DBitmap(m_szBitmap,
+                                                         pBitmapInfo->m_spBitmapData.get());
                 }
             }
         }
@@ -128,7 +124,7 @@ void GraphicBitmap::Paint(D2DRenderPack & d2dRender)
     }
 }
 
-bool GraphicBitmap::RGBA2PBGRA(void * pData, SIZE sz)
+bool GraphicBitmap::RGBA2PBGRA(void *pData, SIZE sz)
 {
     if (!pData)
     {
@@ -136,7 +132,7 @@ bool GraphicBitmap::RGBA2PBGRA(void * pData, SIZE sz)
         return false;
     }
 
-    uint8_t* p = (uint8_t*)pData;
+    uint8_t *p = (uint8_t *)pData;
     uint32_t pixelCount = sz.cx * sz.cy;
     uint8_t a = 0;
     uint8_t t = 0;
@@ -159,23 +155,23 @@ bool GraphicBitmap::RGBA2PBGRA(void * pData, SIZE sz)
     return true;
 }
 
-bool GraphicBitmap::GetSubBitmapData(const void * pImgData, SIZE sz, void * pSubImgData, const RECT & subRect)
+bool GraphicBitmap::GetSubBitmapData(const void *pImgData,
+                                     SIZE sz,
+                                     void *pSubImgData,
+                                     const RECT &subRect)
 {
-    if (!pImgData
-        || !pSubImgData
-        || (subRect.right > sz.cx)
-        || (subRect.bottom > sz.cy)
-        || (subRect.left < 0)
-        || (subRect.top < 0)
-        || ::IsRectEmpty(&subRect))
+    if (!pImgData || !pSubImgData || (subRect.right > sz.cx) || (subRect.bottom > sz.cy) ||
+        (subRect.left < 0) || (subRect.top < 0) || ::IsRectEmpty(&subRect))
     {
         return false;
     }
 
-    uint8_t * pIndex = (uint8_t*)pSubImgData;
+    uint8_t *pIndex = (uint8_t *)pSubImgData;
     for (int32_t i = subRect.top; i < subRect.bottom; ++i)
     {
-        std::memcpy(pIndex, (const uint8_t*)pImgData + sz.cx * 4 * i + subRect.left * 4, (subRect.right - subRect.left) * 4);
+        std::memcpy(pIndex,
+                    (const uint8_t *)pImgData + sz.cx * 4 * i + subRect.left * 4,
+                    (subRect.right - subRect.left) * 4);
         pIndex += (subRect.right - subRect.left) * 4;
     }
     return true;

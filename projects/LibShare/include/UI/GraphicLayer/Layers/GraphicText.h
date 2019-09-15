@@ -1,22 +1,21 @@
 ﻿#pragma once
-#include "MacroDefBase.h"
-#include "UI/GraphicLayer/Layers/GraphicLayer.h"
 #include <string>
-#include <dwrite.h>
 #include <atlbase.h>
 #include <atlcom.h>
+#include <dwrite.h>
+#include "MacroDefBase.h"
+#include "UI/GraphicLayer/Layers/GraphicLayer.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
-class GraphicText :
-    public GraphicLayer
+class GraphicText : public GraphicLayer
 {
     DECLARE_RUNTIME_DYNAMIC_CREATE(GraphicText, L"text")
 
 public:
     GraphicText();
 
-/*
+    /*
 子结点的pcdata或者cdata类型的文本，即作为该文本Layer的文本内容，如果没有设置Layer的Bounds，使用文本大小加空白的大小作为Bounds
 "lrDebugLevel"  : <0,1,2><int><调试文本的等级，0:不调试, 1:按行绘制框线, 2:按字绘制框线><0>
 "lrTextColor"   : <16进制颜色><COLOR32><文本颜色><FF000000>
@@ -34,14 +33,14 @@ public:
                   绘制效果更好>
                   <true>
 */
-    virtual void OnReadingXmlAttribute(const pugi::xml_attribute & attr) override;
-    virtual bool OnReadXmlAttributeEnded(const pugi::xml_node & node) override;
+    virtual void OnReadingXmlAttribute(const pugi::xml_attribute &attr) override;
+    virtual bool OnReadXmlAttributeEnded(const pugi::xml_node &node) override;
     virtual void OnWritingAttributeToXml(pugi::xml_node node) override;
 
 protected:
     bool CreateTextLayout();
 
-    virtual void Paint(D2DRenderPack & d2dRender) override;
+    virtual void Paint(D2DRenderPack &d2dRender) override;
 
 protected:
     int m_nDebugLevel;

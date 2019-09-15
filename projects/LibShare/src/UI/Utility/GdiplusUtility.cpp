@@ -1,47 +1,46 @@
 ﻿#include "targetver.h"
 #include "UI/Utility/GdiplusUtility.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <string>
 #include <cstring>
-#include <algorithm>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <atlbase.h>
 #include <atlstr.h>
 
 #include <ObjIdl.h>
-#pragma warning(disable:4458)
+#pragma warning(disable : 4458)
 #include <GdiPlus.h>
-#pragma warning(default:4458)
+#pragma warning(default : 4458)
 //使用Gdiplus相关的函数需要引入的库
 #pragma comment(lib, "Gdiplus.lib")
 
-namespace
+namespace {
+class GdiplusInit
 {
-    class GdiplusInit
+public:
+    GdiplusInit()
     {
-    public:
-        GdiplusInit()
+        Gdiplus::GdiplusStartupInput input;
+        Gdiplus::GdiplusStartupOutput output;
+        m_bInitOk = (Gdiplus::Status::Ok == Gdiplus::GdiplusStartup(&m_token, &input, &output));
+    }
+    ~GdiplusInit()
+    {
+        if (m_bInitOk)
         {
-            Gdiplus::GdiplusStartupInput input;
-            Gdiplus::GdiplusStartupOutput output;
-            m_bInitOk = (Gdiplus::Status::Ok == Gdiplus::GdiplusStartup(&m_token, &input, &output));
+            Gdiplus::GdiplusShutdown(m_token);
+            m_token = 0;
         }
-        ~GdiplusInit()
-        {
-            if (m_bInitOk)
-            {
-                Gdiplus::GdiplusShutdown(m_token);
-                m_token = 0;
-            }
-        }
+    }
 
-        bool m_bInitOk;
-        ULONG_PTR m_token;
-    };
+    bool m_bInitOk;
+    ULONG_PTR m_token;
+};
 
-}
+} // namespace
 
 SHARELIB_BEGIN_NAMESPACE
 
@@ -51,10 +50,7 @@ bool InitializeGdiplus()
     static std::once_flag s_initOnceFlags;
     if (!s_bInitOk)
     {
-        std::call_once(
-            s_initOnceFlags, 
-            []()
-        {
+        std::call_once(s_initOnceFlags, []() {
             static GdiplusInit s_init;
             s_bInitOk = s_init.m_bInitOk;
         });
@@ -62,42 +58,40 @@ bool InitializeGdiplus()
     return s_bInitOk;
 }
 
-GuardGdipState::GuardGdipState(Gdiplus::Graphics & g)
+GuardGdipState::GuardGdipState(Gdiplus::Graphics &g)
     : m_g(g)
     , m_state(g.Save())
-{
-}
+{}
 
 GuardGdipState::~GuardGdipState()
 {
     m_g.Restore(m_state);
 }
 
-bool GdiplusAlphaDraw(Gdiplus::Graphics& g, const Gdiplus::RectF& destRect, Gdiplus::Bitmap& image, const Gdiplus::RectF& srcRect, uint8_t alpha/* = 255*/)
+bool GdiplusAlphaDraw(Gdiplus::Graphics &g,
+                      const Gdiplus::RectF &destRect,
+                      Gdiplus::Bitmap &image,
+                      const Gdiplus::RectF &srcRect,
+                      uint8_t alpha /* = 255*/)
 {
-    Gdiplus::ColorMatrix clrMatrix =
-    {
-        {
-            { 1, 0, 0, 0, 0 },
-            { 0, 1, 0, 0, 0 },
-            { 0, 0, 1, 0, 0 },
-            { 0, 0, 0, Gdiplus::REAL(alpha) / 255, 0 },
-            { 0, 0, 0, 0, 1 }
-        }
-    };
+    Gdiplus::ColorMatrix clrMatrix = {{{1, 0, 0, 0, 0},
+                                       {0, 1, 0, 0, 0},
+                                       {0, 0, 1, 0, 0},
+                                       {0, 0, 0, Gdiplus::REAL(alpha) / 255, 0},
+                                       {0, 0, 0, 0, 1}}};
     Gdiplus::ImageAttributes imageAttr;
     imageAttr.SetColorMatrix(&clrMatrix);
     return (Gdiplus::Status::Ok == g.DrawImage(&image,
-        destRect,
-        srcRect.X,
-        srcRect.Y,
-        srcRect.Width,
-        srcRect.Height,
-        Gdiplus::Unit::UnitPixel,
-        &imageAttr));
+                                               destRect,
+                                               srcRect.X,
+                                               srcRect.Y,
+                                               srcRect.Width,
+                                               srcRect.Height,
+                                               Gdiplus::Unit::UnitPixel,
+                                               &imageAttr));
 }
 
-bool GetEncoderClsid(const wchar_t * pTypeName, CLSID & clsid)
+bool GetEncoderClsid(const wchar_t *pTypeName, CLSID &clsid)
 {
     if (!pTypeName)
     {
@@ -114,7 +108,7 @@ bool GetEncoderClsid(const wchar_t * pTypeName, CLSID & clsid)
         return false;
     }
     std::memset(spBuffer.get(), 0, nSize);
-    Gdiplus::ImageCodecInfo* pCodecInfo = (Gdiplus::ImageCodecInfo*)spBuffer.get();
+    Gdiplus::ImageCodecInfo *pCodecInfo = (Gdiplus::ImageCodecInfo *)spBuffer.get();
     if (Gdiplus::GetImageDecoders(nNum, nSize, pCodecInfo) != Gdiplus::Ok)
     {
         return false;
@@ -133,7 +127,9 @@ bool GetEncoderClsid(const wchar_t * pTypeName, CLSID & clsid)
     return false;
 }
 
-void AdjustPointF(const Gdiplus::Font& font, const Gdiplus::StringFormat& strFormat, Gdiplus::PointF& pt)
+void AdjustPointF(const Gdiplus::Font &font,
+                  const Gdiplus::StringFormat &strFormat,
+                  Gdiplus::PointF &pt)
 {
     assert(font.IsAvailable());
     switch (strFormat.GetLineAlignment())
@@ -165,7 +161,9 @@ void AdjustPointF(const Gdiplus::Font& font, const Gdiplus::StringFormat& strFor
     }
 }
 
-void AdjustRectF(const Gdiplus::Font& font, const Gdiplus::StringFormat& strFormat, Gdiplus::RectF& rect)
+void AdjustRectF(const Gdiplus::Font &font,
+                 const Gdiplus::StringFormat &strFormat,
+                 Gdiplus::RectF &rect)
 {
     assert(font.IsAvailable());
     assert(font.IsAvailable());
@@ -224,7 +222,7 @@ void AdjustRectF(const Gdiplus::Font& font, const Gdiplus::StringFormat& strForm
 
 //----辅助函数----------------------------------------
 
-float GetFontBottomSpace(const Gdiplus::Font& font)
+float GetFontBottomSpace(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     Gdiplus::FontFamily ff;
@@ -240,7 +238,7 @@ float GetFontBottomSpace(const Gdiplus::Font& font)
     return std::abs(font.GetSize()) * (needHeight - realHeight) / emSize;
 }
 
-float GetFontRealHeight(const Gdiplus::Font& font)
+float GetFontRealHeight(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     Gdiplus::FontFamily ff;
@@ -255,7 +253,7 @@ float GetFontRealHeight(const Gdiplus::Font& font)
     return std::abs(font.GetSize()) * realHeight / emSize;
 }
 
-float GetFontNeedHeight(const Gdiplus::Font& font)
+float GetFontNeedHeight(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     Gdiplus::FontFamily ff;
@@ -270,7 +268,7 @@ float GetFontNeedHeight(const Gdiplus::Font& font)
     return std::ceil(std::abs(font.GetSize()) * needHeight / emSize);
 }
 
-float GetFontItalicWidth(const Gdiplus::Font& font)
+float GetFontItalicWidth(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic)

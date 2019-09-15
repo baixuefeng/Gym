@@ -5,19 +5,19 @@
 *  作者 : 白雪峰
 *  版本 : 1.0
 *****************************************************************************/
-#include "targetver.h"
 #include "UI/Utility/Matrix2D.h"
-#include <cstring>
-#include <cmath>
 #include <cassert>
+#include <cmath>
+#include <cstring>
 #include <float.h>
+#include "targetver.h"
 
 SHARELIB_BEGIN_NAMESPACE
 
 /** 角度转化为弧度
 */
 #ifndef TO_RADIAN
-#define TO_RADIAN(degree) ((degree) * 0.01745329252)
+#    define TO_RADIAN(degree) ((degree)*0.01745329252)
 #endif
 
 Matrix2D::Matrix2D()
@@ -25,7 +25,7 @@ Matrix2D::Matrix2D()
     Reset();
 }
 
-Matrix2D::Matrix2D(const XFORM& mx)
+Matrix2D::Matrix2D(const XFORM &mx)
 {
     m_data[0][0] = mx.eM11;
     m_data[0][1] = mx.eM12;
@@ -35,7 +35,7 @@ Matrix2D::Matrix2D(const XFORM& mx)
     m_data[2][1] = mx.eDy;
 }
 
-Matrix2D::Matrix2D(const D2D1::Matrix3x2F & mx)
+Matrix2D::Matrix2D(const D2D1::Matrix3x2F &mx)
 {
     m_data[0][0] = mx._11;
     m_data[0][1] = mx._12;
@@ -45,7 +45,7 @@ Matrix2D::Matrix2D(const D2D1::Matrix3x2F & mx)
     m_data[2][1] = mx._32;
 }
 
-Matrix2D::Matrix2D(const DWRITE_MATRIX & mx)
+Matrix2D::Matrix2D(const DWRITE_MATRIX &mx)
 {
     m_data[0][0] = mx.m11;
     m_data[0][1] = mx.m12;
@@ -153,7 +153,7 @@ bool Matrix2D::IsIdentity() const
     return true;
 }
 
-void Matrix2D::Multiply(const Matrix2D& mx, bool prepend/* = true*/)
+void Matrix2D::Multiply(const Matrix2D &mx, bool prepend /* = true*/)
 {
     const float SrcA00 = m_data[0][0];
     const float SrcA01 = m_data[0][1];
@@ -188,27 +188,27 @@ void Matrix2D::Multiply(const Matrix2D& mx, bool prepend/* = true*/)
     }
 }
 
-Matrix2D Matrix2D::operator *(const Matrix2D & mx) const
+Matrix2D Matrix2D::operator*(const Matrix2D &mx) const
 {
     Matrix2D res = *this;
     res *= mx;
     return res;
 }
 
-Matrix2D & Matrix2D::operator *=(const Matrix2D & mx)
+Matrix2D &Matrix2D::operator*=(const Matrix2D &mx)
 {
     Multiply(mx, false);
     return *this;
 }
 
-Matrix2D Matrix2D::operator /(const Matrix2D & mx) const
+Matrix2D Matrix2D::operator/(const Matrix2D &mx) const
 {
     Matrix2D res = *this;
     res /= mx;
     return res;
 }
 
-Matrix2D & Matrix2D::operator /=(const Matrix2D & mx)
+Matrix2D &Matrix2D::operator/=(const Matrix2D &mx)
 {
     Matrix2D mx1 = mx;
     bool bInvertible = mx1.Invert();
@@ -220,7 +220,7 @@ Matrix2D & Matrix2D::operator /=(const Matrix2D & mx)
     return *this;
 }
 
-void Matrix2D::Translate(float fX, float fY, bool prepend/* = true*/)
+void Matrix2D::Translate(float fX, float fY, bool prepend /* = true*/)
 {
     Matrix2D mx;
     mx.m_data[2][0] = fX;
@@ -228,7 +228,7 @@ void Matrix2D::Translate(float fX, float fY, bool prepend/* = true*/)
     Multiply(mx, prepend);
 }
 
-void Matrix2D::Scale(float fX, float fY, bool prepend/* = true*/)
+void Matrix2D::Scale(float fX, float fY, bool prepend /* = true*/)
 {
     Matrix2D mx;
     mx.m_data[0][0] = fX;
@@ -236,7 +236,7 @@ void Matrix2D::Scale(float fX, float fY, bool prepend/* = true*/)
     Multiply(mx, prepend);
 }
 
-void Matrix2D::ScaleAt(float fX, float fY, float centerX, float centerY, bool prepend/* = true*/)
+void Matrix2D::ScaleAt(float fX, float fY, float centerX, float centerY, bool prepend /* = true*/)
 {
     Matrix2D mx;
     mx.m_data[0][0] = fX;
@@ -246,7 +246,7 @@ void Matrix2D::ScaleAt(float fX, float fY, float centerX, float centerY, bool pr
     Multiply(mx, prepend);
 }
 
-void Matrix2D::Rotate(float fAngle, bool prepend/* = true*/)
+void Matrix2D::Rotate(float fAngle, bool prepend /* = true*/)
 {
     Matrix2D mx;
     float s = (float)std::sin(TO_RADIAN(fAngle));
@@ -258,7 +258,7 @@ void Matrix2D::Rotate(float fAngle, bool prepend/* = true*/)
     Multiply(mx, prepend);
 }
 
-void Matrix2D::RotateAt(float fAngle, float centerX, float centerY, bool prepend/* = true*/)
+void Matrix2D::RotateAt(float fAngle, float centerX, float centerY, bool prepend /* = true*/)
 {
     Matrix2D mx;
     float s = (float)std::sin(TO_RADIAN(fAngle));
@@ -272,7 +272,7 @@ void Matrix2D::RotateAt(float fAngle, float centerX, float centerY, bool prepend
     Multiply(mx, prepend);
 }
 
-void Matrix2D::Shear(float shearX, float shearY, bool prepend/* = true*/)
+void Matrix2D::Shear(float shearX, float shearY, bool prepend /* = true*/)
 {
     Matrix2D mx;
     mx.m_data[0][1] = shearY;
@@ -280,7 +280,7 @@ void Matrix2D::Shear(float shearX, float shearY, bool prepend/* = true*/)
     Multiply(mx, prepend);
 }
 
-void Matrix2D::ShearAt(float shearX, float shearY, float fixX, float fixY, bool prepend/* = true*/)
+void Matrix2D::ShearAt(float shearX, float shearY, float fixX, float fixY, bool prepend /* = true*/)
 {
     Matrix2D mx;
     mx.m_data[0][1] = shearY;
@@ -290,7 +290,7 @@ void Matrix2D::ShearAt(float shearX, float shearY, float fixX, float fixY, bool 
     Multiply(mx, prepend);
 }
 
-void Matrix2D::TransformPoints(POINT * pPt, unsigned nCount) const
+void Matrix2D::TransformPoints(POINT *pPt, unsigned nCount) const
 {
     long x = 0, y = 0;
     for (unsigned i = 0; i < nCount; ++i)
