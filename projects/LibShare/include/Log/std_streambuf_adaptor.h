@@ -43,11 +43,9 @@ protected:
                              std::ios_base::openmode mode) override
     {
         pos_type pos = -1;
-        if ((mode & std::ios_base::in) && (_BaseType::gptr() != 0))
-        {
+        if ((mode & std::ios_base::in) && (_BaseType::gptr() != 0)) {
             assert(!(mode & std::ios_base::out));
-            switch (di)
-            {
+            switch (di) {
             case std::ios_base::beg:
                 pos = nOff;
                 break;
@@ -60,20 +58,14 @@ protected:
             default:
                 assert(0);
             }
-            if ((pos >= 0) && (_BaseType::eback() + (ptrdiff_t)pos <= _BaseType::egptr()))
-            {
+            if ((pos >= 0) && (_BaseType::eback() + (ptrdiff_t)pos <= _BaseType::egptr())) {
                 _BaseType::gbump((int)(_BaseType::eback() - _BaseType::gptr() + pos));
-            }
-            else
-            {
+            } else {
                 pos = -1;
             }
-        }
-        else if ((mode & std::ios_base::out) && (_BaseType::pptr() != 0))
-        {
+        } else if ((mode & std::ios_base::out) && (_BaseType::pptr() != 0)) {
             assert(!(mode & std::ios_base::in));
-            switch (di)
-            {
+            switch (di) {
             case std::ios_base::beg:
                 pos = nOff;
                 break;
@@ -86,12 +78,9 @@ protected:
             default:
                 assert(0);
             }
-            if ((pos >= 0) && (_BaseType::pbase() + (ptrdiff_t)pos <= _BaseType::epptr()))
-            {
+            if ((pos >= 0) && (_BaseType::pbase() + (ptrdiff_t)pos <= _BaseType::epptr())) {
                 _BaseType::pbump((int)(_BaseType::pbase() - _BaseType::pptr() + pos));
-            }
-            else
-            {
+            } else {
                 pos = -1;
             }
         }

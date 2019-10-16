@@ -76,8 +76,7 @@ public:
     template<typename _Tp1>
     std_allocator_adaptor &operator=(const std_allocator_adaptor<_Tp1, AllocType> &alloc2)
     {
-        if (this != &alloc2)
-        {
+        if (this != &alloc2) {
             m_spAlloc = std::atomic_load(&alloc2.m_spAlloc);
         }
         return *this;
@@ -86,8 +85,7 @@ public:
     template<typename _Tp1>
     std_allocator_adaptor &operator=(std_allocator_adaptor<_Tp1, AllocType> &&alloc2)
     {
-        if (this != &alloc2)
-        {
+        if (this != &alloc2) {
             std::atomic_exchange(&m_spAlloc, alloc2.m_spAlloc);
         }
         return *this;
@@ -102,8 +100,7 @@ public:
     pointer allocate(size_type nCount)
     {
         auto p = static_cast<pointer>(m_spAlloc->Allocate(nCount * sizeof(value_type)));
-        if (!p)
-        {
+        if (!p) {
             throw std::bad_alloc();
         }
         return p;

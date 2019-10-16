@@ -25,12 +25,9 @@ static LSTATUS PrepareRegBuffer(HKEY hKey, vector<char> &buffer)
                                      &dwValueLen,
                                      NULL,
                                      NULL);
-    if (res != ERROR_SUCCESS)
-    {
+    if (res != ERROR_SUCCESS) {
         return res;
-    }
-    else
-    {
+    } else {
         dwValueLen = dwValueLen / 2 + 1;
         DWORD dwLen = max(max(max(dwSubKeyLen, dwClassLen), dwValueNameLen), dwValueLen);
         buffer.assign((dwLen + 2) * 2, '\0');
@@ -44,16 +41,14 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
                                PFProcessKeyFunc pfProcessKey,
                                PFProcessValueFunc pfProcessValue)
 {
-    if (nMaxDepth == 0)
-    {
+    if (nMaxDepth == 0) {
         return ERROR_SUCCESS;
     }
     //准备存储空间
     vector<char> buffer;
     DWORD dwBufferLenth = 0;
     LSTATUS result = PrepareRegBuffer(hKey, buffer);
-    if (result != ERROR_SUCCESS)
-    {
+    if (result != ERROR_SUCCESS) {
         return result;
     }
 
@@ -63,8 +58,7 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
         DWORD dwDataBytes = 0;
         DWORD dwDataType = 0;
         result = ERROR_SUCCESS;
-        for (DWORD dwIndex = 0; result == ERROR_SUCCESS; ++dwIndex)
-        {
+        for (DWORD dwIndex = 0; result == ERROR_SUCCESS; ++dwIndex) {
             dwBufferLenth = static_cast<DWORD>(buffer.size() / 2);
             dwDataBytes = static_cast<DWORD>(valueData.size());
             dwDataType = 0;
@@ -76,13 +70,11 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
                                      &dwDataType,
                                      (LPBYTE)(&valueData[0]),
                                      &dwDataBytes);
-            if (result == ERROR_NO_MORE_ITEMS)
-            {
+            if (result == ERROR_NO_MORE_ITEMS) {
                 break;
             }
 #ifdef _DEBUG
-            else if (result == ERROR_MORE_DATA)
-            {
+            else if (result == ERROR_MORE_DATA) {
                 ::MessageBoxW(NULL, L"ERROR_MORE_DATA, PrepareRegBuffer实现有错误!", NULL, MB_OK);
                 return result;
             }
@@ -102,8 +94,7 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
             pfProcessValue(
                 path, (wchar_t *)&buffer[0], dwDataType, (wchar_t *)&valueData[0], dwDataBytes);
         }
-        if (result != ERROR_NO_MORE_ITEMS)
-        {
+        if (result != ERROR_NO_MORE_ITEMS) {
             assert(result == ERROR_NO_MORE_ITEMS);
             return result;
         }
@@ -111,18 +102,15 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
 
     //下面遍历子键
     result = ERROR_SUCCESS;
-    for (DWORD dwIndex = 0; result == ERROR_SUCCESS; ++dwIndex)
-    {
+    for (DWORD dwIndex = 0; result == ERROR_SUCCESS; ++dwIndex) {
         dwBufferLenth = static_cast<DWORD>(buffer.size() / 2);
         result = ::RegEnumKeyExW(
             hKey, dwIndex, (wchar_t *)(&buffer[0]), &dwBufferLenth, NULL, NULL, NULL, NULL);
-        if (result == ERROR_NO_MORE_ITEMS)
-        {
+        if (result == ERROR_NO_MORE_ITEMS) {
             break;
         }
 #ifdef _DEBUG
-        else if (result == ERROR_MORE_DATA)
-        {
+        else if (result == ERROR_MORE_DATA) {
             ::MessageBoxW(NULL, L"ERROR_MORE_DATA, PrepareRegBuffer实现有错误!", NULL, MB_OK);
             return result;
         }
@@ -139,8 +127,7 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
             //递归处理子键
             HKEY hSubKey = NULL;
             if (ERROR_SUCCESS ==
-                ::RegOpenKeyExW(hKey, (wchar_t *)&buffer[0], 0, samDesired, &hSubKey))
-            {
+                ::RegOpenKeyExW(hKey, (wchar_t *)&buffer[0], 0, samDesired, &hSubKey)) {
                 ForEachItemInTheRegKey(path + L"\\" + (wchar_t *)&buffer[0],
                                        hSubKey,
                                        nMaxDepth - 1,
@@ -150,8 +137,7 @@ LSTATUS ForEachItemInTheRegKey(const wstring &path,
             }
         }
     }
-    if (result != ERROR_NO_MORE_ITEMS)
-    {
+    if (result != ERROR_NO_MORE_ITEMS) {
         assert(result == ERROR_NO_MORE_ITEMS);
         return result;
     }

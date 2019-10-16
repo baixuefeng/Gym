@@ -46,13 +46,11 @@ glhWindowContext::~glhWindowContext()
 
 bool glhWindowContext::InitOpenglWindow(HWND hWnd)
 {
-    if (m_hDc && m_hWnd)
-    {
+    if (m_hDc && m_hWnd) {
         return true;
     }
     HDC hDc = ::GetDC(hWnd);
-    if (hDc)
-    {
+    if (hDc) {
         PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
         pfd.nVersion = 1;
         pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
@@ -60,10 +58,8 @@ bool glhWindowContext::InitOpenglWindow(HWND hWnd)
         pfd.cDepthBits = 24;
         pfd.cStencilBits = 8;
         int n = ::ChoosePixelFormat(hDc, &pfd);
-        if (n > 0)
-        {
-            if (::SetPixelFormat(hDc, n, &pfd))
-            {
+        if (n > 0) {
+            if (::SetPixelFormat(hDc, n, &pfd)) {
                 m_hWnd = hWnd;
                 m_hDc = hDc;
                 return true;
@@ -78,8 +74,7 @@ bool glhWindowContext::InitOpenglWindow(HWND hWnd)
 
 uint8_t glhWindowContext::GetStencilBufferBit()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
         ::DescribePixelFormat(m_hDc, ::GetPixelFormat(m_hDc), sizeof(pfd), &pfd);
         return pfd.cStencilBits;
@@ -89,8 +84,7 @@ uint8_t glhWindowContext::GetStencilBufferBit()
 
 uint8_t glhWindowContext::GetDepthBufferBit()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
         ::DescribePixelFormat(m_hDc, ::GetPixelFormat(m_hDc), sizeof(pfd), &pfd);
         return pfd.cDepthBits;
@@ -100,18 +94,14 @@ uint8_t glhWindowContext::GetDepthBufferBit()
 
 bool glhWindowContext::InitThreadRC()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         HGLRC hRc = ::wglGetCurrentContext();
-        if (hRc)
-        {
+        if (hRc) {
             return true;
         }
         hRc = ::wglCreateContext(m_hDc);
-        if (hRc)
-        {
-            if (::wglMakeCurrent(m_hDc, hRc))
-            {
+        if (hRc) {
+            if (::wglMakeCurrent(m_hDc, hRc)) {
                 //初始化glew库
                 static std::once_flag s_initFlag;
                 std::call_once(s_initFlag, []() {
@@ -131,17 +121,14 @@ bool glhWindowContext::InitThreadRC()
 
 bool glhWindowContext::UseDebugRC()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         HGLRC hRc = ::wglGetCurrentContext();
-        if (hRc && wglCreateContextAttribsARB)
-        {
+        if (hRc && wglCreateContextAttribsARB) {
             const char *pVersion = (const char *)glGetString(GL_VERSION);
             char *pEnd = nullptr;
             int nMajor = std::strtol(pVersion, &pEnd, 0);
             int nMinor = 0;
-            if (pEnd && *pEnd == '.')
-            {
+            if (pEnd && *pEnd == '.') {
                 nMinor = std::strtol(++pEnd, nullptr, 0);
             }
 
@@ -155,8 +142,7 @@ bool glhWindowContext::UseDebugRC()
                                        WGL_CONTEXT_DEBUG_BIT_ARB,
                                        0};
             HGLRC hDebugRc = wglCreateContextAttribsARB(m_hDc, hRc, nAttribList);
-            if (hDebugRc)
-            {
+            if (hDebugRc) {
                 ::wglMakeCurrent(m_hDc, nullptr);
                 ::wglDeleteContext(hRc);
                 ::wglMakeCurrent(m_hDc, hDebugRc);
@@ -175,11 +161,9 @@ bool glhWindowContext::IsValid() const
 
 void glhWindowContext::ClearThreadRC()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         HGLRC hRc = ::wglGetCurrentContext();
-        if (hRc)
-        {
+        if (hRc) {
             ::wglMakeCurrent(NULL, NULL);
             ::wglDeleteContext(hRc);
         }
@@ -188,8 +172,7 @@ void glhWindowContext::ClearThreadRC()
 
 bool glhWindowContext::SwapBuffers()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         ::glFlush();
         return !!::SwapBuffers(m_hDc);
     }
@@ -198,8 +181,7 @@ bool glhWindowContext::SwapBuffers()
 
 void glhWindowContext::Destroy()
 {
-    if (m_hDc)
-    {
+    if (m_hDc) {
         ::ReleaseDC(m_hWnd, m_hDc);
         m_hWnd = NULL;
         m_hDc = NULL;
@@ -212,8 +194,7 @@ bool glhWindowContext::ConfigRC()
     ::glEnable(GL_SCISSOR_TEST);
 
     //多重采样
-    if (EnableMultiSample(true))
-    {
+    if (EnableMultiSample(true)) {
         ::glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     }
 
@@ -246,15 +227,13 @@ glhVertextArrayMgr::~glhVertextArrayMgr()
 bool glhVertextArrayMgr::Generate(GLsizei n)
 {
     assert(GLEW_ARB_vertex_array_object);
-    if (!GLEW_ARB_vertex_array_object || n <= 0)
-    {
+    if (!GLEW_ARB_vertex_array_object || n <= 0) {
         return false;
     }
 
     m_array.assign(n, 0);
     ::glGenVertexArrays(n, &m_array[0]);
-    if (::glGetError() != GL_NO_ERROR)
-    {
+    if (::glGetError() != GL_NO_ERROR) {
         Delete();
         return false;
     }
@@ -264,8 +243,7 @@ bool glhVertextArrayMgr::Generate(GLsizei n)
 bool glhVertextArrayMgr::Bind(size_t nBufferIndex)
 {
     assert(GLEW_ARB_vertex_array_object);
-    if (!GLEW_ARB_vertex_array_object || nBufferIndex >= m_array.size())
-    {
+    if (!GLEW_ARB_vertex_array_object || nBufferIndex >= m_array.size()) {
         return false;
     }
     ::glBindVertexArray(m_array[nBufferIndex]);
@@ -275,10 +253,8 @@ bool glhVertextArrayMgr::Bind(size_t nBufferIndex)
 void glhVertextArrayMgr::Delete()
 {
     assert(GLEW_ARB_vertex_array_object);
-    if (GLEW_ARB_vertex_array_object)
-    {
-        if (!m_array.empty())
-        {
+    if (GLEW_ARB_vertex_array_object) {
+        if (!m_array.empty()) {
             ::glDeleteVertexArrays((GLsizei)m_array.size(), &m_array[0]);
             m_array.clear();
         }
@@ -300,26 +276,20 @@ glhBufferMgr::~glhBufferMgr()
 bool glhBufferMgr::Create(BufferTarget target, bool bind)
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return false;
     }
     Delete();
     ::glGenBuffers(1, &m_bufferIndex);
-    if ((::glGetError() == GL_NO_ERROR) && (INVALID_BUFFER_INDEX != m_bufferIndex))
-    {
-        if (bind)
-        {
+    if ((::glGetError() == GL_NO_ERROR) && (INVALID_BUFFER_INDEX != m_bufferIndex)) {
+        if (bind) {
             ::glBindBuffer(EnumToGL(target), m_bufferIndex);
             assert(::glGetError() == GL_NO_ERROR);
-            if (::glGetError() == GL_NO_ERROR)
-            {
+            if (::glGetError() == GL_NO_ERROR) {
                 m_target = EnumToGL(target);
                 return true;
             }
-        }
-        else
-        {
+        } else {
             m_target = EnumToGL(target);
             return true;
         }
@@ -331,12 +301,10 @@ bool glhBufferMgr::Create(BufferTarget target, bool bind)
 void glhBufferMgr::Delete()
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return;
     }
-    if (INVALID_BUFFER_INDEX == m_bufferIndex)
-    {
+    if (INVALID_BUFFER_INDEX == m_bufferIndex) {
         ::glDeleteBuffers(1, &m_bufferIndex);
         m_bufferIndex = INVALID_BUFFER_INDEX;
         m_target = 0;
@@ -361,8 +329,7 @@ bool glhBufferMgr::IsValid() const
 bool glhBufferMgr::BindBufferRange(GLuint ntargetIndex, GLintptr offset, GLsizeiptr size)
 {
     assert(GLEW_ARB_uniform_buffer_object);
-    if (!GLEW_ARB_uniform_buffer_object || (INVALID_BUFFER_INDEX == m_bufferIndex))
-    {
+    if (!GLEW_ARB_uniform_buffer_object || (INVALID_BUFFER_INDEX == m_bufferIndex)) {
         return false;
     }
     ::glBindBufferRange(m_target, ntargetIndex, m_bufferIndex, offset, size);
@@ -373,8 +340,7 @@ bool glhBufferMgr::BindBufferRange(GLuint ntargetIndex, GLintptr offset, GLsizei
 bool glhBufferMgr::BindBufferBase(GLuint ntargetIndex)
 {
     assert(GLEW_ARB_uniform_buffer_object);
-    if (!GLEW_ARB_uniform_buffer_object || (INVALID_BUFFER_INDEX == m_bufferIndex))
-    {
+    if (!GLEW_ARB_uniform_buffer_object || (INVALID_BUFFER_INDEX == m_bufferIndex)) {
         return false;
     }
     ::glBindBufferBase(m_target, ntargetIndex, m_bufferIndex);
@@ -385,8 +351,7 @@ bool glhBufferMgr::BindBufferBase(GLuint ntargetIndex)
 bool glhBufferMgr::BufferData(GLsizeiptr size, const void *pData, BufferUsage usage)
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return false;
     }
     ::glBufferData(m_target, size, pData, EnumToGL(usage));
@@ -397,8 +362,7 @@ bool glhBufferMgr::BufferData(GLsizeiptr size, const void *pData, BufferUsage us
 bool glhBufferMgr::BufferSubData(GLintptr offset, GLsizeiptr size, const void *pData)
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return false;
     }
     ::glBufferSubData(m_target, offset, size, pData);
@@ -413,8 +377,7 @@ bool glhBufferMgr::CopyBufferSubData(BufferTarget readTarget,
                                      GLsizeiptr size)
 {
     assert(GLEW_ARB_copy_buffer);
-    if (!GLEW_ARB_copy_buffer)
-    {
+    if (!GLEW_ARB_copy_buffer) {
         return false;
     }
     ::glCopyBufferSubData(
@@ -426,8 +389,7 @@ bool glhBufferMgr::CopyBufferSubData(BufferTarget readTarget,
 void *glhBufferMgr::MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAccessBit access)
 {
     assert(GLEW_ARB_map_buffer_range);
-    if (!GLEW_ARB_map_buffer_range)
-    {
+    if (!GLEW_ARB_map_buffer_range) {
         return nullptr;
     }
     return ::glMapBufferRange(m_target, offset, length, EnumToGL(access));
@@ -436,8 +398,7 @@ void *glhBufferMgr::MapBufferRange(GLintptr offset, GLsizeiptr length, BufferAcc
 void *glhBufferMgr::MapBuffer(BufferAccessBit access)
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return nullptr;
     }
     return ::glMapBuffer(m_target, EnumToGL(access));
@@ -446,8 +407,7 @@ void *glhBufferMgr::MapBuffer(BufferAccessBit access)
 bool glhBufferMgr::FlushMappedBufferRange(GLintptr offset, GLsizeiptr length)
 {
     assert(GLEW_ARB_map_buffer_range);
-    if (!GLEW_ARB_map_buffer_range)
-    {
+    if (!GLEW_ARB_map_buffer_range) {
         return false;
     }
     ::glFlushMappedBufferRange(m_target, offset, length);
@@ -458,8 +418,7 @@ bool glhBufferMgr::FlushMappedBufferRange(GLintptr offset, GLsizeiptr length)
 bool glhBufferMgr::UnmapBuffer()
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return false;
     }
     return !!::glUnmapBuffer(m_target);
@@ -468,8 +427,7 @@ bool glhBufferMgr::UnmapBuffer()
 GLint glhBufferMgr::GetBufferInfo(BufferTarget target, BufferParameter param)
 {
     assert(GLEW_VERSION_1_5);
-    if (!GLEW_VERSION_1_5)
-    {
+    if (!GLEW_VERSION_1_5) {
         return -1;
     }
     GLint res = -1;
@@ -491,12 +449,10 @@ bool glhTextureMgr::Create(TextureTarget target)
 {
     glGenTextures(1, &m_textureIndex);
     assert(::glGetError() == GL_NO_ERROR);
-    if ((::glGetError() == GL_NO_ERROR) && (INVALID_TEXTURE_INDEX != m_textureIndex))
-    {
+    if ((::glGetError() == GL_NO_ERROR) && (INVALID_TEXTURE_INDEX != m_textureIndex)) {
         glBindTexture(EnumToGL(target), m_textureIndex);
         assert(::glGetError() == GL_NO_ERROR);
-        if (::glGetError() == GL_NO_ERROR)
-        {
+        if (::glGetError() == GL_NO_ERROR) {
             m_target = EnumToGL(target);
             return true;
         }
@@ -522,8 +478,7 @@ bool glhTextureMgr::IsValid() const
 
 void glhTextureMgr::Delete()
 {
-    if (INVALID_TEXTURE_INDEX != m_textureIndex)
-    {
+    if (INVALID_TEXTURE_INDEX != m_textureIndex) {
         glDeleteTextures(1, &m_textureIndex);
         m_textureIndex = INVALID_TEXTURE_INDEX;
         m_target = 0;
@@ -532,12 +487,10 @@ void glhTextureMgr::Delete()
 
 bool glhTextureMgr::TexStorage1D(GLsizei levels, TextureFormat format, GLsizei width)
 {
-    if (!GLEW_ARB_texture_storage || !IsValid())
-    {
+    if (!GLEW_ARB_texture_storage || !IsValid()) {
         return false;
     }
-    if (EnumToGL(TextureTarget::TEXTURE_1D) != m_target)
-    {
+    if (EnumToGL(TextureTarget::TEXTURE_1D) != m_target) {
         assert(!"error type");
         return false;
     }
@@ -551,15 +504,13 @@ bool glhTextureMgr::TexStorage2D(GLsizei levels,
                                  GLsizei width,
                                  GLsizei height)
 {
-    if (!GLEW_ARB_texture_storage || !IsValid())
-    {
+    if (!GLEW_ARB_texture_storage || !IsValid()) {
         return false;
     }
     if ((EnumToGL(TextureTarget::TEXTURE_2D) != m_target) &&
         (EnumToGL(TextureTarget::TEXTURE_1D_ARRAY) != m_target) &&
         (EnumToGL(TextureTarget::TEXTURE_RECTANGLE) != m_target) &&
-        (EnumToGL(TextureTarget::TEXTURE_CUBE_MAP) != m_target))
-    {
+        (EnumToGL(TextureTarget::TEXTURE_CUBE_MAP) != m_target)) {
         assert(!"error type");
         return false;
     }
@@ -574,14 +525,12 @@ bool glhTextureMgr::TexStorage3D(GLsizei levels,
                                  GLsizei height,
                                  GLsizei depth)
 {
-    if (!GLEW_ARB_texture_storage || !IsValid())
-    {
+    if (!GLEW_ARB_texture_storage || !IsValid()) {
         return false;
     }
     if ((EnumToGL(TextureTarget::TEXTURE_3D) != m_target) &&
         (EnumToGL(TextureTarget::TEXTURE_2D_ARRAY) != m_target) &&
-        (EnumToGL(TextureTarget::TEXTURE_CUBE_MAP_ARRAY) != m_target))
-    {
+        (EnumToGL(TextureTarget::TEXTURE_CUBE_MAP_ARRAY) != m_target)) {
         assert(!"error type");
         return false;
     }
@@ -596,12 +545,10 @@ bool glhTextureMgr::TexStorage2DMultisample(GLsizei levels,
                                             GLsizei height,
                                             GLboolean fixedsamplelocations)
 {
-    if (!GLEW_ARB_texture_storage_multisample || !IsValid())
-    {
+    if (!GLEW_ARB_texture_storage_multisample || !IsValid()) {
         return false;
     }
-    if (EnumToGL(TextureTarget::TEXTURE_2D_MULTISAMPLE) != m_target)
-    {
+    if (EnumToGL(TextureTarget::TEXTURE_2D_MULTISAMPLE) != m_target) {
         assert(!"error type");
         return false;
     }
@@ -618,12 +565,10 @@ bool glhTextureMgr::TexStorage3DMultisample(GLsizei levels,
                                             GLsizei depth,
                                             GLboolean fixedsamplelocations)
 {
-    if (!GLEW_ARB_texture_storage_multisample || !IsValid())
-    {
+    if (!GLEW_ARB_texture_storage_multisample || !IsValid()) {
         return false;
     }
-    if (EnumToGL(TextureTarget::TEXTURE_2D_MULTISAMPLE_ARRAY) != m_target)
-    {
+    if (EnumToGL(TextureTarget::TEXTURE_2D_MULTISAMPLE_ARRAY) != m_target) {
         assert(!"error type");
         return false;
     }
@@ -635,12 +580,10 @@ bool glhTextureMgr::TexStorage3DMultisample(GLsizei levels,
 
 bool glhTextureMgr::TexBuffer(TextureFormat format, const glhBufferMgr &buffer)
 {
-    if (!GLEW_VERSION_3_1 || !IsValid())
-    {
+    if (!GLEW_VERSION_3_1 || !IsValid()) {
         return false;
     }
-    if (!buffer.IsValid() || buffer.BufferType() != BufferTarget::TEXTURE_BUFFER)
-    {
+    if (!buffer.IsValid() || buffer.BufferType() != BufferTarget::TEXTURE_BUFFER) {
         return false;
     }
     glTexBuffer(GL_TEXTURE_BUFFER, EnumToGL(format), (GLuint)buffer);
@@ -653,12 +596,10 @@ bool glhTextureMgr::TexBufferRange(TextureFormat format,
                                    GLintptr offset,
                                    GLsizeiptr size)
 {
-    if (!GLEW_ARB_texture_buffer_range || !IsValid())
-    {
+    if (!GLEW_ARB_texture_buffer_range || !IsValid()) {
         return false;
     }
-    if (!buffer.IsValid() || buffer.BufferType() != BufferTarget::TEXTURE_BUFFER)
-    {
+    if (!buffer.IsValid() || buffer.BufferType() != BufferTarget::TEXTURE_BUFFER) {
         return false;
     }
     glTexBufferRange(GL_TEXTURE_BUFFER, EnumToGL(format), buffer, offset, size);
@@ -673,8 +614,7 @@ bool glhTextureMgr::BindImageTexture(GLuint unit,
                                      TextureAccess access,
                                      TextureFormat format)
 {
-    if (!GLEW_ARB_shader_image_load_store || !IsValid())
-    {
+    if (!GLEW_ARB_shader_image_load_store || !IsValid()) {
         return false;
     }
     glBindImageTexture(
@@ -696,8 +636,7 @@ glhGlslShader::~glhGlslShader()
 
 bool glhGlslShader::Create(ShaderType type)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
     m_shader = glCreateShader(EnumToGL(type));
@@ -706,21 +645,17 @@ bool glhGlslShader::Create(ShaderType type)
 
 bool glhGlslShader::CompileFile(ShaderType type, const wchar_t *pFileName)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
-    try
-    {
+    try {
         auto &cvtFacet = std::use_facet<std::codecvt_utf16<wchar_t>>(std::locale());
         std::wstring_convert<std::codecvt_utf16<wchar_t>> cvt{&cvtFacet};
         boost::interprocess::file_mapping fileMap{cvt.to_bytes(pFileName).c_str(),
                                                   boost::interprocess::mode_t::read_only};
         boost::interprocess::mapped_region region{fileMap, boost::interprocess::mode_t::read_only};
         return CompileString(type, (const GLchar *)region.get_address(), (GLint)region.get_size());
-    }
-    catch (const std::exception &)
-    {
+    } catch (const std::exception &) {
         assert(!"CompileFile Failed!");
         return false;
     }
@@ -728,24 +663,19 @@ bool glhGlslShader::CompileFile(ShaderType type, const wchar_t *pFileName)
 
 bool glhGlslShader::CompileString(ShaderType type, const GLchar *pString, GLint nLength)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
-    if (nLength == 0)
-    {
+    if (nLength == 0) {
         nLength = (GLint)std::strlen(pString);
     }
-    if (!pString || nLength == 0)
-    {
+    if (!pString || nLength == 0) {
         return false;
     }
-    if (glIsShader(m_shader))
-    {
+    if (glIsShader(m_shader)) {
         Destroy();
     }
-    if (!Create(type))
-    {
+    if (!Create(type)) {
         return false;
     }
 
@@ -770,8 +700,7 @@ bool glhGlslShader::CompileString(ShaderType type, const GLchar *pString, GLint 
     glCompileShader(m_shader);
     GLint result = GL_FALSE;
     glGetShaderiv(m_shader, GL_COMPILE_STATUS, &result);
-    if (result != GL_TRUE)
-    {
+    if (result != GL_TRUE) {
         GLchar szBuffer[ERR_MSG_BUFFER_MAX_LENGTH] = {0};
         GLsizei msgLength = 0;
         glGetShaderInfoLog(m_shader, ERR_MSG_BUFFER_MAX_LENGTH, &msgLength, szBuffer);
@@ -794,8 +723,7 @@ glhGlslShader::operator GLuint() const
 
 void glhGlslShader::Destroy()
 {
-    if (GLEW_VERSION_2_0 && glIsShader(m_shader))
-    {
+    if (GLEW_VERSION_2_0 && glIsShader(m_shader)) {
         glDeleteShader(m_shader);
         m_shader = 0;
     }
@@ -814,16 +742,13 @@ glhGlslProgram::~glhGlslProgram()
 
 bool glhGlslProgram::AttachShader(const glhGlslShader &shader)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
-    if (!glIsShader(shader))
-    {
+    if (!glIsShader(shader)) {
         return false;
     }
-    if (!glIsProgram(m_program) && !Create())
-    {
+    if (!glIsProgram(m_program) && !Create()) {
         return false;
     }
     glAttachShader(m_program, shader);
@@ -832,16 +757,13 @@ bool glhGlslProgram::AttachShader(const glhGlslShader &shader)
 
 bool glhGlslProgram::DetachShader(const glhGlslShader &shader)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
-    if (!glIsShader(shader))
-    {
+    if (!glIsShader(shader)) {
         return false;
     }
-    if (!glIsProgram(m_program) && !Create())
-    {
+    if (!glIsProgram(m_program) && !Create()) {
         return false;
     }
     glDetachShader(m_program, shader);
@@ -850,20 +772,17 @@ bool glhGlslProgram::DetachShader(const glhGlslShader &shader)
 
 bool glhGlslProgram::LinkProgram()
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
-    if (!glIsProgram(m_program))
-    {
+    if (!glIsProgram(m_program)) {
         return false;
     }
     glLinkProgram(m_program);
 
     GLint result = GL_FALSE;
     glGetProgramiv(m_program, GL_LINK_STATUS, &result);
-    if (result != GL_TRUE)
-    {
+    if (result != GL_TRUE) {
         GLchar szBuffer[ERR_MSG_BUFFER_MAX_LENGTH] = {0};
         GLsizei msgLength = 0;
         glGetProgramInfoLog(m_program, ERR_MSG_BUFFER_MAX_LENGTH, &msgLength, szBuffer);
@@ -876,12 +795,10 @@ bool glhGlslProgram::LinkProgram()
 
 bool glhGlslProgram::UseProgram()
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return false;
     }
-    if (!glIsProgram(m_program))
-    {
+    if (!glIsProgram(m_program)) {
         return false;
     }
     glUseProgram(m_program);
@@ -890,8 +807,7 @@ bool glhGlslProgram::UseProgram()
 
 GLuint glhGlslProgram::GetUniformBlockIndex(const char *pName)
 {
-    if (!GLEW_ARB_uniform_buffer_object || !glIsProgram(m_program))
-    {
+    if (!GLEW_ARB_uniform_buffer_object || !glIsProgram(m_program)) {
         return GL_INVALID_INDEX;
     }
     return glGetUniformBlockIndex(m_program, pName);
@@ -901,26 +817,22 @@ bool glhGlslProgram::GetUniformBlockOffsets(GLsizei uniformCount,
                                             const GLchar *const *pUniformNames,
                                             GLint *pOffsets)
 {
-    if (!GLEW_ARB_uniform_buffer_object || !glIsProgram(m_program) || !pUniformNames || !pOffsets)
-    {
+    if (!GLEW_ARB_uniform_buffer_object || !glIsProgram(m_program) || !pUniformNames || !pOffsets) {
         return false;
     }
-    if (0 == uniformCount)
-    {
+    if (0 == uniformCount) {
         return true;
     }
     std::vector<GLuint> indices;
     indices.assign(uniformCount, 0);
     glGetUniformIndices(m_program, uniformCount, pUniformNames, &indices[0]);
     assert(::glGetError() == GL_NO_ERROR);
-    if (::glGetError() != GL_NO_ERROR)
-    {
+    if (::glGetError() != GL_NO_ERROR) {
         return false;
     }
     glGetActiveUniformsiv(m_program, uniformCount, &indices[0], GL_UNIFORM_OFFSET, pOffsets);
     assert(::glGetError() == GL_NO_ERROR);
-    if (::glGetError() != GL_NO_ERROR)
-    {
+    if (::glGetError() != GL_NO_ERROR) {
         return false;
     }
     return true;
@@ -928,8 +840,7 @@ bool glhGlslProgram::GetUniformBlockOffsets(GLsizei uniformCount,
 
 GLuint glhGlslProgram::GetAttribLocation(const GLchar *pName)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return GL_INVALID_INDEX;
     }
     return glGetAttribLocation(m_program, pName);
@@ -937,8 +848,7 @@ GLuint glhGlslProgram::GetAttribLocation(const GLchar *pName)
 
 GLuint glhGlslProgram::GetUniformLocation(const GLchar *pName)
 {
-    if (!GLEW_VERSION_2_0)
-    {
+    if (!GLEW_VERSION_2_0) {
         return GL_INVALID_INDEX;
     }
     return glGetUniformLocation(m_program, pName);
@@ -946,8 +856,7 @@ GLuint glhGlslProgram::GetUniformLocation(const GLchar *pName)
 
 void glhGlslProgram::UnuseProgram()
 {
-    if (GLEW_VERSION_2_0)
-    {
+    if (GLEW_VERSION_2_0) {
         glUseProgram(NULL);
     }
 }
@@ -970,8 +879,7 @@ bool glhGlslProgram::Create()
 
 void glhGlslProgram::Destroy()
 {
-    if (GLEW_VERSION_2_0 && glIsProgram(m_program))
-    {
+    if (GLEW_VERSION_2_0 && glIsProgram(m_program)) {
         glDeleteProgram(m_program);
         m_program = 0;
     }
@@ -984,8 +892,7 @@ bool glhGlslProgram::VertexAttribPointer(GLuint nLocation,
                                          GLsizei nStride,
                                          GLuint nOffset)
 {
-    if (GLEW_VERSION_2_0)
-    {
+    if (GLEW_VERSION_2_0) {
         ::glVertexAttribPointer(
             nLocation, nCount, (GLenum)type, bNormalize, nStride, (const void *)(ptrdiff_t)nOffset);
         ::glEnableVertexAttribArray(nLocation);
@@ -1002,8 +909,7 @@ size_t GetGlslTypeSize(GLenum type)
         size = Count * sizeof(Type);                                                               \
         break
 
-    switch (type)
-    {
+    switch (type) {
         CASE(GL_FLOAT, 1, GLfloat);
         CASE(GL_FLOAT_VEC2, 2, GLfloat);
         CASE(GL_FLOAT_VEC3, 3, GLfloat);
@@ -1041,23 +947,18 @@ size_t GetGlslTypeSize(GLenum type)
 
 bool EnableMultiSample(bool isEnable)
 {
-    if (isEnable)
-    {
-        if (::glIsEnabled(GL_MULTISAMPLE))
-        {
+    if (isEnable) {
+        if (::glIsEnabled(GL_MULTISAMPLE)) {
             return true;
         }
         GLint data = 0;
         ::glGetIntegerv(GL_SAMPLE_BUFFERS, &data);
-        if (data)
-        {
+        if (data) {
             ::glEnable(GL_MULTISAMPLE);
             return true;
         }
         return false;
-    }
-    else
-    {
+    } else {
         ::glDisable(GL_MULTISAMPLE);
         return true;
     }
@@ -1066,22 +967,18 @@ bool EnableMultiSample(bool isEnable)
 void GetMultiSamplePos(std::vector<std::pair<GLfloat, GLfloat>> &samplePos)
 {
     samplePos.clear();
-    if (!GLEW_ARB_texture_multisample)
-    {
+    if (!GLEW_ARB_texture_multisample) {
         return;
     }
     GLint count = 0;
     ::glGetIntegerv(GL_SAMPLES, &count);
-    if (count > 0)
-    {
+    if (count > 0) {
         samplePos.reserve(count);
         std::pair<GLfloat, GLfloat> onePos;
-        for (GLint i = 0; i < count; ++i)
-        {
+        for (GLint i = 0; i < count; ++i) {
             ::glGetMultisamplefv(GL_SAMPLE_POSITION, i, (GLfloat *)&onePos);
             assert(::glGetError() == GL_NO_ERROR);
-            if (::glGetError() == GL_NO_ERROR)
-            {
+            if (::glGetError() == GL_NO_ERROR) {
                 samplePos.push_back(onePos);
             }
         }

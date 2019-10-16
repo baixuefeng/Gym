@@ -10,8 +10,7 @@ SHARELIB_BEGIN_NAMESPACE
 #ifndef CHECK_EASY_ERRCODE
 #    define CHECK_EASY_ERRCODE(err)                                                                \
         assert(err == CURLcode::CURLE_OK);                                                         \
-        if (err != CURLcode::CURLE_OK)                                                             \
-        {                                                                                          \
+        if (err != CURLcode::CURLE_OK) {                                                           \
             return false;                                                                          \
         }
 #endif
@@ -19,8 +18,7 @@ SHARELIB_BEGIN_NAMESPACE
 #ifndef CHECK_MULTI_ERRCODE
 #    define CHECK_MULTI_ERRCODE(err)                                                               \
         assert(err == CURLMcode::CURLM_OK);                                                        \
-        if (err != CURLMcode::CURLM_OK)                                                            \
-        {                                                                                          \
+        if (err != CURLMcode::CURLM_OK) {                                                          \
             return false;                                                                          \
         }
 #endif
@@ -80,8 +78,7 @@ CurlSlist::CurlSlist(CurlSlist &&other)
 
 CurlSlist &CurlSlist::operator=(CurlSlist &&other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         std::swap(m_pSlist, other.m_pSlist);
     }
     return *this;
@@ -105,8 +102,7 @@ bool CurlSlist::Append(const char *pData)
 
 void CurlSlist::FreeAll()
 {
-    if (m_pSlist)
-    {
+    if (m_pSlist) {
         curl_slist_free_all(m_pSlist);
     }
 }
@@ -137,8 +133,7 @@ CurlEasyHandle::CurlEasyHandle(CurlEasyHandle &&other)
 
 CurlEasyHandle &CurlEasyHandle::operator=(CurlEasyHandle &&other)
 {
-    if (&other != this)
-    {
+    if (&other != this) {
         std::swap(m_pEasyHandle, other.m_pEasyHandle);
         std::swap(m_errCode, other.m_errCode);
         std::swap(m_headerList, other.m_headerList);
@@ -152,8 +147,7 @@ CurlEasyHandle &CurlEasyHandle::operator=(CurlEasyHandle &&other)
 
 CurlEasyHandle::~CurlEasyHandle()
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         //结束调试回调
         curl_easy_setopt(m_pEasyHandle, CURLOPT_VERBOSE, 0);
         //结束进度回调
@@ -169,8 +163,7 @@ CurlEasyHandle::operator CURL *() const
 
 void CurlEasyHandle::ResetAllOption()
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         curl_easy_reset(m_pEasyHandle);
     }
 
@@ -191,8 +184,7 @@ CURLcode CurlEasyHandle::GetLastErrCode()
 
 bool CurlEasyHandle::SetHeaderBody(bool bHeader, bool bBody)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_HEADER, bHeader);
         CHECK_EASY_ERRCODE(m_errCode);
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_NOBODY, !bBody);
@@ -204,8 +196,7 @@ bool CurlEasyHandle::SetHeaderBody(bool bHeader, bool bBody)
 
 bool CurlEasyHandle::SetUrl(const char *pUrl)
 {
-    if (m_pEasyHandle && pUrl)
-    {
+    if (m_pEasyHandle && pUrl) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_URL, pUrl);
         CHECK_EASY_ERRCODE(m_errCode);
         return true;
@@ -215,8 +206,7 @@ bool CurlEasyHandle::SetUrl(const char *pUrl)
 
 bool CurlEasyHandle::SetFollowLocation(bool bEnable)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_FOLLOWLOCATION, bEnable);
         CHECK_EASY_ERRCODE(m_errCode);
         return true;
@@ -226,12 +216,10 @@ bool CurlEasyHandle::SetFollowLocation(bool bEnable)
 
 bool CurlEasyHandle::AddHttpHeaders(std::initializer_list<const char *> iniList)
 {
-    if (!m_pEasyHandle)
-    {
+    if (!m_pEasyHandle) {
         return false;
     }
-    for (auto &item : iniList)
-    {
+    for (auto &item : iniList) {
         m_headerList.Append(item);
     }
     m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_HTTPHEADER, m_headerList.Data());
@@ -241,12 +229,10 @@ bool CurlEasyHandle::AddHttpHeaders(std::initializer_list<const char *> iniList)
 
 bool CurlEasyHandle::AddHttpHeaders(const std::vector<std::string> &headers)
 {
-    if (!m_pEasyHandle)
-    {
+    if (!m_pEasyHandle) {
         return false;
     }
-    for (auto &item : headers)
-    {
+    for (auto &item : headers) {
         m_headerList.Append(item.c_str());
     }
     m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_HTTPHEADER, m_headerList.Data());
@@ -256,8 +242,7 @@ bool CurlEasyHandle::AddHttpHeaders(const std::vector<std::string> &headers)
 
 bool CurlEasyHandle::SetCookie(const char *pCookie)
 {
-    if (!m_pEasyHandle)
-    {
+    if (!m_pEasyHandle) {
         return false;
     }
     m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_COOKIE, pCookie);
@@ -267,12 +252,10 @@ bool CurlEasyHandle::SetCookie(const char *pCookie)
 
 bool CurlEasyHandle::SetPostFields(const char *pPostFields, size_t nSize /*= 0*/)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_POSTFIELDS, pPostFields);
         CHECK_EASY_ERRCODE(m_errCode);
-        if (nSize > 0)
-        {
+        if (nSize > 0) {
             m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_POSTFIELDSIZE_LARGE, nSize);
             CHECK_EASY_ERRCODE(m_errCode);
         }
@@ -283,18 +266,14 @@ bool CurlEasyHandle::SetPostFields(const char *pPostFields, size_t nSize /*= 0*/
 
 bool CurlEasyHandle::SetPostWithCallback(size_t nPostSize /*= 0*/)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_POST, 1);
         CHECK_EASY_ERRCODE(m_errCode);
-        if (nPostSize > 0)
-        {
+        if (nPostSize > 0) {
             m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_POSTFIELDSIZE_LARGE, nPostSize);
             CHECK_EASY_ERRCODE(m_errCode);
             return true;
-        }
-        else
-        {
+        } else {
             return AddHttpHeaders({"Transfer-Encoding: chunked"});
         }
     }
@@ -303,8 +282,7 @@ bool CurlEasyHandle::SetPostWithCallback(size_t nPostSize /*= 0*/)
 
 bool CurlEasyHandle::SetSSLVerify(bool bVerifyPeer, bool bVerifyHost)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_SSL_VERIFYPEER, bVerifyPeer);
         CHECK_EASY_ERRCODE(m_errCode);
         bVerifyHost = (bVerifyPeer && bVerifyHost);
@@ -317,8 +295,7 @@ bool CurlEasyHandle::SetSSLVerify(bool bVerifyPeer, bool bVerifyHost)
 
 bool CurlEasyHandle::SetSSLCAPath(const char *pCAPath)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_CAINFO, pCAPath);
         CHECK_EASY_ERRCODE(m_errCode);
         return true;
@@ -328,8 +305,7 @@ bool CurlEasyHandle::SetSSLCAPath(const char *pCAPath)
 
 bool CurlEasyHandle::SetProxy(const char *pProxy)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_PROXY, pProxy);
         CHECK_EASY_ERRCODE(m_errCode);
         return true;
@@ -349,8 +325,7 @@ CurlMultiHandle::CurlMultiHandle()
 
 CurlMultiHandle::~CurlMultiHandle()
 {
-    if (m_pMultiHandle)
-    {
+    if (m_pMultiHandle) {
         m_errCode = curl_multi_cleanup(m_pMultiHandle);
         assert(m_errCode == CURLMcode::CURLM_OK);
     }
@@ -368,8 +343,7 @@ CURLMcode CurlMultiHandle::GetLastErrCode()
 
 bool CurlMultiHandle::AddEasyHandle(const CurlEasyHandle &easyHandle)
 {
-    if (m_pMultiHandle)
-    {
+    if (m_pMultiHandle) {
         m_errCode = curl_multi_add_handle(m_pMultiHandle, easyHandle);
         CHECK_MULTI_ERRCODE(m_errCode);
         return true;
@@ -379,8 +353,7 @@ bool CurlMultiHandle::AddEasyHandle(const CurlEasyHandle &easyHandle)
 
 bool CurlMultiHandle::RemoveEasyHandle(const CurlEasyHandle &easyHandle)
 {
-    if (m_pMultiHandle)
-    {
+    if (m_pMultiHandle) {
         m_errCode = curl_multi_remove_handle(m_pMultiHandle, easyHandle);
         CHECK_MULTI_ERRCODE(m_errCode);
         return true;
@@ -390,59 +363,44 @@ bool CurlMultiHandle::RemoveEasyHandle(const CurlEasyHandle &easyHandle)
 
 CurlMultiHandle::TPerformResult CurlMultiHandle::Perform(size_t nTimeOut /*= 0*/)
 {
-    if (!m_pMultiHandle)
-    {
+    if (!m_pMultiHandle) {
         return PERFORM_FAILED;
     }
     m_bTerminate = false;
     auto timePt = std::chrono::system_clock::now();
-    for (int nStillRunning = INT_MAX, nRepeat = 0; (nStillRunning > 0) && !m_bTerminate;)
-    {
+    for (int nStillRunning = INT_MAX, nRepeat = 0; (nStillRunning > 0) && !m_bTerminate;) {
         m_errCode = curl_multi_perform(m_pMultiHandle, &nStillRunning);
-        if ((m_errCode != CURLMcode::CURLM_OK) || (nStillRunning == 0))
-        {
+        if ((m_errCode != CURLMcode::CURLM_OK) || (nStillRunning == 0)) {
             break;
         }
         int nCountOccurred = 0;
         m_errCode = curl_multi_wait(m_pMultiHandle, 0, 0, 50, &nCountOccurred);
-        if (m_errCode != CURLMcode::CURLM_OK)
-        {
+        if (m_errCode != CURLMcode::CURLM_OK) {
             break;
         }
 
-        if (nTimeOut > 0)
-        {
+        if (nTimeOut > 0) {
             auto timeCur = std::chrono::system_clock::now();
             auto timeDuration =
                 std::chrono::duration_cast<std::chrono::milliseconds>(timeCur - timePt).count();
-            if (timeDuration > static_cast<decltype(timeDuration)>(nTimeOut))
-            {
+            if (timeDuration > static_cast<decltype(timeDuration)>(nTimeOut)) {
                 return PERFORM_TIME_OUT;
             }
         }
 
-        if (nCountOccurred > 0)
-        {
+        if (nCountOccurred > 0) {
             nRepeat = 0;
-        }
-        else
-        {
-            if (++nRepeat > 1)
-            {
+        } else {
+            if (++nRepeat > 1) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(50));
             }
         }
     }
-    if (m_errCode != CURLMcode::CURLM_OK)
-    {
+    if (m_errCode != CURLMcode::CURLM_OK) {
         return PERFORM_FAILED;
-    }
-    else if (m_bTerminate)
-    {
+    } else if (m_bTerminate) {
         return PERFORM_TERMINATE;
-    }
-    else
-    {
+    } else {
         return PERFORM_OK;
     }
 }
@@ -455,15 +413,12 @@ void CurlMultiHandle::Terminate()
 std::vector<CURLMsg *> CurlMultiHandle::GetInfoRead()
 {
     std::vector<CURLMsg *> msgs;
-    if (m_pMultiHandle)
-    {
+    if (m_pMultiHandle) {
         CURLMsg *pMsg = nullptr;
-        do
-        {
+        do {
             int nMsgCount = 0;
             pMsg = curl_multi_info_read(m_pMultiHandle, &nMsgCount);
-            if (pMsg)
-            {
+            if (pMsg) {
                 msgs.push_back(pMsg);
             }
         } while (pMsg);

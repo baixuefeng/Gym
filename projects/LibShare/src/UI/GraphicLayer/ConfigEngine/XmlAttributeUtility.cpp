@@ -10,11 +10,9 @@ SHARELIB_BEGIN_NAMESPACE
     static bool ReadXmlArrayValueImpl(const wchar_t *pValue, type *pArray, size_t nCount)          \
     {                                                                                              \
         wchar_t *pEnd = nullptr;                                                                   \
-        for (size_t i = 0; (i < nCount) && pValue && *pValue; i++)                                 \
-        {                                                                                          \
+        for (size_t i = 0; (i < nCount) && pValue && *pValue; i++) {                               \
             pArray[i] = func;                                                                      \
-            if (!pEnd || (!*pEnd))                                                                 \
-            {                                                                                      \
+            if (!pEnd || (!*pEnd)) {                                                               \
                 break;                                                                             \
             }                                                                                      \
             pValue = std::wcschr(pEnd, L',');                                                      \
@@ -58,8 +56,7 @@ bool XmlAttributeUtility::ReadXmlValue(const wchar_t *pValue, D2D1_POINT_2F &pt)
 
 bool XmlAttributeUtility::ReadXmlValueColor(const wchar_t *pValue, COLOR32 &color)
 {
-    if (pValue && *pValue)
-    {
+    if (pValue && *pValue) {
         color = VERIFY_COLOR32(std::wcstoul(pValue, nullptr, 16));
     }
     return true;
@@ -69,18 +66,15 @@ bool XmlAttributeUtility::ReadXmlValueColor(const wchar_t *pValue, COLOR32 &colo
     static bool WriteArrayValueToXmlImpl(                                                          \
         pugi::xml_attribute attr, const type *pArray, size_t nCount)                               \
     {                                                                                              \
-        if (!attr)                                                                                 \
-        {                                                                                          \
+        if (!attr) {                                                                               \
             return false;                                                                          \
         }                                                                                          \
         wchar_t szBuffer[1024] = {0};                                                              \
         wchar_t *pWrite = szBuffer;                                                                \
         size_t nSize = sizeof(szBuffer);                                                           \
-        for (size_t i = 0; i < nCount; ++i)                                                        \
-        {                                                                                          \
+        for (size_t i = 0; i < nCount; ++i) {                                                      \
             ::StringCbPrintfExW(pWrite, nSize, &pWrite, &nSize, 0, L#flag, pArray[i]);             \
-            if (i + 1 < nCount)                                                                    \
-            {                                                                                      \
+            if (i + 1 < nCount) {                                                                  \
                 ::StringCbCatExW(pWrite, nSize, L",", &pWrite, &nSize, 0);                         \
             }                                                                                      \
         }                                                                                          \
@@ -123,8 +117,7 @@ bool XmlAttributeUtility::WriteValueToXml(pugi::xml_attribute attr, const D2D1_P
 
 bool XmlAttributeUtility::WriteValueColorToXml(pugi::xml_attribute attr, uint32_t color)
 {
-    if (!attr)
-    {
+    if (!attr) {
         return false;
     }
     wchar_t szBuffer[100] = {0};

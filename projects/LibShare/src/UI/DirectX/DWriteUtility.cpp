@@ -43,8 +43,7 @@ public:
     */
     bool Initialize(const void *pRes, uint32_t nSize)
     {
-        if (!pRes || (nSize == 0))
-        {
+        if (!pRes || (nSize == 0)) {
             return false;
         }
         m_pRes = pRes;
@@ -60,8 +59,7 @@ public:
      UINT32 /*fontFileReferenceKeySize*/,
      _COM_Outptr_ IDWriteFontFileStream **fontFileStream)
     {
-        if (SUCCEEDED(QueryInterface(__uuidof(IDWriteFontFileStream), (void **)fontFileStream)))
-        {
+        if (SUCCEEDED(QueryInterface(__uuidof(IDWriteFontFileStream), (void **)fontFileStream))) {
             return S_OK;
         }
         return E_FAIL;
@@ -75,14 +73,11 @@ public:
      UINT64 fragmentSize,
      _Out_ void **fragmentContext)
     {
-        if ((fileOffset <= m_nResSize) && (fragmentSize <= m_nResSize - fileOffset))
-        {
+        if ((fileOffset <= m_nResSize) && (fragmentSize <= m_nResSize - fileOffset)) {
             *fragmentStart = static_cast<uint8_t const *>(m_pRes) + fileOffset;
             *fragmentContext = NULL;
             return S_OK;
-        }
-        else
-        {
+        } else {
             *fragmentStart = NULL;
             *fragmentContext = NULL;
             return E_FAIL;
@@ -93,8 +88,7 @@ public:
 
     STDMETHOD(GetFileSize)(_Out_ UINT64 *fileSize)
     {
-        if (fileSize)
-        {
+        if (fileSize) {
             *fileSize = m_nResSize;
             return S_OK;
         }
@@ -103,8 +97,7 @@ public:
 
     STDMETHOD(GetLastWriteTime)(_Out_ UINT64 *lastWriteTime)
     {
-        if (lastWriteTime)
-        {
+        if (lastWriteTime) {
             *lastWriteTime = 0;
         }
         return E_NOTIMPL;
@@ -136,20 +129,16 @@ public:
 
     static bool GetResInfo(const TFontResInfo &info, FontMemInfo &fontMem)
     {
-        if ((info.m_nResID == 0) || (info.m_pResType == nullptr))
-        {
+        if ((info.m_nResID == 0) || (info.m_pResType == nullptr)) {
             return false;
         }
         HMODULE hModule = (info.m_hModule == nullptr ? (HMODULE)&__ImageBase : info.m_hModule);
         HRSRC hRes = ::FindResource(hModule, MAKEINTRESOURCE(info.m_nResID), info.m_pResType);
-        if (hRes != nullptr)
-        {
+        if (hRes != nullptr) {
             HGLOBAL memHandle = ::LoadResource(hModule, hRes);
-            if (memHandle != nullptr)
-            {
+            if (memHandle != nullptr) {
                 fontMem.m_pRes = ::LockResource(memHandle);
-                if (fontMem.m_pRes != nullptr)
-                {
+                if (fontMem.m_pRes != nullptr) {
                     fontMem.m_nSize = ::SizeofResource(hModule, hRes);
                     return true;
                 }
@@ -168,21 +157,16 @@ public:
 
     bool Initialize(IDWriteFactory *pFactory, const std::vector<TFontResInfo> &fontInfo)
     {
-        if (pFactory == nullptr)
-        {
+        if (pFactory == nullptr) {
             return false;
         }
         std::vector<FontMemInfo> fontMemArray;
         fontMemArray.reserve(fontInfo.size());
-        for (auto &info : fontInfo)
-        {
+        for (auto &info : fontInfo) {
             FontMemInfo fontMem;
-            if (GetResInfo(info, fontMem))
-            {
+            if (GetResInfo(info, fontMem)) {
                 fontMemArray.push_back(fontMem);
-            }
-            else
-            {
+            } else {
                 return false;
             }
         }
@@ -196,17 +180,14 @@ public:
 
     bool Initialize(IDWriteFactory *pFactory, const std::vector<std::wstring> &fontInfo)
     {
-        if (pFactory == nullptr)
-        {
+        if (pFactory == nullptr) {
             return false;
         }
         ATL::CAtlFile file;
         HRESULT hr = E_FAIL;
-        for (auto &info : fontInfo)
-        {
+        for (auto &info : fontInfo) {
             hr = file.Create(info.c_str(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-            if (FAILED(hr))
-            {
+            if (FAILED(hr)) {
                 assert(!"文件不存在");
                 return false;
             }
@@ -229,15 +210,13 @@ public:
      UINT32 /*collectionKeySize*/,
      _COM_Outptr_ IDWriteFontFileEnumerator **fontFileEnumerator)
     {
-        if (!fontFileEnumerator)
-        {
+        if (!fontFileEnumerator) {
             return E_INVALIDARG;
         }
         *fontFileEnumerator = nullptr;
         HRESULT hr = QueryInterface(__uuidof(IDWriteFontFileEnumerator),
                                     (void **)fontFileEnumerator);
-        if (SUCCEEDED(hr))
-        {
+        if (SUCCEEDED(hr)) {
             return S_OK;
         }
         *fontFileEnumerator = nullptr;
@@ -248,16 +227,12 @@ public:
 
     STDMETHOD(MoveNext)(_Out_ BOOL *hasCurrentFile)
     {
-        if (hasCurrentFile)
-        {
+        if (hasCurrentFile) {
             size_t nSize = m_bLoadFromFile ? m_fontPathArray.size() : m_fontMemArray.size();
-            if (m_nIndex < nSize)
-            {
+            if (m_nIndex < nSize) {
                 *hasCurrentFile = TRUE;
                 ++m_nIndex;
-            }
-            else
-            {
+            } else {
                 *hasCurrentFile = FALSE;
             }
         }
@@ -266,53 +241,43 @@ public:
 
     STDMETHOD(GetCurrentFontFile)(_COM_Outptr_ IDWriteFontFile **fontFile)
     {
-        if (!fontFile)
-        {
+        if (!fontFile) {
             return E_INVALIDARG;
         }
-        if (!m_spDWFactory || (m_nIndex == 0))
-        {
+        if (!m_spDWFactory || (m_nIndex == 0)) {
             return E_INVALIDARG;
         }
 
         *fontFile = nullptr;
         HRESULT hr = E_FAIL;
-        if (m_bLoadFromFile)
-        {
-            if (m_fontPathArray.empty() || (m_nIndex > m_fontPathArray.size()))
-            {
+        if (m_bLoadFromFile) {
+            if (m_fontPathArray.empty() || (m_nIndex > m_fontPathArray.size())) {
                 return E_INVALIDARG;
             }
             hr = m_spDWFactory->CreateFontFileReference(
                 m_fontPathArray[m_nIndex - 1].c_str(), nullptr, fontFile);
             return hr;
-        }
-        else
-        {
-            if (m_fontMemArray.empty() || (m_nIndex > m_fontMemArray.size()))
-            {
+        } else {
+            if (m_fontMemArray.empty() || (m_nIndex > m_fontMemArray.size())) {
                 return E_INVALIDARG;
             }
             auto pImpl = new TNoLockComObject<CustomMemoryFontLoader>;
             if (!pImpl->Initialize(m_fontMemArray[m_nIndex - 1].m_pRes,
-                                   m_fontMemArray[m_nIndex - 1].m_nSize))
-            {
+                                   m_fontMemArray[m_nIndex - 1].m_nSize)) {
                 delete pImpl;
                 assert(!"bug");
                 return E_NOTIMPL;
             }
             ATL::CComPtr<IDWriteFontFileLoader> spFontFileLoader;
             hr = pImpl->QueryInterface(__uuidof(IDWriteFontFileLoader), (void **)&spFontFileLoader);
-            if (FAILED(hr))
-            {
+            if (FAILED(hr)) {
                 delete pImpl;
                 assert(!"bug");
                 return E_NOTIMPL;
             }
 
             hr = m_spDWFactory->RegisterFontFileLoader(spFontFileLoader);
-            if (FAILED(hr))
-            {
+            if (FAILED(hr)) {
                 return E_INVALIDARG;
             }
             hr = m_spDWFactory->CreateCustomFontFileReference(GetResInfo, //该参数不使用
@@ -350,8 +315,7 @@ public:
     DWriteCustomRender()
     {
         std::call_once(g_gammaInitFlags, []() {
-            for (int i = 0; i < _countof(g_gammaCorrection); ++i)
-            {
+            for (int i = 0; i < _countof(g_gammaCorrection); ++i) {
                 g_gammaCorrection[i] = (uint8_t)std::round(std::pow((double)i / 255.0, 0.483) *
                                                            255.0);
             }
@@ -360,14 +324,11 @@ public:
 
     void Resize(SIZE sz)
     {
-        if (m_szBitmap != sz)
-        {
+        if (m_szBitmap != sz) {
             m_szBitmap = sz;
             m_spBitmap.reset(new uint8_t[sz.cx * sz.cy * 4]{0});
             m_spColorMap.reset(new uint8_t[sz.cx * sz.cy * 3]{0});
-        }
-        else
-        {
+        } else {
             std::memset(m_spBitmap.get(), 0, m_szBitmap.cx * m_szBitmap.cy * 4);
             std::memset(m_spColorMap.get(), 0, m_szBitmap.cx * m_szBitmap.cy * 3);
         }
@@ -387,8 +348,7 @@ public:
     (__maybenull void *clientDrawingContext, __out BOOL *isDisabled)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
-        if (isDisabled)
-        {
+        if (isDisabled) {
             *isDisabled = FALSE;
         }
         return S_OK;
@@ -407,8 +367,7 @@ public:
     (__maybenull void *clientDrawingContext, __out DWRITE_MATRIX *transform)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
-        if (transform)
-        {
+        if (transform) {
             DWRITE_MATRIX mx;
             std::memset(&mx, 0, sizeof(mx));
             mx.m11 = 1.0f;
@@ -431,8 +390,7 @@ public:
     STDMETHOD(GetPixelsPerDip)(__maybenull void *clientDrawingContext, __out FLOAT *pixelsPerDip)
     {
         UNREFERENCED_PARAMETER(clientDrawingContext);
-        if (pixelsPerDip)
-        {
+        if (pixelsPerDip) {
             *pixelsPerDip = 1.0f;
         }
         return S_OK;
@@ -486,8 +444,7 @@ public:
             baselineOriginY,
             &spGlyphRunAnalysis);
         assert(SUCCEEDED(hr));
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             return hr;
         }
         RECT rcBounds{0, 0, m_szBitmap.cx, m_szBitmap.cy};
@@ -497,30 +454,25 @@ public:
             m_spColorMap.get(),
             m_szBitmap.cx * m_szBitmap.cy * 3);
         assert(SUCCEEDED(hr));
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             return hr;
         }
         hr = spGlyphRunAnalysis->GetAlphaTextureBounds(
             DWRITE_TEXTURE_TYPE::DWRITE_TEXTURE_CLEARTYPE_3x1, &rcBounds);
         assert(SUCCEEDED(hr));
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             return hr;
         }
 
         size_t nRowIndex = 0;
         uint8_t *pColorMapIndex = nullptr, *pBitmapIndex = nullptr;
         double rRate = 0, gRate = 0, bRate = 0;
-        for (auto row = rcBounds.top; row < rcBounds.bottom; ++row)
-        {
+        for (auto row = rcBounds.top; row < rcBounds.bottom; ++row) {
             nRowIndex = row * m_szBitmap.cx;
-            for (auto column = rcBounds.left; column < rcBounds.right; ++column)
-            {
+            for (auto column = rcBounds.left; column < rcBounds.right; ++column) {
                 pColorMapIndex = m_spColorMap.get() + (nRowIndex + column) * 3;
                 pBitmapIndex = m_spBitmap.get() + (nRowIndex + column) * 4;
-                if (pColorMapIndex[0] || pColorMapIndex[1] || pColorMapIndex[2])
-                {
+                if (pColorMapIndex[0] || pColorMapIndex[1] || pColorMapIndex[2]) {
                     rRate = g_gammaCorrection[pColorMapIndex[0]] / 255.0;
                     gRate = g_gammaCorrection[pColorMapIndex[1]] / 255.0;
                     bRate = g_gammaCorrection[pColorMapIndex[2]] / 255.0;
@@ -677,8 +629,7 @@ DWriteUtility::DWriteUtility()
 
 DWriteUtility::~DWriteUtility()
 {
-    if (m_pDWriteCustomRender)
-    {
+    if (m_pDWriteCustomRender) {
         delete m_pDWriteCustomRender;
         m_pDWriteCustomRender = nullptr;
     }
@@ -691,30 +642,25 @@ bool DWriteUtility::CreateDWriteFactory()
 
     static TDWriteCreateFunc s_dWriteCreateFunc = nullptr;
     static std::once_flag s_d2dInitFlags;
-    if (!s_dWriteCreateFunc)
-    {
+    if (!s_dWriteCreateFunc) {
         std::call_once(s_d2dInitFlags, [this]() {
             HMODULE hDWrite = ::LoadLibrary(L"dwrite.dll");
-            if (hDWrite)
-            {
+            if (hDWrite) {
                 s_dWriteCreateFunc = (TDWriteCreateFunc)::GetProcAddress(hDWrite,
                                                                          "DWriteCreateFactory");
             }
         });
-        if (!s_dWriteCreateFunc)
-        {
+        if (!s_dWriteCreateFunc) {
             return false;
         }
     }
 
-    if (!m_spDWriteFactory)
-    {
+    if (!m_spDWriteFactory) {
         HRESULT hr = s_dWriteCreateFunc(DWRITE_FACTORY_TYPE::DWRITE_FACTORY_TYPE_SHARED,
                                         __uuidof(IDWriteFactory),
                                         (IUnknown **)&m_spDWriteFactory);
         assert(SUCCEEDED(hr));
-        if (!m_spDWriteFactory || FAILED(hr))
-        {
+        if (!m_spDWriteFactory || FAILED(hr)) {
             return false;
         }
     }
@@ -725,21 +671,18 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(const std::vector<TFontR
                                                         IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
-    if (!m_spDWriteFactory || !ppCustomCollection)
-    {
+    if (!m_spDWriteFactory || !ppCustomCollection) {
         return E_INVALIDARG;
     }
     auto pImpl = new TNoLockComObject<CustomCollectionLoader>;
-    if (!pImpl->Initialize(m_spDWriteFactory, fontInfo))
-    {
+    if (!pImpl->Initialize(m_spDWriteFactory, fontInfo)) {
         delete pImpl;
         return E_INVALIDARG;
     }
     ATL::CComPtr<IDWriteFontCollectionLoader> spCollectionLoader;
     HRESULT hr = pImpl->QueryInterface(__uuidof(IDWriteFontCollectionLoader),
                                        (void **)&spCollectionLoader);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         delete pImpl;
         return hr;
     }
@@ -759,21 +702,18 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
     IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
-    if (!m_spDWriteFactory || !ppCustomCollection)
-    {
+    if (!m_spDWriteFactory || !ppCustomCollection) {
         return E_INVALIDARG;
     }
     auto pImpl = new TNoLockComObject<CustomCollectionLoader>;
-    if (!pImpl->Initialize(m_spDWriteFactory, fontPath))
-    {
+    if (!pImpl->Initialize(m_spDWriteFactory, fontPath)) {
         delete pImpl;
         return E_INVALIDARG;
     }
     ATL::CComPtr<IDWriteFontCollectionLoader> spCollectionLoader;
     HRESULT hr = pImpl->QueryInterface(__uuidof(IDWriteFontCollectionLoader),
                                        (void **)&spCollectionLoader);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         delete pImpl;
         return hr;
     }
@@ -785,8 +725,7 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollection(
     IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
-    if (!m_spDWriteFactory || !ppCustomCollection)
-    {
+    if (!m_spDWriteFactory || !ppCustomCollection) {
         return E_INVALIDARG;
     }
     std::vector<std::wstring> fontPath{fontList.begin(), fontList.end()};
@@ -798,14 +737,12 @@ HRESULT DWriteUtility::CreateCustomDWriteFontCollectionImpl(
     IDWriteFontCollection **ppCustomCollection)
 {
     assert(m_spDWriteFactory);
-    if (!m_spDWriteFactory || !spCollectionLoader || !ppCustomCollection)
-    {
+    if (!m_spDWriteFactory || !spCollectionLoader || !ppCustomCollection) {
         return E_INVALIDARG;
     }
 
     HRESULT hr = m_spDWriteFactory->RegisterFontCollectionLoader(spCollectionLoader);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return hr;
     }
     hr = m_spDWriteFactory->CreateCustomFontCollection(spCollectionLoader,
@@ -820,8 +757,7 @@ ATL::CComPtr<IDWriteTextFormat> DWriteUtility::CreateTextFormat(
     const TDWriteTextAttributes &textAttr)
 {
     assert(m_spDWriteFactory);
-    if (!m_spDWriteFactory)
-    {
+    if (!m_spDWriteFactory) {
         return nullptr;
     }
     ATL::CComPtr<IDWriteTextFormat> spTextFormat;
@@ -833,8 +769,7 @@ ATL::CComPtr<IDWriteTextFormat> DWriteUtility::CreateTextFormat(
                                                      textAttr.m_fontSize,
                                                      textAttr.m_pLocalName,
                                                      &spTextFormat);
-    if (SUCCEEDED(hr))
-    {
+    if (SUCCEEDED(hr)) {
         spTextFormat->SetTextAlignment(textAttr.m_textAlignment);
         spTextFormat->SetParagraphAlignment(textAttr.m_textParagraphAlignment);
         spTextFormat->SetWordWrapping(textAttr.m_textWrapping);
@@ -850,13 +785,11 @@ uint8_t *DWriteUtility::DrawToBitmap(IDWriteTextLayout *pLayout,
                                      POINT pt,
                                      COLOR32 textColor)
 {
-    if (!pLayout || (szBitmap.cx == 0) || (szBitmap.cy == 0))
-    {
+    if (!pLayout || (szBitmap.cx == 0) || (szBitmap.cy == 0)) {
         return nullptr;
     }
     HRESULT hr = E_FAIL;
-    if (!m_pDWriteCustomRender)
-    {
+    if (!m_pDWriteCustomRender) {
         m_pDWriteCustomRender = new TNoLockComObject<DWriteUtility::DWriteCustomRender>;
         m_pDWriteCustomRender->m_spDWriteFactory = m_spDWriteFactory;
     }
@@ -865,8 +798,7 @@ uint8_t *DWriteUtility::DrawToBitmap(IDWriteTextLayout *pLayout,
     m_pDWriteCustomRender->m_transformMx = transformMx;
 
     hr = pLayout->Draw(nullptr, m_pDWriteCustomRender, (FLOAT)pt.x, (FLOAT)pt.y);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return nullptr;
     }
     return m_pDWriteCustomRender->m_spBitmap.get();
@@ -875,22 +807,19 @@ uint8_t *DWriteUtility::DrawToBitmap(IDWriteTextLayout *pLayout,
 ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(
     ATL::CComPtr<IDWriteTextFormat> spTextFormat)
 {
-    if (!spTextFormat)
-    {
+    if (!spTextFormat) {
         return nullptr;
     }
     ATL::CComPtr<IDWriteFontCollection> spFontCollection;
     HRESULT hr = spTextFormat->GetFontCollection(&spFontCollection);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return nullptr;
     }
     uint32_t nLength = spTextFormat->GetFontFamilyNameLength(); //不包含L'\0'
     ++nLength;
     std::unique_ptr<wchar_t[]> spFontName(new wchar_t[nLength]{});
     hr = spTextFormat->GetFontFamilyName(spFontName.get(), nLength);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return nullptr;
     }
 
@@ -898,13 +827,11 @@ ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(
     uint32_t nIndex = 0;
     BOOL bFind = FALSE;
     hr = spFontCollection->FindFamilyName(spFontName.get(), &nIndex, &bFind);
-    if (!bFind || FAILED(hr))
-    {
+    if (!bFind || FAILED(hr)) {
         return nullptr;
     }
     hr = spFontCollection->GetFontFamily(nIndex, &spFontFamily);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return nullptr;
     }
 
@@ -913,8 +840,7 @@ ATL::CComPtr<IDWriteFont> DWriteUtility::GetFontFromTextFormat(
                                             spTextFormat->GetFontStretch(),
                                             spTextFormat->GetFontStyle(),
                                             &spFont);
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return nullptr;
     }
     return spFont;

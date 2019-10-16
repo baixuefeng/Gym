@@ -45,14 +45,11 @@ void SafeFormatHelper(boost::basic_format<TChar> &formater, T1 &&param, T2 &&...
 template<class TChar, class... TParam>
 std::basic_string<TChar> SafeFormat(const TChar *pFormat, TParam &&... args)
 {
-    try
-    {
+    try {
         boost::basic_format<TChar> formater(pFormat);
         detail::SafeFormatHelper(formater, std::forward<TParam>(args)...);
         return formater.str();
-    }
-    catch (const std::exception & /* err*/)
-    {
+    } catch (const std::exception & /* err*/) {
         assert(!"format error");
         return std::basic_string<TChar>();
     }
@@ -63,8 +60,7 @@ std::basic_string<TChar> SafeFormat(const TChar *pFormat, TParam &&... args)
 template<class TChar, class... TParam>
 std::basic_string<TChar> SafeFormatUtf8(const TChar *pFormat, TParam &&... args)
 {
-    try
-    {
+    try {
         /*  https://en.cppreference.com/w/cpp/locale/locale/locale
             Overload 7 is typically called with its second argument, f, 
         obtained directly from a new-expression: the locale is responsible
@@ -74,9 +70,7 @@ std::basic_string<TChar> SafeFormatUtf8(const TChar *pFormat, TParam &&... args)
             pFormat, std::locale{std::locale(), new std::codecvt_utf8_utf16<wchar_t>});
         detail::SafeFormatHelper(formater, std::forward<TParam>(args)...);
         return formater.str();
-    }
-    catch (const std::exception & /* err*/)
-    {
+    } catch (const std::exception & /* err*/) {
         assert(!"format error");
         return std::basic_string<TChar>();
     }

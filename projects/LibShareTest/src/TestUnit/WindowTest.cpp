@@ -51,26 +51,19 @@ int TestWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
 
 void TestWindow::OnSize(UINT nType, CSize /*size*/)
 {
-    if (nType != SIZE_MINIMIZED)
-    {
+    if (nType != SIZE_MINIMIZED) {
     }
 }
 
 void TestWindow::OnKeyUp(UINT nChar, UINT /*nRepCnt*/, UINT /*nFlags*/)
 {
-    if (nChar == VK_ESCAPE)
-    {
+    if (nChar == VK_ESCAPE) {
         PostMessage(WM_CLOSE);
         return;
-    }
-    else if (nChar == VK_RETURN)
-    {
-        if (IsZoomed())
-        {
+    } else if (nChar == VK_RETURN) {
+        if (IsZoomed()) {
             ShowWindowAsync(SW_RESTORE);
-        }
-        else
-        {
+        } else {
             ShowWindowAsync(SW_MAXIMIZE);
         }
         return;
@@ -80,12 +73,9 @@ void TestWindow::OnKeyUp(UINT nChar, UINT /*nRepCnt*/, UINT /*nFlags*/)
 
 void TestWindow::OnLButtonDblClk(UINT /*nFlags*/, CPoint /*point*/)
 {
-    if (IsZoomed())
-    {
+    if (IsZoomed()) {
         ShowWindow(SW_RESTORE);
-    }
-    else
-    {
+    } else {
         ShowWindow(SW_MAXIMIZE);
     }
 }

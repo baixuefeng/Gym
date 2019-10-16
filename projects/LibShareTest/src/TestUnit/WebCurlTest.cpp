@@ -37,12 +37,10 @@ void TestWebCurl()
                                       int64_t nDownloadNow,
                                       int64_t nUploadTotal,
                                       int64_t nUploadNow) -> bool {
-        if (nDownloadTotal > 0)
-        {
+        if (nDownloadTotal > 0) {
             tcout << "download: " << nDownloadNow << " in " << nDownloadTotal << std::endl;
         }
-        if (nUploadTotal > 0)
-        {
+        if (nUploadTotal > 0) {
             tcout << "upload: " << nUploadNow << " in " << nUploadTotal << std::endl;
         }
         return true;
@@ -51,8 +49,7 @@ void TestWebCurl()
     easyHandle.SetDebugCallback(
         [pFileDebug](curl_infotype type, const char *pBuffer, size_t nSize) {
             std::string typeInfoStr;
-            switch (type)
-            {
+            switch (type) {
             case CURLINFO_TEXT:
                 typeInfoStr = "[DebugInfo:text]";
                 break;
@@ -87,8 +84,7 @@ void TestWebCurl()
         });
 
     auto res = std::async([&multiHandle]() { return multiHandle.Perform(0); });
-    if (IDYES == ::MessageBox(NULL, L"是否中止?", L"提示", MB_YESNO))
-    {
+    if (IDYES == ::MessageBox(NULL, L"是否中止?", L"提示", MB_YESNO)) {
         multiHandle.Terminate();
     }
     tcout << "multi perform=" << res.get() << std::endl;

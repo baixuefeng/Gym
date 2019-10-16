@@ -29,8 +29,7 @@ public:
     }
     ~GdiplusInit()
     {
-        if (m_bInitOk)
-        {
+        if (m_bInitOk) {
             Gdiplus::GdiplusShutdown(m_token);
             m_token = 0;
         }
@@ -48,8 +47,7 @@ bool InitializeGdiplus()
 {
     static bool s_bInitOk = false;
     static std::once_flag s_initOnceFlags;
-    if (!s_bInitOk)
-    {
+    if (!s_bInitOk) {
         std::call_once(s_initOnceFlags, []() {
             static GdiplusInit s_init;
             s_bInitOk = s_init.m_bInitOk;
@@ -93,33 +91,27 @@ bool GdiplusAlphaDraw(Gdiplus::Graphics &g,
 
 bool GetEncoderClsid(const wchar_t *pTypeName, CLSID &clsid)
 {
-    if (!pTypeName)
-    {
+    if (!pTypeName) {
         return false;
     }
     UINT nNum = 0, nSize = 0;
-    if (Gdiplus::GetImageDecodersSize(&nNum, &nSize) != Gdiplus::Ok)
-    {
+    if (Gdiplus::GetImageDecodersSize(&nNum, &nSize) != Gdiplus::Ok) {
         return false;
     }
     std::unique_ptr<uint8_t[]> spBuffer(new (std::nothrow) uint8_t[nSize]{});
-    if (!spBuffer)
-    {
+    if (!spBuffer) {
         return false;
     }
     std::memset(spBuffer.get(), 0, nSize);
     Gdiplus::ImageCodecInfo *pCodecInfo = (Gdiplus::ImageCodecInfo *)spBuffer.get();
-    if (Gdiplus::GetImageDecoders(nNum, nSize, pCodecInfo) != Gdiplus::Ok)
-    {
+    if (Gdiplus::GetImageDecoders(nNum, nSize, pCodecInfo) != Gdiplus::Ok) {
         return false;
     }
 
     ATL::CString name = pTypeName;
     name.MakeUpper();
-    for (UINT i = 0; i < nNum; ++i)
-    {
-        if (std::wcsstr(pCodecInfo[i].FilenameExtension, name))
-        {
+    for (UINT i = 0; i < nNum; ++i) {
+        if (std::wcsstr(pCodecInfo[i].FilenameExtension, name)) {
             clsid = pCodecInfo[i].Clsid;
             return true;
         }
@@ -132,8 +124,7 @@ void AdjustPointF(const Gdiplus::Font &font,
                   Gdiplus::PointF &pt)
 {
     assert(font.IsAvailable());
-    switch (strFormat.GetLineAlignment())
-    {
+    switch (strFormat.GetLineAlignment()) {
     case Gdiplus::StringAlignment::StringAlignmentNear:
         break;
     case Gdiplus::StringAlignment::StringAlignmentCenter:
@@ -145,10 +136,8 @@ void AdjustPointF(const Gdiplus::Font &font,
     default:
         break;
     }
-    if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic)
-    {
-        switch (strFormat.GetAlignment())
-        {
+    if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic) {
+        switch (strFormat.GetAlignment()) {
         case Gdiplus::StringAlignment::StringAlignmentCenter:
             pt.X -= GetFontItalicWidth(font) / 2;
             break;
@@ -169,14 +158,10 @@ void AdjustRectF(const Gdiplus::Font &font,
     assert(font.IsAvailable());
     float realHeight = GetFontRealHeight(font);
     float needHeight = GetFontNeedHeight(font);
-    if (rect.Height < realHeight)
-    {
+    if (rect.Height < realHeight) {
         return;
-    }
-    else if (rect.Height < needHeight)
-    {
-        switch (strFormat.GetLineAlignment())
-        {
+    } else if (rect.Height < needHeight) {
+        switch (strFormat.GetLineAlignment()) {
         case Gdiplus::StringAlignment::StringAlignmentCenter:
             rect.Y += (rect.Height - realHeight) / 2;
             break;
@@ -186,11 +171,8 @@ void AdjustRectF(const Gdiplus::Font &font,
         default:
             break;
         }
-    }
-    else
-    {
-        switch (strFormat.GetLineAlignment())
-        {
+    } else {
+        switch (strFormat.GetLineAlignment()) {
         case Gdiplus::StringAlignment::StringAlignmentNear:
             break;
         case Gdiplus::StringAlignment::StringAlignmentCenter:
@@ -203,10 +185,8 @@ void AdjustRectF(const Gdiplus::Font &font,
             break;
         }
     }
-    if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic)
-    {
-        switch (strFormat.GetAlignment())
-        {
+    if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic) {
+        switch (strFormat.GetAlignment()) {
         case Gdiplus::StringAlignment::StringAlignmentCenter:
             rect.X -= GetFontItalicWidth(font) / 2;
             break;
@@ -226,8 +206,7 @@ float GetFontBottomSpace(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     Gdiplus::FontFamily ff;
-    if (Gdiplus::Status::Ok != font.GetFamily(&ff))
-    {
+    if (Gdiplus::Status::Ok != font.GetFamily(&ff)) {
         return 0;
     }
 
@@ -242,8 +221,7 @@ float GetFontRealHeight(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     Gdiplus::FontFamily ff;
-    if (Gdiplus::Status::Ok != font.GetFamily(&ff))
-    {
+    if (Gdiplus::Status::Ok != font.GetFamily(&ff)) {
         return 0;
     }
 
@@ -257,8 +235,7 @@ float GetFontNeedHeight(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
     Gdiplus::FontFamily ff;
-    if (Gdiplus::Status::Ok != font.GetFamily(&ff))
-    {
+    if (Gdiplus::Status::Ok != font.GetFamily(&ff)) {
         return 0;
     }
 
@@ -271,12 +248,9 @@ float GetFontNeedHeight(const Gdiplus::Font &font)
 float GetFontItalicWidth(const Gdiplus::Font &font)
 {
     assert(font.IsAvailable());
-    if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic)
-    {
+    if (font.GetStyle() & Gdiplus::FontStyle::FontStyleItalic) {
         return std::abs(font.GetSize()) / 6;
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }

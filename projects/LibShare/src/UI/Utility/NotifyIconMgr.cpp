@@ -33,8 +33,7 @@ NotifyIconMgr::NotifyIconMgr()
 
 NotifyIconMgr::~NotifyIconMgr()
 {
-    if (m_pImpl)
-    {
+    if (m_pImpl) {
         delete m_pImpl;
         m_pImpl = nullptr;
     }
@@ -42,16 +41,12 @@ NotifyIconMgr::~NotifyIconMgr()
 
 bool NotifyIconMgr::Initialize()
 {
-    if (m_pImpl->cbSize != 0)
-    {
+    if (m_pImpl->cbSize != 0) {
         return true;
     }
-    if (NotifyIconMgr::IsDllVersionVistaOrLater())
-    {
+    if (NotifyIconMgr::IsDllVersionVistaOrLater()) {
         m_pImpl->cbSize = sizeof(NOTIFYICONDATA);
-    }
-    else
-    {
+    } else {
         m_pImpl->cbSize = NOTIFYICONDATA_V3_SIZE;
     }
     m_pImpl->uVersion = NOTIFYICON_VERSION_4;
@@ -73,8 +68,7 @@ NotifyIconMgr::NotifyIconMgr(NotifyIconMgr &&other)
 
 NotifyIconMgr &NotifyIconMgr::operator=(const NotifyIconMgr &other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         *m_pImpl = *other.m_pImpl;
     }
     return *this;
@@ -82,8 +76,7 @@ NotifyIconMgr &NotifyIconMgr::operator=(const NotifyIconMgr &other)
 
 NotifyIconMgr &NotifyIconMgr::operator=(NotifyIconMgr &&other)
 {
-    if (this != &other)
-    {
+    if (this != &other) {
         std::swap(m_pImpl, other.m_pImpl);
     }
     return *this;
@@ -95,8 +88,7 @@ void NotifyIconMgr::ClearConfig()
     UINT uID = m_pImpl->uID;
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
     GUID iconGuid{0};
-    if (m_pImpl->uFlags & NIF_GUID)
-    {
+    if (m_pImpl->uFlags & NIF_GUID) {
         iconGuid = m_pImpl->guidItem;
     }
 #endif
@@ -106,8 +98,7 @@ void NotifyIconMgr::ClearConfig()
     m_pImpl->hWnd = hWnd;
     m_pImpl->uID = uID;
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    if (iconGuid != GUID{0})
-    {
+    if (iconGuid != GUID{0}) {
         m_pImpl->uFlags |= NIF_GUID;
         m_pImpl->guidItem = iconGuid;
     }
@@ -117,8 +108,7 @@ void NotifyIconMgr::ClearConfig()
 void NotifyIconMgr::SetNotifyWndAndMsg(HWND hNotifyWnd, UINT uMsg)
 {
     m_pImpl->hWnd = hNotifyWnd;
-    if (uMsg != WM_NULL)
-    {
+    if (uMsg != WM_NULL) {
         m_pImpl->uFlags |= NIF_MESSAGE;
         m_pImpl->uCallbackMessage = uMsg;
     }
@@ -132,8 +122,7 @@ void NotifyIconMgr::GetNotifyWndAndMsg(HWND &hNotifyWnd, UINT &uMsg)
 
 void NotifyIconMgr::SetIcon(HICON icon, UINT nNotifyId)
 {
-    if (icon)
-    {
+    if (icon) {
         m_pImpl->uFlags |= NIF_ICON;
         m_pImpl->hIcon = icon;
     }
@@ -149,8 +138,7 @@ void NotifyIconMgr::GetIcon(HICON &icon, UINT &nNotifyId)
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
 void NotifyIconMgr::SetIcon(HICON icon, const GUID &notifyGuid)
 {
-    if (icon)
-    {
+    if (icon) {
         m_pImpl->uFlags |= NIF_ICON;
         m_pImpl->hIcon = icon;
     }
@@ -178,8 +166,7 @@ bool NotifyIconMgr::GetIconBoundingRect(RECT &rcBounds)
 void NotifyIconMgr::SetTip(wchar_t *pTip)
 {
     m_pImpl->uFlags |= NIF_TIP;
-    if (IsDllVersionVistaOrLater())
-    {
+    if (IsDllVersionVistaOrLater()) {
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
         m_pImpl->uFlags |= NIF_SHOWTIP;
 #endif
@@ -224,12 +211,9 @@ HICON NotifyIconMgr::GetBalloonIcon()
 void NotifyIconMgr::SetRealTime(bool bRealTime)
 {
     m_pImpl->uFlags |= NIF_INFO;
-    if (bRealTime)
-    {
+    if (bRealTime) {
         m_pImpl->uFlags |= NIF_REALTIME;
-    }
-    else
-    {
+    } else {
         m_pImpl->uFlags &= ~NIF_REALTIME;
     }
 }
@@ -241,12 +225,9 @@ bool NotifyIconMgr::GetRealTime()
 
 void NotifyIconMgr::SetShowStandardTooltip(bool bStandard)
 {
-    if (bStandard)
-    {
+    if (bStandard) {
         m_pImpl->uFlags |= NIF_SHOWTIP;
-    }
-    else
-    {
+    } else {
         m_pImpl->uFlags &= ~NIF_SHOWTIP;
     }
 }
@@ -261,12 +242,9 @@ void NotifyIconMgr::SetShow(bool bShow)
 {
     m_pImpl->uFlags |= NIF_STATE;
     m_pImpl->dwStateMask |= NIS_HIDDEN;
-    if (bShow)
-    {
+    if (bShow) {
         m_pImpl->dwState &= ~NIS_HIDDEN;
-    }
-    else
-    {
+    } else {
         m_pImpl->dwState |= NIS_HIDDEN;
     }
 }
@@ -278,8 +256,7 @@ bool NotifyIconMgr::GetShow()
 
 bool NotifyIconMgr::Add()
 {
-    if (::Shell_NotifyIcon(NIM_ADD, m_pImpl))
-    {
+    if (::Shell_NotifyIcon(NIM_ADD, m_pImpl)) {
         return !!::Shell_NotifyIcon(NIM_SETVERSION, m_pImpl);
     }
     return false;
@@ -307,24 +284,18 @@ bool NotifyIconMgr::IsDllVersionVistaOrLater()
     std::call_once(s_dllVersionFlags, []() {
         HMODULE hDll = ::LoadLibraryW(L"Shell32.dll");
         assert(hDll);
-        if (hDll)
-        {
+        if (hDll) {
             DLLGETVERSIONPROC pFn = (DLLGETVERSIONPROC)::GetProcAddress(hDll, "DllGetVersion");
             assert(pFn);
             DLLVERSIONINFO dllVer{sizeof(dllVer)};
-            if (pFn)
-            {
+            if (pFn) {
                 pFn(&dllVer);
             }
             ::FreeLibrary(hDll);
-            if (dllVer.dwMajorVersion >= 6)
-            {
-                if ((dllVer.dwMinorVersion == 0) && (dllVer.dwBuildNumber < 6))
-                {
+            if (dllVer.dwMajorVersion >= 6) {
+                if ((dllVer.dwMinorVersion == 0) && (dllVer.dwBuildNumber < 6)) {
                     s_isVistaOrLater = false;
-                }
-                else
-                {
+                } else {
                     s_isVistaOrLater = true;
                 }
             }

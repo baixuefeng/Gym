@@ -15,15 +15,13 @@ bool compress_data_impl(const void *pInput,
                         int windowBits)
 {
     output.clear();
-    if (!pInput || nLength == 0)
-    {
+    if (!pInput || nLength == 0) {
         return true;
     }
     z_stream strm{0};
     int err =
         ::deflateInit2(&strm, nLevel, Z_DEFLATED, windowBits, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
-    if (err != Z_OK)
-    {
+    if (err != Z_OK) {
         return false;
     }
 
@@ -34,36 +32,26 @@ bool compress_data_impl(const void *pInput,
     strm.next_out = spBuffer.get();
 
     int flushFlag = Z_NO_FLUSH;
-    do
-    {
+    do {
         err = ::deflate(&strm, flushFlag);
-        if (err == Z_OK || (flushFlag == Z_FINISH && err == Z_BUF_ERROR))
-        {
-            if (strm.avail_out == 0)
-            {
+        if (err == Z_OK || (flushFlag == Z_FINISH && err == Z_BUF_ERROR)) {
+            if (strm.avail_out == 0) {
                 output.insert(output.end(), spBuffer.get(), spBuffer.get() + CACHE_BUFFER_SIZE);
                 strm.avail_out = CACHE_BUFFER_SIZE;
                 strm.next_out = spBuffer.get();
-            }
-            else if (flushFlag == Z_NO_FLUSH && strm.avail_in == 0)
-            {
+            } else if (flushFlag == Z_NO_FLUSH && strm.avail_in == 0) {
                 flushFlag = Z_FINISH;
             }
-        }
-        else if (flushFlag == Z_FINISH && err == Z_STREAM_END)
-        {
+        } else if (flushFlag == Z_FINISH && err == Z_STREAM_END) {
             output.insert(
                 output.end(), spBuffer.get(), spBuffer.get() + CACHE_BUFFER_SIZE - strm.avail_out);
             break;
         }
     } while (err == Z_OK);
 
-    if (::deflateEnd(&strm) == Z_OK && err == Z_STREAM_END)
-    {
+    if (::deflateEnd(&strm) == Z_OK && err == Z_STREAM_END) {
         return true;
-    }
-    else
-    {
+    } else {
         output.clear();
         return false;
     }
@@ -76,20 +64,17 @@ bool compress_data_impl(const void *pInput,
                         int nLevel,
                         int windowBits)
 {
-    if (!pInput || nLength == 0)
-    {
+    if (!pInput || nLength == 0) {
         return true;
     }
     assert(pOutput && nOutLength > 6);
-    if (!pOutput || nOutLength <= 6)
-    {
+    if (!pOutput || nOutLength <= 6) {
         return false;
     }
     z_stream strm{0};
     int err =
         ::deflateInit2(&strm, nLevel, Z_DEFLATED, windowBits, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY);
-    if (err != Z_OK)
-    {
+    if (err != Z_OK) {
         return false;
     }
 
@@ -99,13 +84,10 @@ bool compress_data_impl(const void *pInput,
     strm.next_out = (Bytef *)pOutput;
 
     err = ::deflate(&strm, Z_FINISH);
-    if (::deflateEnd(&strm) == Z_OK && err == Z_STREAM_END)
-    {
+    if (::deflateEnd(&strm) == Z_OK && err == Z_STREAM_END) {
         nOutLength = strm.total_out;
         return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
@@ -151,15 +133,13 @@ bool gzip_compress_data(const void *pInput,
 bool decompress_data(const void *pInput, uint32_t nLength, std::vector<uint8_t> &output)
 {
     output.clear();
-    if (!pInput || (nLength == 0))
-    {
+    if (!pInput || (nLength == 0)) {
         return true;
     }
     z_stream strm{0};
     //Add 32 to windowBits to enable zlib and gzip decoding with automatic header detection.
     int err = ::inflateInit2(&strm, MAX_WBITS + 32);
-    if (err != Z_OK)
-    {
+    if (err != Z_OK) {
         return false;
     }
     std::unique_ptr<uint8_t[]> spBuffer(new uint8_t[CACHE_BUFFER_SIZE]{});
@@ -167,29 +147,22 @@ bool decompress_data(const void *pInput, uint32_t nLength, std::vector<uint8_t> 
     strm.next_in = (Bytef *)pInput;
     strm.avail_out = CACHE_BUFFER_SIZE;
     strm.next_out = spBuffer.get();
-    do
-    {
+    do {
         err = ::inflate(&strm, Z_NO_FLUSH);
-        if (err == Z_OK && strm.avail_out == 0)
-        {
+        if (err == Z_OK && strm.avail_out == 0) {
             output.insert(output.end(), spBuffer.get(), spBuffer.get() + CACHE_BUFFER_SIZE);
             strm.avail_out = CACHE_BUFFER_SIZE;
             strm.next_out = spBuffer.get();
-        }
-        else if (err == Z_STREAM_END)
-        {
+        } else if (err == Z_STREAM_END) {
             output.insert(
                 output.end(), spBuffer.get(), spBuffer.get() + CACHE_BUFFER_SIZE - strm.avail_out);
             break;
         }
     } while (err == Z_OK);
 
-    if (::inflateEnd(&strm) == Z_OK && err == Z_STREAM_END)
-    {
+    if (::inflateEnd(&strm) == Z_OK && err == Z_STREAM_END) {
         return true;
-    }
-    else
-    {
+    } else {
         output.clear();
         return false;
     }
@@ -197,20 +170,17 @@ bool decompress_data(const void *pInput, uint32_t nLength, std::vector<uint8_t> 
 
 bool decompress_data(const void *pInput, uint32_t nLength, void *pOutput, uint32_t &nOutLength)
 {
-    if (!pInput || (nLength == 0))
-    {
+    if (!pInput || (nLength == 0)) {
         return true;
     }
     assert(pOutput && nOutLength > 6);
-    if (!pOutput || nOutLength <= 6)
-    {
+    if (!pOutput || nOutLength <= 6) {
         return false;
     }
     z_stream strm{0};
     //Add 32 to windowBits to enable zlib and gzip decoding with automatic header detection.
     int err = ::inflateInit2(&strm, MAX_WBITS + 32);
-    if (err != Z_OK)
-    {
+    if (err != Z_OK) {
         return false;
     }
     strm.avail_in = nLength;
@@ -219,13 +189,10 @@ bool decompress_data(const void *pInput, uint32_t nLength, void *pOutput, uint32
     strm.next_out = (Bytef *)pOutput;
     err = ::inflate(&strm, Z_FINISH);
 
-    if (::inflateEnd(&strm) == Z_OK && err == Z_STREAM_END)
-    {
+    if (::inflateEnd(&strm) == Z_OK && err == Z_STREAM_END) {
         nOutLength = strm.total_out;
         return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 }

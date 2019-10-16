@@ -99,17 +99,13 @@ lua_ostream &lua_ostream::operator<<(table_end_t)
 
 void lua_ostream::check_table_push()
 {
-    if (m_tableIndex > 0)
-    {
+    if (m_tableIndex > 0) {
         assert(::lua_type(m_pLua, m_tableIndex) == LUA_TTABLE);
         auto nOffset = ::lua_gettop(m_pLua) - m_tableIndex;
-        if (nOffset == 1)
-        {
+        if (nOffset == 1) {
             //没有key
             ::lua_rawseti(m_pLua, m_tableIndex, ::lua_rawlen(m_pLua, m_tableIndex) + 1);
-        }
-        else
-        {
+        } else {
             assert(nOffset == 2);
             assert(::lua_type(m_pLua, -2) == LUA_TSTRING);
             ::lua_rawset(m_pLua, m_tableIndex);
@@ -149,15 +145,11 @@ lua_istream::lua_istream(lua_State *pLua, int stackIndex)
     , m_isTableKey(false)
 {
     assert(pLua);
-    if (m_stackIndex != 0)
-    {
+    if (m_stackIndex != 0) {
         auto valueType = ::lua_type(m_pLua, m_stackIndex);
-        if ((valueType == LUA_TNIL) || (valueType == LUA_TNONE))
-        {
+        if ((valueType == LUA_TNIL) || (valueType == LUA_TNONE)) {
             m_isEof = true;
-        }
-        else if (valueType == LUA_TTABLE)
-        {
+        } else if (valueType == LUA_TTABLE) {
             ::lua_pushnil(m_pLua);
             m_isEof = (::lua_next(m_pLua, m_stackIndex) == 0);
         }
@@ -166,8 +158,7 @@ lua_istream::lua_istream(lua_State *pLua, int stackIndex)
 
 lua_istream::~lua_istream()
 {
-    if (::lua_gettop(m_pLua) > m_top)
-    {
+    if (::lua_gettop(m_pLua) > m_top) {
         ::lua_settop(m_pLua, m_top);
     }
 }
@@ -200,27 +191,20 @@ lua_istream::operator void *() const
 bool lua_istream::is_subtable() const
 {
     assert(::lua_type(m_pLua, m_stackIndex) == LUA_TTABLE);
-    if (::lua_type(m_pLua, m_stackIndex) != LUA_TTABLE)
-    {
+    if (::lua_type(m_pLua, m_stackIndex) != LUA_TTABLE) {
         return false;
-    }
-    else if (m_isEof)
-    {
+    } else if (m_isEof) {
         return false;
-    }
-    else
-    {
+    } else {
         return ::lua_type(m_pLua, -1) == LUA_TTABLE;
     }
 }
 
 lua_istream &lua_istream::operator>>(bool &value)
 {
-    if (!m_isEof)
-    {
+    if (!m_isEof) {
         m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TBOOLEAN);
-        if (m_isOK)
-        {
+        if (m_isOK) {
             value = !!::lua_toboolean(m_pLua, get_value_index());
         }
         next();
@@ -231,11 +215,9 @@ lua_istream &lua_istream::operator>>(bool &value)
 #define IMPLEMENT_LUA_ISTREAM_INTEGER(type)                                                        \
     lua_istream &lua_istream::operator>>(type &value)                                              \
     {                                                                                              \
-        if (!m_isEof)                                                                              \
-        {                                                                                          \
+        if (!m_isEof) {                                                                            \
             m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TNUMBER);                       \
-            if (m_isOK)                                                                            \
-            {                                                                                      \
+            if (m_isOK) {                                                                          \
                 value = (type)::lua_tointeger(m_pLua, get_value_index());                          \
             }                                                                                      \
             next();                                                                                \
@@ -258,11 +240,9 @@ IMPLEMENT_LUA_ISTREAM_INTEGER(unsigned long long)
 #define IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(type)                                                    \
     lua_istream &lua_istream::operator>>(type &value)                                              \
     {                                                                                              \
-        if (!m_isEof)                                                                              \
-        {                                                                                          \
+        if (!m_isEof) {                                                                            \
             m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TNUMBER);                       \
-            if (m_isOK)                                                                            \
-            {                                                                                      \
+            if (m_isOK) {                                                                          \
                 value = (type)::lua_tonumber(m_pLua, get_value_index());                           \
             }                                                                                      \
             next();                                                                                \
@@ -277,8 +257,7 @@ IMPLEMENT_LUA_ISTREAM_FLOAT_POINT(long double)
 lua_istream &lua_istream::operator>>(lua_table_key_t key)
 {
     assert(!m_isEof);
-    if (!m_isEof)
-    {
+    if (!m_isEof) {
         assert(::lua_type(m_pLua, m_stackIndex) == LUA_TTABLE);
         assert(::lua_gettop(m_pLua) == m_top + 2);
         ::lua_pushstring(m_pLua, key.m_pKey);
@@ -303,12 +282,9 @@ void lua_istream::cleanup_subtable(lua_istream &subTable)
 int lua_istream::get_value_index()
 {
     assert(!m_isEof);
-    if (::lua_type(m_pLua, m_stackIndex) == LUA_TTABLE)
-    {
+    if (::lua_type(m_pLua, m_stackIndex) == LUA_TTABLE) {
         return -1;
-    }
-    else
-    {
+    } else {
         return m_stackIndex;
     }
 }
@@ -316,23 +292,17 @@ int lua_istream::get_value_index()
 void lua_istream::next()
 {
     assert(!m_isEof);
-    if (::lua_type(m_pLua, m_stackIndex) == LUA_TTABLE)
-    {
+    if (::lua_type(m_pLua, m_stackIndex) == LUA_TTABLE) {
         assert(::lua_gettop(m_pLua) >= m_top + 2);
-        if (m_isTableKey)
-        {
+        if (m_isTableKey) {
             ::lua_settop(m_pLua, m_top + 2);
             m_isEof = false;
             m_isTableKey = false;
-        }
-        else
-        {
+        } else {
             ::lua_settop(m_pLua, m_top + 1);
             m_isEof = (::lua_next(m_pLua, m_stackIndex) == 0);
         }
-    }
-    else
-    {
+    } else {
         assert(::lua_gettop(m_pLua) == m_top);
         m_isEof = true;
     }

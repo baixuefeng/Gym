@@ -34,8 +34,7 @@ int OpenGLWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
     GLint bufferValue[10] = {0};
     bfoBuffer.BufferData(sizeof(bufferValue), &bufferValue, shr::BufferUsage::DYNAMIC_DRAW);
 
-    for (int i = 0; i < sizeof(bufferValue) / sizeof(bufferValue[0]); ++i)
-    {
+    for (int i = 0; i < sizeof(bufferValue) / sizeof(bufferValue[0]); ++i) {
         bufferValue[i] = 0x0FFFFFFF;
     }
     shr::glhTextureMgr texture;
@@ -52,8 +51,7 @@ int OpenGLWindow::OnCreate(LPCREATESTRUCT /*lpCreateStruct*/)
     glFinish();
 
     auto p = bfoBuffer.MapBufferRange(0, sizeof(bufferValue), shr::BufferAccessBit::MAP_READ_BIT);
-    if (p)
-    {
+    if (p) {
         std::memcpy(bufferValue, p, sizeof(bufferValue));
         bfoBuffer.UnmapBuffer();
     }

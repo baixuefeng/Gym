@@ -35,13 +35,10 @@ bool GetObjectSubValue(
     const TValue &defaultValue = TValue{})
 {
     auto it = object.FindMember(key);
-    if (it == object.MemberEnd() || it->value.IsNull() || !it->value.template Is<TValue>())
-    {
+    if (it == object.MemberEnd() || it->value.IsNull() || !it->value.template Is<TValue>()) {
         value = defaultValue;
         return false;
-    }
-    else
-    {
+    } else {
         value = std::move(it->value.template Get<TValue>());
         return true;
     }
@@ -87,16 +84,13 @@ bool WriteImpl(
     RAPIDJSON_NAMESPACE::EncodedOutputStream<TEncoding, TOutputByteStream> &encodedOutStream,
     bool prettyWrite)
 {
-    if (prettyWrite)
-    {
+    if (prettyWrite) {
         RAPIDJSON_NAMESPACE::PrettyWriter<std::remove_reference_t<decltype(encodedOutStream)>,
                                           typename TDocType::EncodingType,
                                           TEncoding>
             jsonWriter{encodedOutStream};
         return doc.Accept(jsonWriter);
-    }
-    else
-    {
+    } else {
         RAPIDJSON_NAMESPACE::Writer<std::remove_reference_t<decltype(encodedOutStream)>,
                                     typename TDocType::EncodingType,
                                     TEncoding>
@@ -117,8 +111,7 @@ bool ParseUtf8File(
     const boost::filesystem::path &file)
 {
     boost::filesystem::ifstream in{file, std::ios::in | std::ios::binary};
-    if (!in)
-    {
+    if (!in) {
         return false;
     }
     RAPIDJSON_NAMESPACE::BasicIStreamWrapper<decltype(in)> inStream{in};
@@ -182,8 +175,7 @@ bool WriteToUtf8File(
     bool putBOM = true)
 {
     boost::filesystem::ofstream out{file, std::ios::out | std::ios::binary | std::ios::trunc};
-    if (!out)
-    {
+    if (!out) {
         return false;
     }
 
@@ -234,15 +226,12 @@ bool WriteToString(
     bool prettyWrite = false)
 {
     outString.Clear();
-    if (prettyWrite)
-    {
+    if (prettyWrite) {
         RAPIDJSON_NAMESPACE::
             PrettyWriter<std::remove_reference_t<decltype(outString)>, TDocEncoding, TStrEncoding>
                 jsonWriter{outString};
         return doc.Accept(jsonWriter);
-    }
-    else
-    {
+    } else {
         RAPIDJSON_NAMESPACE::
             Writer<std::remove_reference_t<decltype(outString)>, TDocEncoding, TStrEncoding>
                 jsonWriter{outString};

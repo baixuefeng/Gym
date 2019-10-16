@@ -64,13 +64,10 @@ public:
     */
     ~SimpleAsyncSink() BOOST_NOEXCEPT
     {
-        try
-        {
+        try {
             boost::this_thread::disable_interruption no_interrupts;
             stop();
-        }
-        catch (...)
-        {
+        } catch (...) {
             std::terminate();
         }
     }
@@ -102,17 +99,14 @@ private:
     */
     void run()
     {
-        for (;;)
-        {
+        for (;;) {
             do_feed_records();
-            if (!m_StopRequested.load(boost::memory_order_acquire))
-            {
+            if (!m_StopRequested.load(boost::memory_order_acquire)) {
                 // Block until new record is available
                 boost::log::record_view rec;
                 if (queue_base_type::dequeue_ready(rec))
                     base_type::feed_record(rec, m_BackendMutex, *m_pBackend);
-            }
-            else
+            } else
                 break;
         }
     }
@@ -120,8 +114,7 @@ private:
     //! The record feeding loop
     void do_feed_records()
     {
-        while (!m_StopRequested.load(boost::memory_order_acquire))
-        {
+        while (!m_StopRequested.load(boost::memory_order_acquire)) {
             boost::log::record_view rec;
             if (queue_base_type::try_dequeue_ready(rec))
                 base_type::feed_record(rec, m_BackendMutex, *m_pBackend);
@@ -148,15 +141,11 @@ private:
     void stop()
     {
         boost::unique_lock<frontend_mutex_type> lock(base_type::frontend_mutex());
-        if (m_DedicatedFeedingThread.joinable())
-        {
-            try
-            {
+        if (m_DedicatedFeedingThread.joinable()) {
+            try {
                 m_StopRequested.store(true, boost::memory_order_release);
                 queue_base_type::interrupt_dequeue();
-            }
-            catch (...)
-            {
+            } catch (...) {
                 m_StopRequested.store(false, boost::memory_order_release);
                 throw;
             }

@@ -165,12 +165,9 @@ private:
     {
         socket_.lowest_layer().async_connect(
             endpoints, [this](const boost::system::error_code &error) {
-                if (!error)
-                {
+                if (!error) {
                     handshake();
-                }
-                else
-                {
+                } else {
                     std::cout << "Connect failed: " << error.message() << "\n";
                 }
             });
@@ -180,12 +177,9 @@ private:
     {
         socket_.async_handshake(boost::asio::ssl::stream_base::client,
                                 [this](const boost::system::error_code &error) {
-                                    if (!error)
-                                    {
+                                    if (!error) {
                                         send_request();
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         std::cout << "Handshake failed: " << error.message()
                                                   << "\n";
                                     }
@@ -200,12 +194,9 @@ private:
                                  boost::asio::buffer(msg),
                                  [this](const boost::system::error_code &error,
                                         std::size_t length) {
-                                     if (!error)
-                                     {
+                                     if (!error) {
                                          receive_response(length);
-                                     }
-                                     else
-                                     {
+                                     } else {
                                          std::cout << "Write failed: " << error.message() << "\n";
                                      }
                                  });
@@ -234,16 +225,13 @@ private:
         boost::asio::async_read(socket_,
                                 boost::asio::buffer(reply_, length),
                                 [this](const boost::system::error_code &error, std::size_t length) {
-                                    if (!error)
-                                    {
+                                    if (!error) {
                                         std::cout << "Reply: ";
                                         std::cout.write(reply_, length);
                                         std::cout << "\n";
                                         ::Sleep(2000);
                                         send_request();
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         std::cout << "Read failed: " << error.message() << "\n";
                                     }
                                 });
@@ -263,12 +251,9 @@ static void DoAccept(boost::asio::ip::tcp::acceptor &server,
             DoAccept(server, error, std::move(socket));
         });
 
-    if (!error)
-    {
+    if (!error) {
         BOOST_LOG_TRIVIAL(info) << socket.remote_endpoint();
-    }
-    else
-    {
+    } else {
         BOOST_LOG_FUNC()
         BOOST_LOG_TRIVIAL(error) << error.message();
     }
@@ -287,8 +272,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
     shr::InitConsole();
     shr::log::InitLog();
 
-    try
-    {
+    try {
         boost::asio::io_context io_context;
 
         boost::asio::ssl::context context_(boost::asio::ssl::context::tlsv13);
@@ -309,9 +293,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
         client c(io_context, context_, addr);
 
         io_context.run();
-    }
-    catch (std::exception &e)
-    {
+    } catch (std::exception &e) {
         std::cerr << "Exception: " << e.what() << "\n";
     }
 

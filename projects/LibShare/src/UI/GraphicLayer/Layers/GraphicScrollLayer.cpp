@@ -22,11 +22,9 @@ void GraphicScrollLayer::SetVerticalScrollUnit(int32_t nUnit)
 
 int32_t GraphicScrollLayer::GetVerticalScrollUnit()
 {
-    if (m_bUseSysSetting || (m_nLinesSys == 0))
-    {
+    if (m_bUseSysSetting || (m_nLinesSys == 0)) {
         auto p = GetRootGraphicLayer();
-        if (p)
-        {
+        if (p) {
             return p->_GetSystemWheelSetting(true);
         }
     }
@@ -41,11 +39,9 @@ void GraphicScrollLayer::SetHorizontalScrollUnit(int32_t nUnit)
 
 int32_t GraphicScrollLayer::GetHorizontalScrollUnit()
 {
-    if (m_bUseSysSetting || (m_nCharsSys == 0))
-    {
+    if (m_bUseSysSetting || (m_nCharsSys == 0)) {
         auto p = GetRootGraphicLayer();
-        if (p)
-        {
+        if (p) {
             return p->_GetSystemWheelSetting(false);
         }
     }
@@ -58,10 +54,8 @@ bool GraphicScrollLayer::OnLayerMsgMouse(GraphicLayer *pLayer,
                                          LPARAM lParam,
                                          LRESULT &lResult)
 {
-    if (WM_MOUSEWHEEL == uMsg)
-    {
-        if (m_bUseSysSetting || (m_nLinesSys == 0))
-        {
+    if (WM_MOUSEWHEEL == uMsg) {
+        if (m_bUseSysSetting || (m_nLinesSys == 0)) {
             m_nLinesSys = GetRootGraphicLayer()->_GetSystemWheelSetting(true);
         }
         short zDelta = (short)HIWORD(wParam);
@@ -74,10 +68,8 @@ bool GraphicScrollLayer::OnLayerMsgMouse(GraphicLayer *pLayer,
         SchedulePaint();
     }
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    else if (WM_MOUSEHWHEEL == uMsg)
-    {
-        if (m_bUseSysSetting || (m_nCharsSys == 0))
-        {
+    else if (WM_MOUSEHWHEEL == uMsg) {
+        if (m_bUseSysSetting || (m_nCharsSys == 0)) {
             m_nCharsSys = GetRootGraphicLayer()->_GetSystemWheelSetting(false);
         }
 
@@ -90,8 +82,7 @@ bool GraphicScrollLayer::OnLayerMsgMouse(GraphicLayer *pLayer,
         SchedulePaint();
     }
 #endif
-    else
-    {
+    else {
         return __super::OnLayerMsgMouse(pLayer, uMsg, wParam, lParam, lResult);
     }
     return true;

@@ -56,8 +56,7 @@ class lockfree_queue
     {
         page()
         {
-            for (auto &item : m_flags)
-            {
+            for (auto &item : m_flags) {
                 item = false;
             }
         }
@@ -79,28 +78,23 @@ public:
     explicit lockfree_queue(const _Alloc &alloc = _Alloc{})
         : m_alloc(alloc)
     {
-        for (size_t i = 0; i < SUBLIST_COUNT; ++i)
-        {
+        for (size_t i = 0; i < SUBLIST_COUNT; ++i) {
             m_sublists[i].m_pTail = m_sublists[i].m_pHead = alloc_page();
         }
     }
 
     ~lockfree_queue()
     {
-        if (count() > 0)
-        {
+        if (count() > 0) {
             value_type tempData{};
-            while (try_pop(tempData))
-            {
+            while (try_pop(tempData)) {
                 ;
             }
         }
-        for (size_t i = 0; i < SUBLIST_COUNT; ++i)
-        {
+        for (size_t i = 0; i < SUBLIST_COUNT; ++i) {
             page *pCur = m_sublists[i].m_pHead;
             page *pNext = nullptr;
-            while (pCur->m_pNext)
-            {
+            while (pCur->m_pNext) {
                 pNext = pCur->m_pNext;
                 free_page(pCur);
                 pCur = pNext;
@@ -121,8 +115,7 @@ public:
         size_t nPageOffset = GET_PAGE_OFFSET(index);
 
         page *pCur = nullptr;
-        if (!nPageOffset)
-        {
+        if (!nPageOffset) {
             //页内第一个，预分配下一页
             pCur = alloc_page();
         }
@@ -130,25 +123,21 @@ public:
         //如果需要换页，等待前一页处理完
         size_t nSpinCount = 0;
         while ((curList.m_pushCount.load(std::memory_order::memory_order_acquire) &
-                PAGE_INDEX_MASK) != nPageIndex)
-        {
+                PAGE_INDEX_MASK) != nPageIndex) {
             yield(nSpinCount++);
         }
 
-        if (!nPageOffset)
-        {
+        if (!nPageOffset) {
             //预分配的页挂到链表上，但尾指针不变
             curList.m_pTail->m_pNext = pCur;
         }
         pCur = curList.m_pTail;
 
-        if (nPageOffset == ITEMS_PER_PAGE - 1)
-        {
+        if (nPageOffset == ITEMS_PER_PAGE - 1) {
             //只可能有一个线程执行到该分支，并且该线程是该页上最一个处理者，修改尾指针，换页
             nSpinCount = 0;
             while (curList.m_pushCount.load(std::memory_order::memory_order_acquire) !=
-                   (index & SUBLIST_INDEX_MASK))
-            {
+                   (index & SUBLIST_INDEX_MASK)) {
                 yield(nSpinCount++);
             }
             curList.m_pTail = curList.m_pTail->m_pNext;
@@ -163,10 +152,8 @@ public:
     bool try_pop(value_type &data)
     {
         size_t index = m_popIndex.load(std::memory_order::memory_order_acquire);
-        do
-        {
-            if (index == m_pushIndex.load(std::memory_order::memory_order_acquire))
-            {
+        do {
+            if (index == m_pushIndex.load(std::memory_order::memory_order_acquire)) {
                 return false;
             }
         } while (!m_popIndex.compare_exchange_weak(index, index + 1));
@@ -178,8 +165,7 @@ public:
         //如果需要换页，等待前一页处理完
         size_t nSpinCount = 0;
         while ((curList.m_popCount.load(std::memory_order::memory_order_acquire) &
-                PAGE_INDEX_MASK) != nPageIndex)
-        {
+                PAGE_INDEX_MASK) != nPageIndex) {
             yield(nSpinCount++);
         }
 
@@ -187,29 +173,24 @@ public:
         page *pCur = curList.m_pHead;
         //等待对应位置上的数据写入完毕
         nSpinCount = 0;
-        while (!pCur->m_flags[nPageOffset].load(std::memory_order::memory_order_acquire))
-        {
+        while (!pCur->m_flags[nPageOffset].load(std::memory_order::memory_order_acquire)) {
             yield(nSpinCount++);
         }
 
         data = std::move(*(value_type *)(pCur->m_pData + nPageOffset));
         ((value_type *)(pCur->m_pData + nPageOffset))->~value_type();
 
-        if (nPageOffset == ITEMS_PER_PAGE - 1)
-        {
+        if (nPageOffset == ITEMS_PER_PAGE - 1) {
             //最后一个处理者，换页，释放空闲页
             nSpinCount = 0;
             while (curList.m_popCount.load(std::memory_order::memory_order_acquire) !=
-                   (index & SUBLIST_INDEX_MASK))
-            {
+                   (index & SUBLIST_INDEX_MASK)) {
                 yield(nSpinCount++);
             }
             curList.m_pHead = curList.m_pHead->m_pNext;
             curList.m_popCount.fetch_add(SUBLIST_COUNT, std::memory_order::memory_order_release);
             free_page(pCur);
-        }
-        else
-        {
+        } else {
             curList.m_popCount.fetch_add(SUBLIST_COUNT, std::memory_order::memory_order_release);
         }
         return true;
@@ -233,8 +214,7 @@ private:
 
     static void yield(size_t k)
     {
-        if (k > 4)
-        {
+        if (k > 4) {
             std::this_thread::yield();
         }
     }

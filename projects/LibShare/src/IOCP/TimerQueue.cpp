@@ -11,12 +11,9 @@ TimerQueue::TimerQueue()
 
 TimerQueue::~TimerQueue()
 {
-    if (m_pTimerQueue)
-    {
-        for (auto &item : m_timers)
-        {
-            if (item.first)
-            {
+    if (m_pTimerQueue) {
+        for (auto &item : m_timers) {
+            if (item.first) {
                 ::DeleteTimerQueueTimer(m_pTimerQueue, item.first, INVALID_HANDLE_VALUE);
             }
         }
@@ -28,8 +25,7 @@ TimerQueue::~TimerQueue()
 
 bool TimerQueue::ChangTimer(HANDLE hTimer, DWORD DueTime, DWORD Period)
 {
-    if (m_pTimerQueue && CheckTimerHandle(hTimer))
-    {
+    if (m_pTimerQueue && CheckTimerHandle(hTimer)) {
         return !!::ChangeTimerQueueTimer(m_pTimerQueue, hTimer, DueTime, Period);
     }
     return false;
@@ -37,8 +33,7 @@ bool TimerQueue::ChangTimer(HANDLE hTimer, DWORD DueTime, DWORD Period)
 
 void TimerQueue::RemoveTimer(HANDLE hTimer)
 {
-    if (m_pTimerQueue && CheckTimerHandle(hTimer))
-    {
+    if (m_pTimerQueue && CheckTimerHandle(hTimer)) {
         ::DeleteTimerQueueTimer(m_pTimerQueue, hTimer, INVALID_HANDLE_VALUE);
         std::lock_guard<decltype(m_lock)> lock{m_lock};
         m_timers.erase(hTimer);

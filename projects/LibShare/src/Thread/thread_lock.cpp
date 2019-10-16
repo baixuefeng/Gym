@@ -17,17 +17,12 @@ static bool WaitCondition(TLock &lock,
                           int64_t nMilliseconds)
 {
     std::unique_lock<TLock> autoLock(lock);
-    if (nMilliseconds < 0)
-    {
+    if (nMilliseconds < 0) {
         conVar.wait(autoLock, std::forward<TPred>(pred));
         return true;
-    }
-    else if (nMilliseconds == 0)
-    {
+    } else if (nMilliseconds == 0) {
         return pred();
-    }
-    else
-    {
+    } else {
         return conVar.wait_for(
             autoLock, std::chrono::milliseconds(nMilliseconds), std::forward<TPred>(pred));
     }
@@ -43,15 +38,11 @@ EventLock::EventLock(bool bManualReset, bool bInitialState)
 void EventLock::SetEvent()
 {
     std::unique_lock<decltype(m_lock)> lock{m_lock};
-    if (!m_bActive)
-    {
+    if (!m_bActive) {
         m_bActive = true;
-        if (m_bManualReset)
-        {
+        if (m_bManualReset) {
             m_condition.notify_all();
-        }
-        else
-        {
+        } else {
             m_condition.notify_one();
         }
     }
@@ -66,13 +57,10 @@ void EventLock::ResetEvent()
 bool EventLock::Wait(int64_t nMilliseconds /*= -1*/)
 {
     auto &&pred = [this]() -> bool {
-        if (m_bActive && !m_bManualReset)
-        {
+        if (m_bActive && !m_bManualReset) {
             m_bActive = false;
             return true;
-        }
-        else
-        {
+        } else {
             return m_bActive;
         }
     };
@@ -87,13 +75,11 @@ Semaphore::Semaphore(size_t nInitCount)
 
 bool Semaphore::Acquire(size_t nCount, int64_t nMilliseconds /* = -1*/)
 {
-    if (nCount == 0)
-    {
+    if (nCount == 0) {
         return true;
     }
     auto &&pred = [nCount, this]() -> bool {
-        if (m_count >= nCount)
-        {
+        if (m_count >= nCount) {
             m_count -= nCount;
             return true;
         }
@@ -105,15 +91,11 @@ bool Semaphore::Acquire(size_t nCount, int64_t nMilliseconds /* = -1*/)
 size_t Semaphore::Release(size_t nCount, bool bNotifyAll /*= true*/)
 {
     std::unique_lock<decltype(m_lock)> autuLock{m_lock};
-    if (nCount > 0)
-    {
+    if (nCount > 0) {
         m_count += nCount;
-        if (bNotifyAll && (m_count > 1))
-        {
+        if (bNotifyAll && (m_count > 1)) {
             m_condition.notify_all();
-        }
-        else
-        {
+        } else {
             m_condition.notify_one();
         }
     }

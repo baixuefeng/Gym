@@ -200,15 +200,13 @@ struct CurlInfoTypeHelper<CURLINFO::CURLINFO_TLS_SSL_PTR>
 template<class Callable>
 bool CurlEasyHandle::SetHeaderCallback(Callable &&callableObj)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         using CallableType = std::decay<Callable>::type;
         m_spHeaderLambda = std::make_shared<CallableType>(std::move(callableObj));
         if (curl_easy_setopt(m_pEasyHandle,
                              CURLOPT_HEADERFUNCTION,
                              (header_callback)(&HeaderCallback<CallableType>)) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         return (curl_easy_setopt(m_pEasyHandle, CURLOPT_HEADERDATA, m_spHeaderLambda.get()) ==
@@ -220,15 +218,13 @@ bool CurlEasyHandle::SetHeaderCallback(Callable &&callableObj)
 template<class Callable>
 bool CurlEasyHandle::SetWriteCallback(Callable &&callableObj)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         using CallableType = std::decay<Callable>::type;
         m_spWriteLambda = std::make_shared<CallableType>(std::move(callableObj));
         if (curl_easy_setopt(m_pEasyHandle,
                              CURLOPT_WRITEFUNCTION,
                              (curl_write_callback)(&WriteCallback<CallableType>)) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         return (curl_easy_setopt(m_pEasyHandle, CURLOPT_WRITEDATA, m_spWriteLambda.get()) ==
@@ -240,15 +236,13 @@ bool CurlEasyHandle::SetWriteCallback(Callable &&callableObj)
 template<class Callable>
 bool CurlEasyHandle::SetReadCallback(Callable &&callableObj)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         using CallableType = std::decay<Callable>::type;
         m_spReadLambda = std::make_shared<CallableType>(std::move(callableObj));
         if (curl_easy_setopt(m_pEasyHandle,
                              CURLOPT_READFUNCTION,
                              (curl_read_callback)(&ReadCallback<CallableType>)) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         return (curl_easy_setopt(m_pEasyHandle, CURLOPT_READDATA, m_spReadLambda.get()) ==
@@ -260,26 +254,22 @@ bool CurlEasyHandle::SetReadCallback(Callable &&callableObj)
 template<class Callable>
 bool CurlEasyHandle::SetProgressCallback(Callable &&callableObj)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         using CallableType = std::decay<Callable>::type;
         m_spProgressLambda = std::make_shared<CallableType>(std::move(callableObj));
         if (curl_easy_setopt(m_pEasyHandle,
                              CURLOPT_XFERINFOFUNCTION,
                              (curl_xferinfo_callback)(&ProgressCallback<CallableType>)) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         if (curl_easy_setopt(m_pEasyHandle, CURLOPT_XFERINFODATA, m_spProgressLambda.get()) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         m_errCode = curl_easy_setopt(m_pEasyHandle, CURLOPT_NOPROGRESS, 0);
         assert(m_errCode == CURLcode::CURLE_OK);
-        if (m_errCode != CURLcode::CURLE_OK)
-        {
+        if (m_errCode != CURLcode::CURLE_OK) {
             return false;
         }
         return true;
@@ -290,20 +280,17 @@ bool CurlEasyHandle::SetProgressCallback(Callable &&callableObj)
 template<class Callable>
 bool CurlEasyHandle::SetDebugCallback(Callable &&callableObj)
 {
-    if (m_pEasyHandle)
-    {
+    if (m_pEasyHandle) {
         using CallableType = std::decay<Callable>::type;
         m_spDebugLambda = std::make_shared<CallableType>(std::move(callableObj));
         if (curl_easy_setopt(m_pEasyHandle,
                              CURLOPT_DEBUGFUNCTION,
                              (curl_debug_callback)(&DebugCallback<CallableType>)) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         if (curl_easy_setopt(m_pEasyHandle, CURLOPT_DEBUGDATA, m_spDebugLambda.get()) !=
-            CURLcode::CURLE_OK)
-        {
+            CURLcode::CURLE_OK) {
             return false;
         }
         return (curl_easy_setopt(m_pEasyHandle, CURLOPT_VERBOSE, 1) == CURLcode::CURLE_OK);
@@ -346,12 +333,9 @@ int CurlEasyHandle::ProgressCallback(void *clientp,
     Returning a non-zero value from this callback will cause 
     libcurl to abort the transfer and return CURLE_ABORTED_BY_CALLBACK.
      */
-    if (dltotal > 0 || ultotal > 0)
-    {
+    if (dltotal > 0 || ultotal > 0) {
         return !(*pFunc)(dltotal, dlnow, ultotal, ulnow);
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }

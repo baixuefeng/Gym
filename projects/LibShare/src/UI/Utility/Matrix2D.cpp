@@ -106,8 +106,7 @@ float Matrix2D::Determinant() const
 bool Matrix2D::Invert()
 {
     float determinant = Determinant();
-    if (std::abs(determinant) <= FLT_EPSILON)
-    {
+    if (std::abs(determinant) <= FLT_EPSILON) {
         return false;
     }
     float reciprocal = 1.0f / determinant;
@@ -130,21 +129,14 @@ bool Matrix2D::IsInvertible() const
 
 bool Matrix2D::IsIdentity() const
 {
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 2; ++j)
-        {
-            if (i == j)
-            {
-                if (std::abs(m_data[i][j] - 1.0f) > FLT_EPSILON)
-                {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            if (i == j) {
+                if (std::abs(m_data[i][j] - 1.0f) > FLT_EPSILON) {
                     return false;
                 }
-            }
-            else
-            {
-                if (std::abs(m_data[i][j]) > FLT_EPSILON)
-                {
+            } else {
+                if (std::abs(m_data[i][j]) > FLT_EPSILON) {
                     return false;
                 }
             }
@@ -168,17 +160,14 @@ void Matrix2D::Multiply(const Matrix2D &mx, bool prepend /* = true*/)
     const float SrcB11 = mx.m_data[1][1];
     const float SrcB20 = mx.m_data[2][0];
     const float SrcB21 = mx.m_data[2][1];
-    if (prepend)
-    {
+    if (prepend) {
         m_data[0][0] = SrcA00 * SrcB00 + SrcA10 * SrcB01;
         m_data[0][1] = SrcA01 * SrcB00 + SrcA11 * SrcB01;
         m_data[1][0] = SrcA00 * SrcB10 + SrcA10 * SrcB11;
         m_data[1][1] = SrcA01 * SrcB10 + SrcA11 * SrcB11;
         m_data[2][0] = SrcA00 * SrcB20 + SrcA10 * SrcB21 + SrcA20;
         m_data[2][1] = SrcA01 * SrcB20 + SrcA11 * SrcB21 + SrcA21;
-    }
-    else
-    {
+    } else {
         m_data[0][0] = SrcB00 * SrcA00 + SrcB10 * SrcA01;
         m_data[0][1] = SrcB01 * SrcA00 + SrcB11 * SrcA01;
         m_data[1][0] = SrcB00 * SrcA10 + SrcB10 * SrcA11;
@@ -213,8 +202,7 @@ Matrix2D &Matrix2D::operator/=(const Matrix2D &mx)
     Matrix2D mx1 = mx;
     bool bInvertible = mx1.Invert();
     assert(bInvertible);
-    if (bInvertible)
-    {
+    if (bInvertible) {
         Multiply(mx1, false);
     }
     return *this;
@@ -293,8 +281,7 @@ void Matrix2D::ShearAt(float shearX, float shearY, float fixX, float fixY, bool 
 void Matrix2D::TransformPoints(POINT *pPt, unsigned nCount) const
 {
     long x = 0, y = 0;
-    for (unsigned i = 0; i < nCount; ++i)
-    {
+    for (unsigned i = 0; i < nCount; ++i) {
         x = pPt[i].x;
         y = pPt[i].y;
         pPt[i].x = (long)std::round(x * m_data[0][0] + y * m_data[1][0] + m_data[2][0]);

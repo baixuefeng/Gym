@@ -25,8 +25,7 @@ void GestureRecognize::Clear()
 
 void GestureRecognize::SetRecognizeSensitivity(int nSensityvity)
 {
-    if (nSensityvity > 1)
-    {
+    if (nSensityvity > 1) {
         m_iSensitivity = nSensityvity;
     }
 }
@@ -39,36 +38,26 @@ void GestureRecognize::BeginParse(const POINT &beginPoint)
 
 GestureRecognize::Direction GestureRecognize::ParseDirection(const POINT &point)
 {
-    if (m_lastPoint.x == 0 && m_lastPoint.y == 0)
-    {
+    if (m_lastPoint.x == 0 && m_lastPoint.y == 0) {
         return Direction::UNRECOGNIZABLE;
     }
     //计算增量方向，只计算增量最大的方向，其他的都过滤掉
     Direction incrementDirection = Direction::UNRECOGNIZABLE;
     int iDx = point.x - m_lastPoint.x;
     int iDy = point.y - m_lastPoint.y;
-    if (std::abs(iDx) > std::abs(iDy))
-    {
-        if (iDx < 0)
-        {
+    if (std::abs(iDx) > std::abs(iDy)) {
+        if (iDx < 0) {
             incrementDirection = Direction::X_NEGATIVE;
             m_iDirectIncrement[Direction::X_NEGATIVE] += -iDx;
-        }
-        else
-        {
+        } else {
             incrementDirection = Direction::X_POSITIVE;
             m_iDirectIncrement[Direction::X_POSITIVE] += iDx;
         }
-    }
-    else
-    {
-        if (iDy < 0)
-        {
+    } else {
+        if (iDy < 0) {
             incrementDirection = Direction::Y_NEGATIVE;
             m_iDirectIncrement[Direction::Y_NEGATIVE] += -iDy;
-        }
-        else
-        {
+        } else {
             incrementDirection = Direction::Y_POSITIVE;
             m_iDirectIncrement[Direction::Y_POSITIVE] += iDy;
         }
@@ -77,12 +66,9 @@ GestureRecognize::Direction GestureRecognize::ParseDirection(const POINT &point)
 
     Direction result = ParseHistory(incrementDirection);
 
-    if (result >= 0 && result != m_lastDirect)
-    {
+    if (result >= 0 && result != m_lastDirect) {
         m_bDirectionChanged = true;
-    }
-    else
-    {
+    } else {
         m_bDirectionChanged = false;
     }
     m_lastDirect = result;
@@ -92,25 +78,18 @@ GestureRecognize::Direction GestureRecognize::ParseDirection(const POINT &point)
 
 GestureRecognize::Direction GestureRecognize::ParseHistory(Direction curDirect)
 {
-    if (m_iDirectIncrement[curDirect] > m_iSensitivity)
-    {
+    if (m_iDirectIncrement[curDirect] > m_iSensitivity) {
         //该方向上的增量已经超过识别灵敏度，方向改变，清空其它方向上的增量
-        for (int i = 0; i < 4; ++i)
-        {
-            if (i != curDirect)
-            {
+        for (int i = 0; i < 4; ++i) {
+            if (i != curDirect) {
                 m_iDirectIncrement[i] = 0;
             }
         }
         return curDirect;
-    }
-    else
-    {
+    } else {
         //该方向上的增量还不够，维持原来的方向
-        for (int i = 0; i < 4; ++i)
-        {
-            if (m_iDirectIncrement[i] > m_iSensitivity)
-            {
+        for (int i = 0; i < 4; ++i) {
+            if (m_iDirectIncrement[i] > m_iSensitivity) {
                 return Direction(i);
             }
         }

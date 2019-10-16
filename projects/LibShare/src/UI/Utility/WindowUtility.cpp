@@ -35,8 +35,7 @@ bool InitCmnCtrls()
     commonCtrls.dwICC = ICC_WIN95_CLASSES | ICC_DATE_CLASSES | ICC_USEREX_CLASSES |
                         ICC_COOL_CLASSES | ICC_INTERNET_CLASSES | ICC_PAGESCROLLER_CLASS |
                         ICC_NATIVEFNTCTL_CLASS | ICC_STANDARD_CLASSES | ICC_LINK_CLASS;
-    if (!::InitCommonControlsEx(&commonCtrls))
-    {
+    if (!::InitCommonControlsEx(&commonCtrls)) {
         return false;
     }
     return true;
@@ -62,19 +61,16 @@ using TGetDpiFunc = HRESULT(__stdcall)(HANDLE hprocess, PROCESS_DPI_AWARENESS *v
 
 bool SetDpiAwareness(DpiAwarenessType type)
 {
-    if (type == DpiAwarenessType::ERROR_VALUE)
-    {
+    if (type == DpiAwarenessType::ERROR_VALUE) {
         return false;
     }
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    try
-    {
+    try {
         auto libFunc = boost::dll::import<TSetDpiFunc>(
             L"Shcore.dll", "SetProcessDpiAwareness", boost::dll::load_mode::search_system_folders);
         return SUCCEEDED(libFunc(static_cast<PROCESS_DPI_AWARENESS>(static_cast<int>(type))));
+    } catch (...) {
     }
-    catch (...)
-    {}
 #endif
     return false;
 }
@@ -82,18 +78,15 @@ bool SetDpiAwareness(DpiAwarenessType type)
 DpiAwarenessType GetDpiAwareness()
 {
 #if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
-    try
-    {
+    try {
         auto libFunc = boost::dll::import<TGetDpiFunc>(
             L"Shcore.dll", "GetProcessDpiAwareness", boost::dll::load_mode::search_system_folders);
         PROCESS_DPI_AWARENESS dpi{};
-        if (SUCCEEDED(libFunc(::GetCurrentProcess(), &dpi)))
-        {
+        if (SUCCEEDED(libFunc(::GetCurrentProcess(), &dpi))) {
             return static_cast<DpiAwarenessType>(static_cast<int>(dpi));
         }
+    } catch (...) {
     }
-    catch (...)
-    {}
 #endif
     return DpiAwarenessType::ERROR_VALUE;
 }
@@ -101,11 +94,9 @@ DpiAwarenessType GetDpiAwareness()
 uint32_t GetSystemDPIValue()
 {
     ATL::CRegKey reg;
-    if (ERROR_SUCCESS == reg.Open(HKEY_CURRENT_USER, LR"(Control Panel\Desktop\WindowMetrics)"))
-    {
+    if (ERROR_SUCCESS == reg.Open(HKEY_CURRENT_USER, LR"(Control Panel\Desktop\WindowMetrics)")) {
         DWORD value = 0;
-        if (ERROR_SUCCESS == reg.QueryDWORDValue(L"AppliedDPI", value))
-        {
+        if (ERROR_SUCCESS == reg.QueryDWORDValue(L"AppliedDPI", value)) {
             return value;
         }
     }
@@ -138,8 +129,7 @@ bool BorderlessWindowHandler::IsFullScreen()
 
 void BorderlessWindowHandler::RestoreFromFullScreen()
 {
-    if (IsFullScreen() && !m_rcRestoreFullScreen.IsRectEmpty())
-    {
+    if (IsFullScreen() && !m_rcRestoreFullScreen.IsRectEmpty()) {
         m_curMsgWindow.SetWindowPos(HWND_NOTOPMOST, &m_rcRestoreFullScreen, 0);
         m_rcRestoreFullScreen.SetRectEmpty();
     }
@@ -170,11 +160,9 @@ LRESULT BorderlessWindowHandler::OnBorderlessNcCalcSize(BOOL bCalcValidRects, LP
       的屏幕工作区大小.体现在代码中有3处:(1)OnSize中对size修正,调整控件响应区域,
       (2)绘制前画布大小进行修正;(3)UpdateLayeredWindow时,绘制区域修正.
     */
-    if (bCalcValidRects)
-    {
+    if (bCalcValidRects) {
         if (m_curMsgWindow.IsZoomed() && !(m_curMsgWindow.GetWindowLongPtr(GWL_STYLE) & WS_CHILD) &&
-            !(m_curMsgWindow.GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_LAYERED))
-        {
+            !(m_curMsgWindow.GetWindowLongPtr(GWL_EXSTYLE) & WS_EX_LAYERED)) {
             //客户区大小修正
             ((LPNCCALCSIZE_PARAMS)lParam)->rgrc[0] = GetZoomedRect(m_curMsgWindow);
         }
@@ -201,27 +189,21 @@ void BorderlessWindowHandler::OnBorderlessNcPaint(WTL::CRgnHandle /*rgn*/)
 
 void BorderlessWindowHandler::OnBorderlessSize(UINT nType, CSize /*size*/)
 {
-    if (nType != SIZE_MINIMIZED)
-    {
+    if (nType != SIZE_MINIMIZED) {
         CRect rcRgn;
         m_curMsgWindow.GetWindowRect(&rcRgn);
-        if (nType == SIZE_MAXIMIZED)
-        {
+        if (nType == SIZE_MAXIMIZED) {
             //最大化时可能会有边框在窗口客户区外面, 因此计算屏幕工作区大小, 把边框部分排除在外
             CRect rcMaximized = GetZoomedRect(m_curMsgWindow, false);
             rcMaximized.MoveToXY(0, 0);
-            if (rcRgn.left < 0)
-            {
+            if (rcRgn.left < 0) {
                 rcMaximized.MoveToX(-rcRgn.left);
             }
-            if (rcRgn.top < 0)
-            {
+            if (rcRgn.top < 0) {
                 rcMaximized.MoveToY(-rcRgn.top);
             }
             rcRgn = rcMaximized;
-        }
-        else
-        {
+        } else {
             rcRgn.MoveToXY(0, 0);
         }
 
@@ -248,8 +230,7 @@ LRESULT BorderlessWindowHandler::OnBorderlessNcHitTest(CPoint point)
 {
     //该消息用来实现"拖拉改变窗口大小"的功能
     if (!m_bEnableDragChangeSize || m_rcDragRegin.IsRectNull() || m_curMsgWindow.IsZoomed() ||
-        IsFullScreen())
-    {
+        IsFullScreen()) {
         SetMsgHandled(FALSE);
         return 0;
     }
@@ -257,51 +238,34 @@ LRESULT BorderlessWindowHandler::OnBorderlessNcHitTest(CPoint point)
     CRect rct;
     m_curMsgWindow.GetWindowRect(&rct);
     point.Offset(-rct.left, -rct.top);
-    if (point.x >= 0 && point.x < m_rcDragRegin.left)
-    {
-        if (point.y >= 0 && point.y < m_rcDragRegin.top)
-        {
+    if (point.x >= 0 && point.x < m_rcDragRegin.left) {
+        if (point.y >= 0 && point.y < m_rcDragRegin.top) {
             //左上
             return HTTOPLEFT;
-        }
-        else if (point.y >= m_rcDragRegin.top && point.y < (rct.Height() - m_rcDragRegin.bottom))
-        {
+        } else if (point.y >= m_rcDragRegin.top &&
+                   point.y < (rct.Height() - m_rcDragRegin.bottom)) {
             //左
             return HTLEFT;
-        }
-        else if ((point.y >= (rct.Height() - m_rcDragRegin.bottom)) && point.y < rct.Height())
-        {
+        } else if ((point.y >= (rct.Height() - m_rcDragRegin.bottom)) && point.y < rct.Height()) {
             //左下
             return HTBOTTOMLEFT;
         }
-    }
-    else if (point.x >= (rct.Width() - m_rcDragRegin.right) && point.x < rct.Width())
-    {
-        if (point.y >= 0 && point.y < m_rcDragRegin.top)
-        {
+    } else if (point.x >= (rct.Width() - m_rcDragRegin.right) && point.x < rct.Width()) {
+        if (point.y >= 0 && point.y < m_rcDragRegin.top) {
             //右上
             return HTTOPRIGHT;
-        }
-        else if (point.y >= m_rcDragRegin.top && point.y < rct.Height() - m_rcDragRegin.bottom)
-        {
+        } else if (point.y >= m_rcDragRegin.top && point.y < rct.Height() - m_rcDragRegin.bottom) {
             //右
             return HTRIGHT;
-        }
-        else if ((point.y >= (rct.Height() - m_rcDragRegin.bottom)) && point.y < rct.Height())
-        {
+        } else if ((point.y >= (rct.Height() - m_rcDragRegin.bottom)) && point.y < rct.Height()) {
             //右下
             return HTBOTTOMRIGHT;
         }
-    }
-    else
-    {
-        if (point.y >= 0 && point.y < m_rcDragRegin.top)
-        {
+    } else {
+        if (point.y >= 0 && point.y < m_rcDragRegin.top) {
             //上
             return HTTOP;
-        }
-        else if (point.y >= (rct.Height() - m_rcDragRegin.bottom) && point.y < rct.Height())
-        {
+        } else if (point.y >= (rct.Height() - m_rcDragRegin.bottom) && point.y < rct.Height()) {
             //下
             return HTBOTTOM;
         }
@@ -312,16 +276,12 @@ LRESULT BorderlessWindowHandler::OnBorderlessNcHitTest(CPoint point)
 
 CRect BorderlessWindowHandler::GetBorderlessDrawRect(HWND hWnd)
 {
-    if (!::IsWindow(hWnd))
-    {
+    if (!::IsWindow(hWnd)) {
         return CRect();
     }
-    if (::IsZoomed(hWnd))
-    {
+    if (::IsZoomed(hWnd)) {
         return GetZoomedRect(hWnd, false);
-    }
-    else
-    {
+    } else {
         CRect rcWindow;
         ::GetWindowRect(hWnd, &rcWindow);
         return rcWindow;
@@ -337,12 +297,9 @@ CRect BorderlessWindowHandler::GetZoomedRect(HWND hWnd, bool bFullScreen /*= fal
     BOOL isOk = ::GetMonitorInfo(hMonitor, &mInfo);
     assert(isOk);
     UNREFERENCED_PARAMETER(isOk);
-    if (bFullScreen)
-    {
+    if (bFullScreen) {
         return mInfo.rcMonitor;
-    }
-    else
-    {
+    } else {
         return mInfo.rcWork;
     }
 }
@@ -353,14 +310,10 @@ MinRestoreHandler::MinRestoreHandler() {}
 
 void MinRestoreHandler::OnMinRestoreWindowPosChanged(LPWINDOWPOS lpWndPos)
 {
-    if (m_curMsgWindow.IsWindow() && (lpWndPos->flags & SWP_NOCOPYBITS))
-    {
-        if (m_curMsgWindow.IsIconic())
-        {
+    if (m_curMsgWindow.IsWindow() && (lpWndPos->flags & SWP_NOCOPYBITS)) {
+        if (m_curMsgWindow.IsIconic()) {
             OnMinimized(lpWndPos);
-        }
-        else
-        {
+        } else {
             OnRestore(lpWndPos);
         }
     }
@@ -378,12 +331,10 @@ LRESULT DragFrameHandler::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam)
         (wParam == (SC_SIZE | WMSZ_RIGHT)) || (wParam == (SC_SIZE | WMSZ_BOTTOM)) ||
         (wParam == (SC_SIZE | WMSZ_TOPLEFT)) || (wParam == (SC_SIZE | WMSZ_TOPRIGHT)) ||
         (wParam == (SC_SIZE | WMSZ_BOTTOMLEFT)) || (wParam == (SC_SIZE | WMSZ_BOTTOMRIGHT)) ||
-        (wParam == (SC_MOVE | HTCAPTION)))
-    {
+        (wParam == (SC_MOVE | HTCAPTION))) {
         BOOL bDragFullWindow = FALSE;
         ::SystemParametersInfo(SPI_GETDRAGFULLWINDOWS, 0, &bDragFullWindow, 0);
-        if (bDragFullWindow)
-        {
+        if (bDragFullWindow) {
             ::SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, FALSE, NULL, 0);
             auto res = ::DefWindowProc(m_curMsgWindow, uMsg, wParam, lParam);
             ::SystemParametersInfo(SPI_SETDRAGFULLWINDOWS, TRUE, NULL, 0);

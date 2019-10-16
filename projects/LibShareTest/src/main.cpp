@@ -68,8 +68,7 @@ void test1()
         //boost::iostreams::close(fos); //flush. decompressedString中出现解压后的数据
     }
 
-    if (OriginalString == decompressedString)
-    {
+    if (OriginalString == decompressedString) {
         std::cout << "test1() OK" << std::endl;
     }
 }
@@ -100,8 +99,7 @@ void test2()
         fos << std::flush; //compressedString出现压缩后的数据
     }
 
-    if (OriginalString == decompressedString)
-    {
+    if (OriginalString == decompressedString) {
         std::cout << "test2() OK" << std::endl;
     }
 }

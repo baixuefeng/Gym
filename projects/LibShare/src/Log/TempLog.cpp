@@ -20,16 +20,13 @@ void InitConsole()
 
         ~AutoCloseFile()
         {
-            if (m_pConsoleOut)
-            {
+            if (m_pConsoleOut) {
                 std::fclose(m_pConsoleOut);
             }
-            if (m_pConsoleErr)
-            {
+            if (m_pConsoleErr) {
                 std::fclose(m_pConsoleErr);
             }
-            if (m_pConsoleIn)
-            {
+            if (m_pConsoleIn) {
                 std::fclose(m_pConsoleIn);
             }
             ::FreeConsole();
@@ -53,8 +50,7 @@ static ATL::CWin32Heap &GetGlobalMsgHeap()
 {
     static ATL::CWin32Heap *s_pMsgHeap = NULL;
     static std::once_flag s_msgHeapOnceFlag;
-    if (!s_pMsgHeap)
-    {
+    if (!s_pMsgHeap) {
         std::call_once(s_msgHeapOnceFlag, []() {
             static ATL::CWin32Heap s_msgHeap(0, 0);
             s_pMsgHeap = &s_msgHeap;
@@ -68,14 +64,12 @@ static ATL::CWin32Heap &GetGlobalMsgHeap()
 ConsoleSafeOstream::ConsoleSafeOstream(bool bTime, int nLine)
     : std::wostream(&m_buf)
 {
-    if (!::GetStdHandle(STD_OUTPUT_HANDLE))
-    {
+    if (!::GetStdHandle(STD_OUTPUT_HANDLE)) {
         return;
     }
     size_t nCount = MAX_BUFFER_SIZE;
     wchar_t *pBuffer = (wchar_t *)GetGlobalMsgHeap().Allocate(nCount * sizeof(wchar_t));
-    if (pBuffer == NULL)
-    {
+    if (pBuffer == NULL) {
         assert(0);
         return;
     }
@@ -95,8 +89,7 @@ ConsoleSafeOstream::ConsoleSafeOstream(bool bTime, int nLine)
         //    imbue(*s_pLocal);
         //}
     }
-    if (bTime)
-    {
+    if (bTime) {
         //用<<输出time_of_day速度较慢
         auto &&timeOfDay = boost::posix_time::microsec_clock::local_time().time_of_day();
         Printf(L"[%02I64d:%02I64d:%02I64d.%06I64d]",
@@ -105,16 +98,14 @@ ConsoleSafeOstream::ConsoleSafeOstream(bool bTime, int nLine)
                timeOfDay.seconds(),
                timeOfDay.fractional_seconds());
     }
-    if (nLine > 0)
-    {
+    if (nLine > 0) {
         Printf(L"[Tid-%u][L-%u]", ::GetCurrentThreadId(), nLine);
     }
 }
 
 ConsoleSafeOstream::~ConsoleSafeOstream()
 {
-    if (m_buf.get_buffer())
-    {
+    if (m_buf.get_buffer()) {
         ::WriteConsoleW(::GetStdHandle(STD_OUTPUT_HANDLE),
                         m_buf.get_buffer(),
                         (DWORD)(tellp()),
@@ -126,8 +117,7 @@ ConsoleSafeOstream::~ConsoleSafeOstream()
 
 ConsoleSafeOstream &ConsoleSafeOstream::Printf(const wchar_t *pFmt, ...)
 {
-    if (m_buf.get_buffer() && (m_buf.get_buffer_size() > tellp()))
-    {
+    if (m_buf.get_buffer() && (m_buf.get_buffer_size() > tellp())) {
         va_list vaParam;
         va_start(vaParam, pFmt);
         wchar_t *pEnd = nullptr;

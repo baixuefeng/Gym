@@ -36,8 +36,7 @@ private:
         auto self(shared_from_this());
         socket_.async_handshake(boost::asio::ssl::stream_base::server,
                                 [this, self](const boost::system::error_code &error) {
-                                    if (!error)
-                                    {
+                                    if (!error) {
                                         do_read();
                                     }
                                 });
@@ -49,8 +48,7 @@ private:
         socket_.async_read_some(boost::asio::buffer(data_),
                                 [this, self](const boost::system::error_code &ec,
                                              std::size_t length) {
-                                    if (!ec)
-                                    {
+                                    if (!ec) {
                                         do_write(length);
                                     }
                                 });
@@ -64,8 +62,7 @@ private:
                                  boost::asio::buffer(TestSSL, sizeof(TestSSL) - 1),
                                  [this, self](const boost::system::error_code &ec,
                                               std::size_t /*length*/) {
-                                     if (!ec)
-                                     {
+                                     if (!ec) {
                                          do_read();
                                      }
                                  });
@@ -106,8 +103,7 @@ private:
     void do_accept()
     {
         acceptor_.async_accept([this](const boost::system::error_code &error, tcp::socket socket) {
-            if (!error)
-            {
+            if (!error) {
                 std::make_shared<session>(std::move(socket), context_)->start();
             }
 
@@ -122,16 +118,13 @@ private:
 int main(int argc, char *argv[])
 {
     boost::ignore_unused(argc, argv);
-    try
-    {
+    try {
         boost::asio::io_context io_context;
 
         server s(io_context, 1514);
 
         io_context.run();
-    }
-    catch (std::exception &e)
-    {
+    } catch (std::exception &e) {
         std::cerr << "Exception: " << e.what() << "\n";
     }
 

@@ -27,8 +27,7 @@ public:
     template<typename TimerCallback>
     HANDLE AddTimer(DWORD DueTime, DWORD Period, TimerCallback &&call)
     {
-        if (!m_pTimerQueue)
-        {
+        if (!m_pTimerQueue) {
             return nullptr;
         }
         HANDLE hTimer = nullptr;
@@ -41,8 +40,7 @@ public:
                                     DueTime,
                                     Period,
                                     WT_EXECUTEDEFAULT) &&
-            hTimer)
-        {
+            hTimer) {
             std::lock_guard<decltype(m_lock)> lock{m_lock};
             m_timers[hTimer] = std::move(spCallback);
         }
@@ -64,8 +62,7 @@ private:
     static void CALLBACK TimerQueueTimerCallback(PVOID lpParameter, BOOLEAN /*TimerOrWaitFired*/)
     {
         TimerCallback *pCall = (TimerCallback *)lpParameter;
-        if (pCall)
-        {
+        if (pCall) {
             (*pCall)();
         }
     }

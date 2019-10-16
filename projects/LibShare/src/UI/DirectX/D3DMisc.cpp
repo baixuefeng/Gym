@@ -10,18 +10,15 @@ bool GetVideoAdapterDescription(std::vector<DXGI_ADAPTER_DESC> &adapters)
     ATL::CComPtr<IDXGIFactory> spDxgiFactory;
     HRESULT hr = ::CreateDXGIFactory(__uuidof(IDXGIFactory), (void **)&spDxgiFactory);
     UINT i = 0;
-    while (SUCCEEDED(hr))
-    {
+    while (SUCCEEDED(hr)) {
         ATL::CComPtr<IDXGIAdapter> spAdapter;
         hr = spDxgiFactory->EnumAdapters(i++, &spAdapter);
-        if (FAILED(hr) && (hr == DXGI_ERROR_NOT_FOUND))
-        {
+        if (FAILED(hr) && (hr == DXGI_ERROR_NOT_FOUND)) {
             return true;
         }
         DXGI_ADAPTER_DESC adapter{};
         hr = spAdapter->GetDesc(&adapter);
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             return false;
         }
         adapters.push_back(adapter);

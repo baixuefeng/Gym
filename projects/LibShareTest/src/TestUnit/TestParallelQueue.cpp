@@ -17,8 +17,7 @@ void TestParallelQueue::BeforeTest()
 
     tcout << "输入测试线程对数:";
     std::cin >> m_nThreadCount;
-    if (m_testCount == 0 || m_nThreadCount == 0)
-    {
+    if (m_testCount == 0 || m_nThreadCount == 0) {
         return;
     }
 
@@ -39,8 +38,7 @@ void TestParallelQueue::Test()
 
     std::vector<HANDLE> threads;
     threads.assign(m_nThreadCount * 2, NULL);
-    for (DWORD i = 0; i < m_nThreadCount; ++i)
-    {
+    for (DWORD i = 0; i < m_nThreadCount; ++i) {
         threads[i * 2] = (HANDLE)::_beginthreadex(0, 0, PushThread, this, 0, 0);
         threads[i * 2 + 1] = (HANDLE)::_beginthreadex(0, 0, PopThread, this, 0, 0);
     }
@@ -50,8 +48,7 @@ void TestParallelQueue::Test()
     ::WaitForMultipleObjects(m_nThreadCount * 2, &threads[0], TRUE, INFINITE);
     timer.stop();
     timer.report();
-    for (auto h : threads)
-    {
+    for (auto h : threads) {
         ::CloseHandle(h);
     }
 
@@ -72,8 +69,7 @@ void TestParallelQueue::TestMsgQueue()
     ::WaitForMultipleObjects(m_nThreadCount * 2, &threads[0], TRUE, INFINITE);
     timer.stop();
     timer.report();
-    for (auto h : threads)
-    {
+    for (auto h : threads) {
         ::CloseHandle(h);
     }
 
@@ -86,8 +82,7 @@ unsigned __stdcall TestParallelQueue::PushThread(void *pVoid)
     ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
 
     MSG msg{};
-    for (size_t i = 0; i < pThis->m_testCount; ++i)
-    {
+    for (size_t i = 0; i < pThis->m_testCount; ++i) {
         pThis->m_queue.push(msg);
     }
     return 0;
@@ -98,10 +93,8 @@ unsigned __stdcall TestParallelQueue::PopThread(void *pVoid)
     TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
     ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
     MSG msg{};
-    for (size_t i = 0; i < pThis->m_testCount; ++i)
-    {
-        while (!pThis->m_queue.try_pop(msg))
-        {
+    for (size_t i = 0; i < pThis->m_testCount; ++i) {
+        while (!pThis->m_queue.try_pop(msg)) {
         }
     }
     return 0;
@@ -111,10 +104,8 @@ unsigned __stdcall TestParallelQueue::MsgQueuePushThread(void *pVoid)
 {
     TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
     ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
-    for (size_t i = 0; i < pThis->m_testCount; ++i)
-    {
-        while (!::PostThreadMessage(pThis->m_threadid, WM_USER + 1, 1, 2))
-        {
+    for (size_t i = 0; i < pThis->m_testCount; ++i) {
+        while (!::PostThreadMessage(pThis->m_threadid, WM_USER + 1, 1, 2)) {
         }
     }
     return 0;
@@ -125,10 +116,8 @@ unsigned __stdcall TestParallelQueue::MsgQueuePopThread(void *pVoid)
     TestParallelQueue *pThis = (TestParallelQueue *)pVoid;
     ::WaitForSingleObject(pThis->m_hEvent, INFINITE);
     MSG msg{};
-    for (size_t i = 0; i < pThis->m_testCount; ++i)
-    {
-        while (!::PeekMessage(&msg, (HWND)-1, 0, 0, PM_REMOVE))
-        {
+    for (size_t i = 0; i < pThis->m_testCount; ++i) {
+        while (!::PeekMessage(&msg, (HWND)-1, 0, 0, PM_REMOVE)) {
         }
     }
     return 0;

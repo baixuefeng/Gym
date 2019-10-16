@@ -58,16 +58,13 @@ uint64_t FileMappingHelper::GetReadPos()
 
 bool FileMappingHelper::WriteBytes(const void *pBits, size_t nBytes)
 {
-    if (!pBits || !nBytes)
-    {
+    if (!pBits || !nBytes) {
         return true;
     }
-    if (m_writedSize + nBytes > m_fileSize)
-    {
+    if (m_writedSize + nBytes > m_fileSize) {
         return false;
     }
-    try
-    {
+    try {
         m_spMappedRegion.reset();
         boost::interprocess::mapped_region region{*m_spFileMapping,
                                                   boost::interprocess::mode_t::read_write,
@@ -76,9 +73,7 @@ bool FileMappingHelper::WriteBytes(const void *pBits, size_t nBytes)
         std::memcpy(region.get_address(), pBits, nBytes);
         m_writedSize += nBytes;
         return true;
-    }
-    catch (const std::exception &)
-    {
+    } catch (const std::exception &) {
         assert(!"WriteBytes Failed");
         return false;
     }
@@ -86,17 +81,14 @@ bool FileMappingHelper::WriteBytes(const void *pBits, size_t nBytes)
 
 size_t FileMappingHelper::ReadBytes(void *pBuffer, size_t bufferSize)
 {
-    if (!pBuffer || (bufferSize == 0))
-    {
+    if (!pBuffer || (bufferSize == 0)) {
         return 0;
     }
     size_t copySize = (size_t)(std::min)(m_fileSize - m_readSize, (uint64_t)bufferSize);
-    if (copySize == 0)
-    {
+    if (copySize == 0) {
         return 0;
     }
-    try
-    {
+    try {
         m_spMappedRegion.reset();
         boost::interprocess::mapped_region region{*m_spFileMapping,
                                                   boost::interprocess::mode_t::read_write,
@@ -105,9 +97,7 @@ size_t FileMappingHelper::ReadBytes(void *pBuffer, size_t bufferSize)
         std::memcpy(pBuffer, region.get_address(), copySize);
         m_readSize += copySize;
         return copySize;
-    }
-    catch (const std::exception &)
-    {
+    } catch (const std::exception &) {
         assert(!"ReadBytes Failed");
         return 0;
     }
@@ -115,21 +105,17 @@ size_t FileMappingHelper::ReadBytes(void *pBuffer, size_t bufferSize)
 
 void *FileMappingHelper::LockBits(uint64_t offset, size_t nLockBytes)
 {
-    if (m_fileSize < offset + (uint64_t)nLockBytes)
-    {
+    if (m_fileSize < offset + (uint64_t)nLockBytes) {
         return nullptr;
     }
-    try
-    {
+    try {
         m_spMappedRegion = std::make_unique<boost::interprocess::mapped_region>(
             *m_spFileMapping,
             boost::interprocess::mode_t::read_write,
             (boost::interprocess::offset_t)offset,
             nLockBytes);
         return m_spMappedRegion->get_address();
-    }
-    catch (const std::exception &)
-    {
+    } catch (const std::exception &) {
         assert(!"LockBits Failed");
         return nullptr;
     }
@@ -149,57 +135,37 @@ void FileMappingHelper::Init(const boost::filesystem::path &filePath)
 
 void FileMappingHelper::SeekImpl(uint64_t &prevSize, int64_t offset, TSeekType type)
 {
-    switch (type)
-    {
+    switch (type) {
     case FileMappingHelper::TSeekType::SEEK_TYPE_BEGIN:
-        if (offset <= 0)
-        {
+        if (offset <= 0) {
             prevSize = 0;
-        }
-        else if ((uint64_t)offset >= m_fileSize)
-        {
+        } else if ((uint64_t)offset >= m_fileSize) {
             prevSize = m_fileSize;
-        }
-        else
-        {
+        } else {
             prevSize = offset;
         }
         break;
     case FileMappingHelper::TSeekType::SEEK_TYPE_CURRENT:
-        if (offset >= 0)
-        {
-            if (prevSize + offset >= m_fileSize)
-            {
+        if (offset >= 0) {
+            if (prevSize + offset >= m_fileSize) {
                 prevSize = m_fileSize;
-            }
-            else
-            {
+            } else {
                 prevSize += offset;
             }
-        }
-        else
-        {
-            if ((uint64_t)std::abs(offset) >= prevSize)
-            {
+        } else {
+            if ((uint64_t)std::abs(offset) >= prevSize) {
                 prevSize = 0;
-            }
-            else
-            {
+            } else {
                 prevSize += offset;
             }
         }
         break;
     case FileMappingHelper::TSeekType::SEEK_TYPE_END:
-        if (offset >= 0)
-        {
+        if (offset >= 0) {
             prevSize = m_fileSize;
-        }
-        else if ((uint64_t)std::abs(offset) >= m_fileSize)
-        {
+        } else if ((uint64_t)std::abs(offset) >= m_fileSize) {
             prevSize = 0;
-        }
-        else
-        {
+        } else {
             prevSize = m_fileSize + offset;
         }
         break;

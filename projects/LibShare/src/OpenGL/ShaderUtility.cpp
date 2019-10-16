@@ -51,8 +51,7 @@ uvec2 u64_sub(uvec2 var1, uvec2 var2)
     uvec2 res = uvec2(0);
     res.x = var1.x - var2.x;
     res.y = var1.y - var2.y;
-    if (var1.x < var2.x)
-    {
+    if (var1.x < var2.x) {
         res.y -= 1;
     }
     return res;
@@ -97,20 +96,17 @@ uvec2 u64_divide(uvec2 var1, uint i)
 
     {
         uint lowzero = findLSB(i);
-        if (lowzero > 0)
-        {
+        if (lowzero > 0) {
             //除数中低位的0直接移位去掉
             i >>= lowzero;
             uint high = var1.y;
             var1 >>= lowzero;
             var1.x |= high << (UINT_BITS - lowzero);
         }
-        if (1 == i)
-        {
+        if (1 == i) {
             return var1;
         }
-        if (0 == var1.y)
-        {
+        if (0 == var1.y) {
             res.x = var1.x / i;
             return res;
         }
@@ -119,8 +115,7 @@ uvec2 u64_divide(uvec2 var1, uint i)
     res.y = var1.y / i;
     //余数
     uint remain = var1.y % i;
-    if (0 == remain)
-    {
+    if (0 == remain) {
         res.x = var1.x / i;
         return res;
     }
@@ -129,8 +124,7 @@ uvec2 u64_divide(uvec2 var1, uint i)
     uint remainBits = findMSB(remain) + 1;
     //余数增加位数是否会溢出
     bool isOverflow = (UINT_BITS == remainBits);
-    if (isOverflow)
-    {
+    if (isOverflow) {
         --remainBits;
     }
     //增补位数
@@ -140,35 +134,27 @@ uvec2 u64_divide(uvec2 var1, uint i)
     //中间步骤的被除数
     uint midVar = 0;
 
-    do
-    {
+    do {
         //余数放到高位，低位从后序位增补。先左移高位清0，再右移
         midVar = remain << addtionalBits;
         midVar |= (var1.x << (UINT_BITS - addtionalBits - leftBit)) >> (UINT_BITS - addtionalBits);
-        if (isOverflow)
-        {
+        if (isOverflow) {
             //商1，余数直接减
             res.x |= (1 << leftBit);
             remain = midVar - i;
-        }
-        else
-        {
+        } else {
             res.x |= (midVar / i) << leftBit;
             remain = midVar % i;
         }
 
-        if (0 == remain)
-        {
+        if (0 == remain) {
             //余数为0，剩下的部分直接计算出来
             res.x |= ((var1.x << (UINT_BITS - leftBit)) >> (UINT_BITS - leftBit)) / i;
             return res;
-        }
-        else
-        {
+        } else {
             remainBits = findMSB(remain) + 1;
             isOverflow = (UINT_BITS == remainBits);
-            if (isOverflow)
-            {
+            if (isOverflow) {
                 --remainBits;
             }
             addtionalBits = (UINT_BITS - remainBits < leftBit ? UINT_BITS - remainBits : leftBit);
@@ -176,12 +162,9 @@ uvec2 u64_divide(uvec2 var1, uint i)
         }
     } while (leftBit > 0);
 
-    if (isOverflow)
-    {
+    if (isOverflow) {
         res.x |= 1;
-    }
-    else
-    {
+    } else {
         midVar = remain << addtionalBits;
         midVar |= (var1.x << (UINT_BITS - addtionalBits)) >> (UINT_BITS - addtionalBits);
         res.x |= midVar / i;
@@ -202,18 +185,15 @@ ivec2 i64_divide(ivec2 var1, int i)
 {
     // 结果是否为负
     bool isNagetive = (var1.y ^ i) < 0;
-    if (var1.y < 0)
-    {
+    if (var1.y < 0) {
         var1 = i64_negative(var1);
     }
-    if (i < 0)
-    {
+    if (i < 0) {
         i = -i;
     }
     // 转为正数进行无符号运算
     ivec2 res = ivec2(u64_divide(uvec2(var1), uint(i)));
-    if (isNagetive)
-    {
+    if (isNagetive) {
         res = i64_negative(res);
     }
     return res;

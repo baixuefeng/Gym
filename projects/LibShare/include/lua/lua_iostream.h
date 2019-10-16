@@ -71,8 +71,7 @@ public:
     template<class T1, class T2>
     lua_ostream &operator<<(const std::basic_string<wchar_t, T1, T2> &value)
     {
-        try
-        {
+        try {
 #ifdef LUA_CODE_UTF8
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
@@ -80,9 +79,7 @@ public:
             std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
             return (*this) << cvt.to_bytes(value).c_str();
-        }
-        catch (...)
-        {
+        } catch (...) {
             assert(!"code convert failed!");
             return *this;
         }
@@ -184,11 +181,9 @@ public:
     template<class T1, class T2>
     lua_istream &operator>>(std::basic_string<char, T1, T2> &value)
     {
-        if (!m_isEof)
-        {
+        if (!m_isEof) {
             m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TSTRING);
-            if (m_isOK)
-            {
+            if (m_isOK) {
                 value = ::lua_tostring(m_pLua, get_value_index());
             }
             next();
@@ -201,10 +196,8 @@ public:
     lua_istream &operator>>(std::basic_string<wchar_t, T1, T2> &value)
     {
         std::string temp;
-        if ((*this) >> temp)
-        {
-            try
-            {
+        if ((*this) >> temp) {
+            try {
 #ifdef LUA_CODE_UTF8
                 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cvt;
 #else
@@ -212,9 +205,7 @@ public:
                 std::wstring_convert<std::remove_reference_t<decltype(fct)>> cvt(&fct);
 #endif
                 value = cvt.from_bytes(temp);
-            }
-            catch (...)
-            {
+            } catch (...) {
                 assert(!"code convert failed!");
                 value.clear();
             }
@@ -226,11 +217,9 @@ public:
     template<class T>
     lua_istream &operator>>(T *&value)
     {
-        if (!m_isEof)
-        {
+        if (!m_isEof) {
             m_isOK = (::lua_type(m_pLua, get_value_index()) == LUA_TLIGHTUSERDATA);
-            if (m_isOK)
-            {
+            if (m_isOK) {
                 value = (T *)::lua_touserdata(m_pLua, get_value_index());
             }
             next();
@@ -305,12 +294,9 @@ struct lua_io_dispatcher
         lua_stack_guard_checker checker(pL);
         T temp{};
         lua_istream is(pL, index);
-        if (is >> temp)
-        {
+        if (is >> temp) {
             return std::move(temp);
-        }
-        else
-        {
+        } else {
             return std::move(defaultValue);
         }
     }
@@ -347,8 +333,7 @@ struct lua_io_dispatcher<const char *, false>
     static const char *from_lua(lua_State *pL, int index, const char *defaultValue = "")
     {
         lua_stack_guard_checker checker(pL);
-        if (::lua_type(pL, index) == LUA_TSTRING)
-        {
+        if (::lua_type(pL, index) == LUA_TSTRING) {
             return ::lua_tostring(pL, index);
         }
         return defaultValue;
@@ -397,12 +382,9 @@ struct lua_io_dispatcher<const wchar_t *, false>
         lua_stack_guard_checker checker(pL);
         std::wstring temp;
         lua_istream is(pL, index);
-        if (is >> temp)
-        {
+        if (is >> temp) {
             return std::move(temp);
-        }
-        else
-        {
+        } else {
             return std::wstring(defaultValue);
         }
     }

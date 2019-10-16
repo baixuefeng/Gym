@@ -89,18 +89,14 @@ public:
         using resultType = std::result_of_t<typename std::decay_t<_Callable>()>;
         using taskType = std::packaged_task<resultType()>;
 
-        if (m_pIOCPContex == nullptr)
-        {
+        if (m_pIOCPContex == nullptr) {
             return std::future<resultType>();
         }
         taskType *pTask = new taskType(std::forward<_Callable>(callObj));
-        if (!AsyncCall(AsyncCallHelper<taskType>, 0, pTask))
-        {
+        if (!AsyncCall(AsyncCallHelper<taskType>, 0, pTask)) {
             delete pTask;
             return std::future<resultType>();
-        }
-        else
-        {
+        } else {
             return pTask->get_future();
         }
     }

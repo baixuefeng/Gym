@@ -179,13 +179,11 @@ public:
                      std::decay_t<decltype(defaultValue)>{}) -> std::decay_t<decltype(defaultValue)>
     {
         //32位，当匹配double类型时，且该函数放到类外实现，就会崩溃；64位没问题，匹配其它类型没问题，或者原封不动放到类内也没问题。怪哉！
-        if (m_pEasyHandle)
-        {
+        if (m_pEasyHandle) {
             typename CurlInfoTypeHelper<infoIndex>::type info{};
             m_errCode = curl_easy_getinfo(m_pEasyHandle, infoIndex, &info);
             assert(m_errCode == CURLcode::CURLE_OK);
-            if (m_errCode == CURLcode::CURLE_OK)
-            {
+            if (m_errCode == CURLcode::CURLE_OK) {
                 return info;
             }
         }

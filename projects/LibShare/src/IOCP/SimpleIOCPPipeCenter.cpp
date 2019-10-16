@@ -58,8 +58,7 @@ struct SimpleIOCPPipeCenter::TPipeOverLapped : public OVERLAPPED
 
 SimpleIOCPPipeCenter::SimpleIOCPPipeCenter()
 {
-    if (0 == g_allocationGranularity)
-    {
+    if (0 == g_allocationGranularity) {
         SYSTEM_INFO sysInfo;
         ::GetSystemInfo(&sysInfo);
         g_allocationGranularity = sysInfo.dwAllocationGranularity;
@@ -74,8 +73,7 @@ SimpleIOCPPipeCenter::~SimpleIOCPPipeCenter()
 IOCPThreadPool &SimpleIOCPPipeCenter::GetThreadPool(DWORD dwNumOfRun /*= 0*/,
                                                     DWORD dwNumOfMax /*= 0*/)
 {
-    if (!m_threadPool)
-    {
+    if (!m_threadPool) {
         //加锁,确保线程安全
         ATL::CCritSecLock lock{m_lock.m_sec};
         m_threadPool.CreateIOCPThreadPool(dwNumOfRun, dwNumOfMax);
@@ -85,8 +83,7 @@ IOCPThreadPool &SimpleIOCPPipeCenter::GetThreadPool(DWORD dwNumOfRun /*= 0*/,
 
 HANDLE SimpleIOCPPipeCenter::CreatePipe(std::wstring &name)
 {
-    if (name.empty())
-    {
+    if (name.empty()) {
         name = LR"(\\.\pipe\)" + boost::uuids::to_wstring(boost::uuids::random_generator()());
     }
     HANDLE hPipe = ::CreateNamedPipe(name.c_str(),
@@ -98,13 +95,11 @@ HANDLE SimpleIOCPPipeCenter::CreatePipe(std::wstring &name)
                                      (DWORD)g_allocationGranularity,
                                      0,
                                      nullptr);
-    if ((hPipe == nullptr) || (hPipe == INVALID_HANDLE_VALUE))
-    {
+    if ((hPipe == nullptr) || (hPipe == INVALID_HANDLE_VALUE)) {
         name.clear();
         return nullptr;
     }
-    if (!GetThreadPool().BindDeviceToIOCPThreadPool(hPipe, OnIOCompleted))
-    {
+    if (!GetThreadPool().BindDeviceToIOCPThreadPool(hPipe, OnIOCompleted)) {
         ::CloseHandle(hPipe);
         name.clear();
         return nullptr;
@@ -123,12 +118,10 @@ HANDLE SimpleIOCPPipeCenter::ConnectToServer(const std::wstring &name)
                                 OPEN_EXISTING,
                                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
                                 NULL);
-    if ((hPipe == NULL) || (hPipe == INVALID_HANDLE_VALUE))
-    {
+    if ((hPipe == NULL) || (hPipe == INVALID_HANDLE_VALUE)) {
         return nullptr;
     }
-    if (!GetThreadPool().BindDeviceToIOCPThreadPool(hPipe, OnIOCompleted))
-    {
+    if (!GetThreadPool().BindDeviceToIOCPThreadPool(hPipe, OnIOCompleted)) {
         ::CloseHandle(hPipe);
         return nullptr;
     }
@@ -141,8 +134,7 @@ std::wstring SimpleIOCPPipeCenter::GetPipeName(HANDLE hPipe)
 {
     ATL::CCritSecLock lock{m_lock.m_sec};
     auto it = m_pipePool.find(hPipe);
-    if (it != m_pipePool.end())
-    {
+    if (it != m_pipePool.end()) {
         return it->second;
     }
     return L"";
@@ -150,8 +142,7 @@ std::wstring SimpleIOCPPipeCenter::GetPipeName(HANDLE hPipe)
 
 bool SimpleIOCPPipeCenter::AsyncWaitForClientConnect(HANDLE hPipe, void *pUserData)
 {
-    if (!CheckPipe(hPipe))
-    {
+    if (!CheckPipe(hPipe)) {
         return false;
     }
     auto pOvlp = AllocOverLapped(0);
@@ -159,8 +150,7 @@ bool SimpleIOCPPipeCenter::AsyncWaitForClientConnect(HANDLE hPipe, void *pUserDa
     pOvlp->m_opType = TOperatationType::OP_CONNECT;
     pOvlp->m_hPipe = hPipe;
     pOvlp->m_pUserData = pUserData;
-    if (!::ConnectNamedPipe(hPipe, pOvlp) && (::GetLastError() != ERROR_IO_PENDING))
-    {
+    if (!::ConnectNamedPipe(hPipe, pOvlp) && (::GetLastError() != ERROR_IO_PENDING)) {
         assert(!"AsyncWaitForClientConnect失败");
         m_privateHeap.Free(pOvlp);
         return false;
@@ -177,8 +167,7 @@ SimpleIOCPPipeCenter::SendBuffer SimpleIOCPPipeCenter::GetSendBuffer(uint32_t nD
 
 bool SimpleIOCPPipeCenter::AsyncSend(HANDLE hPipe, SendBuffer &&buffer, void *pUserData)
 {
-    if (!CheckPipe(hPipe))
-    {
+    if (!CheckPipe(hPipe)) {
         return false;
     }
     auto pOvlp = buffer.m_pOvlp;
@@ -188,8 +177,7 @@ bool SimpleIOCPPipeCenter::AsyncSend(HANDLE hPipe, SendBuffer &&buffer, void *pU
     pOvlp->m_hPipe = hPipe;
     pOvlp->m_pUserData = pUserData;
     if (!::WriteFile(hPipe, pOvlp->m_pBuffer, pOvlp->m_nDataSize, NULL, pOvlp) &&
-        (::GetLastError() != ERROR_IO_PENDING))
-    {
+        (::GetLastError() != ERROR_IO_PENDING)) {
         assert(!"AsyncSend失败");
         m_privateHeap.Free(pOvlp);
         return false;
@@ -199,13 +187,11 @@ bool SimpleIOCPPipeCenter::AsyncSend(HANDLE hPipe, SendBuffer &&buffer, void *pU
 
 bool SimpleIOCPPipeCenter::AsyncReceive(HANDLE hPipe, uint32_t nHeaderSize, void *pUserData)
 {
-    if (nHeaderSize == 0)
-    {
+    if (nHeaderSize == 0) {
         assert(!"包头长度不能为0");
         return false;
     }
-    if (!CheckPipe(hPipe))
-    {
+    if (!CheckPipe(hPipe)) {
         return false;
     }
     //预先给4096的缓冲区，减少二次分配的机率
@@ -217,8 +203,7 @@ bool SimpleIOCPPipeCenter::AsyncReceive(HANDLE hPipe, uint32_t nHeaderSize, void
     pOvlp->m_nHeaderSize = nHeaderSize;
     //先接收包头
     if (!::ReadFile(hPipe, pOvlp->m_pBuffer, nHeaderSize, NULL, pOvlp) &&
-        (::GetLastError() != ERROR_IO_PENDING))
-    {
+        (::GetLastError() != ERROR_IO_PENDING)) {
         assert(!"AsyncReceive失败");
         m_privateHeap.Free(pOvlp);
         return false;
@@ -228,12 +213,10 @@ bool SimpleIOCPPipeCenter::AsyncReceive(HANDLE hPipe, uint32_t nHeaderSize, void
 
 void SimpleIOCPPipeCenter::ClosePipe(HANDLE hPipe)
 {
-    if ((hPipe != nullptr) && (hPipe != INVALID_HANDLE_VALUE))
-    {
+    if ((hPipe != nullptr) && (hPipe != INVALID_HANDLE_VALUE)) {
         ATL::CCritSecLock lock{m_lock.m_sec};
         auto it = m_pipePool.find(hPipe);
-        if (it != m_pipePool.end())
-        {
+        if (it != m_pipePool.end()) {
             ::CloseHandle(hPipe);
             m_pipePool.erase(it);
         }
@@ -242,33 +225,28 @@ void SimpleIOCPPipeCenter::ClosePipe(HANDLE hPipe)
 
 void SimpleIOCPPipeCenter::CloseAllPipes()
 {
-    if (m_threadPool)
-    {
+    if (m_threadPool) {
         m_threadPool.CloseIOCPThreadPool();
     }
-    for (auto it = m_pipePool.begin(); it != m_pipePool.end(); ++it)
-    {
+    for (auto it = m_pipePool.begin(); it != m_pipePool.end(); ++it) {
         ::CloseHandle(it->first);
     }
     m_pipePool.clear();
-    if (m_privateHeap.m_hHeap)
-    {
+    if (m_privateHeap.m_hHeap) {
         ::HeapDestroy(m_privateHeap.Detach());
     }
 }
 
 bool SimpleIOCPPipeCenter::CheckPipe(HANDLE hPipe)
 {
-    if ((hPipe == nullptr) || (hPipe == INVALID_HANDLE_VALUE))
-    {
+    if ((hPipe == nullptr) || (hPipe == INVALID_HANDLE_VALUE)) {
         assert(!"invalid handle");
         return false;
     }
 #ifdef _DEBUG
     ATL::CCritSecLock lock{m_lock.m_sec};
     auto it = m_pipePool.find(hPipe);
-    if (it == m_pipePool.end())
-    {
+    if (it == m_pipePool.end()) {
         assert(!"invalid handle");
         return false;
     }
@@ -278,11 +256,9 @@ bool SimpleIOCPPipeCenter::CheckPipe(HANDLE hPipe)
 
 SimpleIOCPPipeCenter::TPipeOverLapped *SimpleIOCPPipeCenter::AllocOverLapped(uint32_t nDataLength)
 {
-    if (m_privateHeap.m_hHeap == NULL)
-    {
+    if (m_privateHeap.m_hHeap == NULL) {
         ATL::CCritSecLock lock{m_lock.m_sec};
-        if (m_privateHeap.m_hHeap == NULL)
-        {
+        if (m_privateHeap.m_hHeap == NULL) {
             m_privateHeap.Attach(::HeapCreate(0, 0, 0), true);
         }
     }
@@ -297,25 +273,19 @@ SimpleIOCPPipeCenter::TPipeOverLapped *SimpleIOCPPipeCenter::AllocOverLapped(uin
 
 bool SimpleIOCPPipeCenter::ReallocOverLapped(TPipeOverLapped *&pOvlp, uint32_t nNewDataLength)
 {
-    if (!pOvlp)
-    {
+    if (!pOvlp) {
         pOvlp = AllocOverLapped(nNewDataLength);
         return (pOvlp != nullptr);
-    }
-    else if (pOvlp->m_nBufferSize < nNewDataLength)
-    {
-        if (m_privateHeap.m_hHeap == NULL)
-        {
+    } else if (pOvlp->m_nBufferSize < nNewDataLength) {
+        if (m_privateHeap.m_hHeap == NULL) {
             ATL::CCritSecLock lock{m_lock.m_sec};
-            if (m_privateHeap.m_hHeap == NULL)
-            {
+            if (m_privateHeap.m_hHeap == NULL) {
                 m_privateHeap.Attach(::HeapCreate(0, 0, 0), true);
             }
         }
         uint32_t nBufferSize = (sizeof(TPipeOverLapped) + nNewDataLength + 256) / 256 * 256;
         auto pNewOvlp = (TPipeOverLapped *)m_privateHeap.Reallocate(pOvlp, nBufferSize);
-        if (!pNewOvlp)
-        {
+        if (!pNewOvlp) {
             return false;
         }
         //内存已重新分配, 指针值更新
@@ -331,8 +301,7 @@ void SimpleIOCPPipeCenter::OnIOCompleted(DWORD dwErrno,
                                          LPOVERLAPPED pOverlapped)
 {
     assert(pOverlapped);
-    if (!pOverlapped)
-    {
+    if (!pOverlapped) {
         return;
     }
     TPipeOverLapped *pOvlp = (TPipeOverLapped *)pOverlapped;
@@ -345,30 +314,24 @@ void SimpleIOCPPipeCenter::OnIOCompletedImpl(DWORD dwErrno,
                                              TPipeOverLapped *pOvlp)
 {
     bool bSuccess = (dwErrno == ERROR_SUCCESS);
-    switch (pOvlp->m_opType)
-    {
+    switch (pOvlp->m_opType) {
     case TOperatationType::OP_CONNECT:
         OnClientConnected(bSuccess, pOvlp->m_hPipe, pOvlp->m_pUserData);
         break;
     case TOperatationType::OP_SEND:
-        if (bSuccess)
-        {
+        if (bSuccess) {
             pOvlp->m_nCompletedSize += dwNumberOfBytesTransferred;
             assert(pOvlp->m_nCompletedSize <= pOvlp->m_nDataSize);
-            if (pOvlp->m_nCompletedSize < pOvlp->m_nDataSize)
-            {
+            if (pOvlp->m_nCompletedSize < pOvlp->m_nDataSize) {
                 if (::WriteFile(pOvlp->m_hPipe,
                                 pOvlp->m_pBuffer + pOvlp->m_nCompletedSize,
                                 pOvlp->m_nDataSize - pOvlp->m_nCompletedSize,
                                 nullptr,
                                 pOvlp) ||
-                    (::GetLastError() == ERROR_IO_PENDING))
-                {
+                    (::GetLastError() == ERROR_IO_PENDING)) {
                     //继续发送，不回调，不回收
                     return;
-                }
-                else
-                {
+                } else {
                     assert(!"WriteFile失败");
                     bSuccess = false;
                 }
@@ -382,20 +345,15 @@ void SimpleIOCPPipeCenter::OnIOCompletedImpl(DWORD dwErrno,
                pOvlp->m_pUserData);
         break;
     case TOperatationType::OP_RECEIVE:
-        if (bSuccess)
-        {
+        if (bSuccess) {
             pOvlp->m_nCompletedSize += dwNumberOfBytesTransferred;
             uint32_t nLeftSize = 0;
-            if (pOvlp->m_nCompletedSize < pOvlp->m_nHeaderSize)
-            {
+            if (pOvlp->m_nCompletedSize < pOvlp->m_nHeaderSize) {
                 //包头接收不完整
                 nLeftSize = pOvlp->m_nHeaderSize - pOvlp->m_nCompletedSize;
                 assert(pOvlp->m_nDataSize == 0);
-            }
-            else
-            {
-                if (pOvlp->m_nDataSize == 0)
-                {
+            } else {
+                if (pOvlp->m_nDataSize == 0) {
                     //从包头中解析出数据总长
                     assert(pOvlp->m_nHeaderSize == pOvlp->m_nCompletedSize);
                     pOvlp->m_nDataSize = pOvlp->m_pThis->GetDataLengthFromHeader(
@@ -406,16 +364,13 @@ void SimpleIOCPPipeCenter::OnIOCompletedImpl(DWORD dwErrno,
                 nLeftSize = pOvlp->m_nDataSize - pOvlp->m_nCompletedSize;
             }
 
-            if (nLeftSize > 0)
-            {
-                if (nLeftSize > pOvlp->m_nBufferSize - pOvlp->m_nCompletedSize)
-                {
+            if (nLeftSize > 0) {
+                if (nLeftSize > pOvlp->m_nBufferSize - pOvlp->m_nCompletedSize) {
                     //缓存不够
                     bSuccess = pOvlp->m_pThis->ReallocOverLapped(
                         pOvlp, pOvlp->m_nCompletedSize + nLeftSize);
                 }
-                if (bSuccess)
-                {
+                if (bSuccess) {
                     //接收剩余的数据
                     bSuccess = (::ReadFile(pOvlp->m_hPipe,
                                            pOvlp->m_pBuffer + pOvlp->m_nCompletedSize,
@@ -423,8 +378,7 @@ void SimpleIOCPPipeCenter::OnIOCompletedImpl(DWORD dwErrno,
                                            nullptr,
                                            pOvlp) ||
                                 (::GetLastError() == ERROR_IO_PENDING));
-                    if (bSuccess)
-                    {
+                    if (bSuccess) {
                         return;
                     }
                     assert(!"ReadFile失败");
@@ -457,8 +411,7 @@ SimpleIOCPPipeCenter::SendBuffer::SendBuffer(SimpleIOCPPipeCenter::SendBuffer &&
 
 SimpleIOCPPipeCenter::SendBuffer::~SendBuffer()
 {
-    if (m_pOvlp)
-    {
+    if (m_pOvlp) {
         assert(!"SendBuffer内存泄漏");
     }
 }
@@ -467,8 +420,7 @@ bool SimpleIOCPPipeCenter::SendBuffer::AddData(const void *pData, uint32_t nData
 {
     assert(m_pOvlp);
     assert(m_pOvlp->m_nBufferSize - m_pOvlp->m_nDataSize >= nDataLength);
-    if (m_pOvlp && (m_pOvlp->m_nBufferSize - m_pOvlp->m_nDataSize >= nDataLength))
-    {
+    if (m_pOvlp && (m_pOvlp->m_nBufferSize - m_pOvlp->m_nDataSize >= nDataLength)) {
         std::memcpy(m_pOvlp->m_pBuffer + m_pOvlp->m_nDataSize, pData, nDataLength);
         m_pOvlp->m_nDataSize += nDataLength;
         return true;

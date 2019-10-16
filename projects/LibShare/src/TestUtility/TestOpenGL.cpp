@@ -11,13 +11,11 @@ SHARELIB_BEGIN_NAMESPACE
 void PrintPixelFormat(HWND hWnd)
 {
     HDC hDc = ::GetDC(hWnd);
-    if (hDc)
-    {
+    if (hDc) {
         FileLog log(NULL, NULL);
         PIXELFORMATDESCRIPTOR pfd{sizeof(pfd)};
         int n = ::DescribePixelFormat(hDc, 1, 0, 0);
-        for (int i = 1; i <= n; ++i)
-        {
+        for (int i = 1; i <= n; ++i) {
             ::DescribePixelFormat(hDc, i, sizeof(pfd), &pfd);
             logoutex(&log).Printf(
                 "%d,\n"
@@ -83,37 +81,30 @@ void PrintSysFontFamily()
         HRESULT hr = ::DWriteCreateFactory(DWRITE_FACTORY_TYPE::DWRITE_FACTORY_TYPE_SHARED,
                                            __uuidof(IDWriteFactory),
                                            (IUnknown **)&spFactory);
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             goto ERROR_END;
         }
         ATL::CComPtr<IDWriteFontCollection> spDWrieFontCollection;
         hr = spFactory->GetSystemFontCollection(&spDWrieFontCollection);
-        if (FAILED(hr))
-        {
+        if (FAILED(hr)) {
             goto ERROR_END;
         }
         UINT nFamilyCout = spDWrieFontCollection->GetFontFamilyCount();
-        for (UINT i = 0; i < nFamilyCout; ++i)
-        {
+        for (UINT i = 0; i < nFamilyCout; ++i) {
             ATL::CComPtr<IDWriteFontFamily> spDWriteFontFamily;
             spDWrieFontCollection->GetFontFamily(i, &spDWriteFontFamily);
 
             ATL::CComPtr<IDWriteLocalizedStrings> spString;
             spDWriteFontFamily->GetFamilyNames(&spString);
             UINT nNameCount = spString->GetCount();
-            for (UINT j = 0; j < nNameCount; ++j)
-            {
+            for (UINT j = 0; j < nNameCount; ++j) {
                 wchar_t szName[4096] = {0};
                 wchar_t szLocaleName[4096] = {0};
                 spString->GetString(j, szName, 4096);
                 spString->GetLocaleName(j, szLocaleName, 4096);
-                try
-                {
+                try {
                     logout(&log) << szName << ":" << szLocaleName << "\n";
-                }
-                catch (...)
-                {
+                } catch (...) {
                     logout(&log) << "未知字体:" << szLocaleName << "\n";
                 }
             }

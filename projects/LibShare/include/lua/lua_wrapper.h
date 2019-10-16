@@ -98,8 +98,7 @@ struct luaCFunctionDispatcher<CallType::POINTER_TO_MEMBER_FUNCTION,
         using class_type = std::decay_t<typename _CallableType::class_t>;
         class_type *pThis = lua_io_dispatcher<class_type *>::from_lua(pLua, 1);
         assert(pThis);
-        if (pThis)
-        {
+        if (pThis) {
             (pThis->*pmf)(
                 lua_io_dispatcher<std::decay_t<typename std::tuple_element<
                     index,
@@ -123,17 +122,14 @@ struct luaCFunctionDispatcher<CallType::POINTER_TO_MEMBER_FUNCTION,
         using class_type = std::decay_t<typename _CallableType::class_t>;
         class_type *pThis = lua_io_dispatcher<class_type *>::from_lua(pLua, 1);
         assert(pThis);
-        if (pThis)
-        {
+        if (pThis) {
             return lua_io_dispatcher<result_type>::to_lua(
                 pLua,
                 (pThis->*pmf)(
                     lua_io_dispatcher<std::decay_t<
                         typename std::tuple_element<index, typename _CallableType::arg_tuple_t>::
                             type>>::from_lua(pLua, index + 2)...));
-        }
-        else
-        {
+        } else {
             return 0;
         }
     }
@@ -153,12 +149,9 @@ struct luaCFunctionDispatcher<CallType::POINTER_TO_MEMBER_DATA,
         using class_type = std::decay_t<typename _CallableType::class_t>;
         class_type *pThis = lua_io_dispatcher<class_type *>::from_lua(pLua, 1);
         assert(pThis);
-        if (pThis)
-        {
+        if (pThis) {
             return lua_io_dispatcher<result_type>::to_lua(pLua, pThis->*pmd);
-        }
-        else
-        {
+        } else {
             return 0;
         }
     }
@@ -213,17 +206,14 @@ int MainLuaCFunctionCall(lua_State *pLua)
     CheckCFuncArgValid<typename _Call_Helper::arg_tuple_t> checkParam;
     (void)checkParam;
     bool bTrivial = bTrivialDestructor; //avoid warning
-    if (bTrivial)
-    {
+    if (bTrivial) {
         return luaCFunctionDispatcher<_Call_Helper::call_type,
                                       std::is_void<typename _Call_Helper::result_t>::value,
                                       _Call_Helper,
                                       typename _Call_Helper::arg_index_t>::Execute(pLua,
                                                                                    *(_CallType *)
                                                                                        ppf);
-    }
-    else
-    {
+    } else {
         using _FuncObj_Store_t = std::shared_ptr<void>;
         _FuncObj_Store_t *pSpObj = (_FuncObj_Store_t *)ppf;
         return luaCFunctionDispatcher<
@@ -273,8 +263,7 @@ struct PushCppCallableDispatcher<false>
                                                                        sizeof(_FuncObj_Store_t));
         ::new (pObj) _FuncObj_Store_t();
         *pObj = std::make_shared<_Call_t>(std::forward<_CallType>(pf));
-        if (::luaL_newmetatable(pLua, "{BEB170D0-0C27-4AE7-9891-6487B608C7C5}") > 0)
-        {
+        if (::luaL_newmetatable(pLua, "{BEB170D0-0C27-4AE7-9891-6487B608C7C5}") > 0) {
             //创建元表进行垃圾回收,一个元表只有一个垃圾回收实现,但元表中关联的userdata有多种,
             //因此使用shared_ptr<void>封装,进行统一析构
             ::lua_pushcfunction(pLua, FunctionObjectGcHelper<_FuncObj_Store_t>);
@@ -378,8 +367,7 @@ public:
     {
         assert(m_pLuaState);
         assert(pName);
-        if (m_pLuaState && pName)
-        {
+        if (m_pLuaState && pName) {
             lua_stack_guard_checker check(m_pLuaState);
             lua_io_dispatcher<std::decay_t<T>>::to_lua(m_pLuaState, value);
             ::lua_setglobal(m_pLuaState, pName);
@@ -395,8 +383,7 @@ public:
     {
         assert(m_pLuaState);
         assert(pFuncName);
-        if (m_pLuaState && pFuncName)
-        {
+        if (m_pLuaState && pFuncName) {
             lua_stack_guard_checker check(m_pLuaState);
             push_cpp_callable_to_lua(m_pLuaState, std::forward<T>(pf));
             ::lua_setglobal(m_pLuaState, pFuncName);
@@ -439,8 +426,7 @@ public:
     T get_variable(const char *pName, T defaultValue = T{})
     {
         assert(m_pLuaState);
-        if (m_pLuaState && pName)
-        {
+        if (m_pLuaState && pName) {
             lua_stack_guard guard(m_pLuaState);
             ::lua_getglobal(m_pLuaState, pName);
             return lua_io_dispatcher<std::decay_t<T>>::from_lua(m_pLuaState, -1, defaultValue);

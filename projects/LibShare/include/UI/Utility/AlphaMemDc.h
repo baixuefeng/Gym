@@ -179,23 +179,19 @@ private:
 template<class _PixelOp>
 bool AlphaMemDc::TraversePixel(_PixelOp &&pixelFunc, const RECT *pRect /* = nullptr*/)
 {
-    if (IsNull() || !m_pBitmapData)
-    {
+    if (IsNull() || !m_pBitmapData) {
         return false;
     }
 
     RECT bitmapRect = {0, 0, m_bitmapSize.cx, m_bitmapSize.cy};
     //获取合适的目标区域
-    if (pRect)
-    {
+    if (pRect) {
         ::IntersectRect(&bitmapRect, pRect, &bitmapRect);
-        if (std::memcmp(pRect, &bitmapRect, sizeof(RECT)))
-        {
+        if (std::memcmp(pRect, &bitmapRect, sizeof(RECT))) {
             return false;
         }
     }
-    if (::IsRectEmpty(&bitmapRect))
-    {
+    if (::IsRectEmpty(&bitmapRect)) {
         return true;
     }
 
@@ -203,16 +199,13 @@ bool AlphaMemDc::TraversePixel(_PixelOp &&pixelFunc, const RECT *pRect /* = null
 
     uint32_t *pRow = m_pBitmapData + bitmapPt.y * m_bitmapSize.cx;
     uint32_t *pPixel = pRow + bitmapRect.left;
-    for (; bitmapPt.y < bitmapRect.bottom; ++bitmapPt.y)
-    {
-        for (bitmapPt.x = bitmapRect.left; bitmapPt.x < bitmapRect.right; ++bitmapPt.x)
-        {
+    for (; bitmapPt.y < bitmapRect.bottom; ++bitmapPt.y) {
+        for (bitmapPt.x = bitmapRect.left; bitmapPt.x < bitmapRect.right; ++bitmapPt.x) {
             if (!pixelFunc(bitmapPt,
                            ((uint8_t *)pPixel)[3],
                            ((uint8_t *)pPixel)[2],
                            ((uint8_t *)pPixel)[1],
-                           ((uint8_t *)pPixel)[0]))
-            {
+                           ((uint8_t *)pPixel)[0])) {
                 return true;
             }
 

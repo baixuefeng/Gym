@@ -25,36 +25,30 @@ static bool GetLocaleFileTime(const wchar_t *pkszFileName, TTimeType emTimeType,
 {
     ATL::CAtlFile file;
     HRESULT hr = E_FAIL;
-    if ((pkszFileName == NULL) || (0 == std::wcslen(pkszFileName)))
-    {
+    if ((pkszFileName == NULL) || (0 == std::wcslen(pkszFileName))) {
         //获取模块句柄
         HMODULE hModule = NULL;
         if (!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                                   reinterpret_cast<LPCWSTR>(GetLocaleFileTime),
-                                  &hModule))
-        {
+                                  &hModule)) {
             return false;
         }
         wchar_t szName[MAX_PATH] = {0};
         ::GetModuleFileNameW(hModule, szName, MAX_PATH);
 
         hr = file.Create(szName, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-    }
-    else
-    {
+    } else {
         hr = file.Create(pkszFileName, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
     }
 
-    if (FAILED(hr))
-    {
+    if (FAILED(hr)) {
         return false;
     }
 
     //获取文件时间
     FILETIME stFTime1{}, stFTime2{};
     BOOL bRel = TRUE;
-    switch (emTimeType)
-    {
+    switch (emTimeType) {
     case TTimeType::CREATE:
         bRel = ::GetFileTime(file, &stFTime1, NULL, NULL);
         break;
@@ -79,20 +73,16 @@ static bool GetFileVersionInfoString(const wchar_t *pwkszFileName,
 {
     //选取文件名
     std::wstring strName;
-    if ((pwkszFileName == NULL) || (0 == std::wcslen(pwkszFileName)))
-    {
+    if ((pwkszFileName == NULL) || (0 == std::wcslen(pwkszFileName))) {
         strName.assign(MAX_PATH + 1, L'\0');
         HMODULE hModule = NULL;
         if (!::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                                   reinterpret_cast<LPCWSTR>(GetFileVersionInfoString),
-                                  &hModule))
-        {
+                                  &hModule)) {
             return false;
         }
         ::GetModuleFileNameW(hModule, &strName[0], MAX_PATH);
-    }
-    else
-    {
+    } else {
         strName = pwkszFileName;
     }
 
@@ -106,34 +96,28 @@ static bool GetFileVersionInfoString(const wchar_t *pwkszFileName,
             bXpOs = false;
             //XP以上系统需要使用Ex版本的函数,测试发现比如用非Ex的版本获取kernel32.dll的版本信息就是错误的.
             DWORD dwVersionBytes = pfnGetFileVersionInfoSizeExW(0, strName.c_str(), NULL);
-            if (dwVersionBytes == 0)
-            {
+            if (dwVersionBytes == 0) {
                 return false;
             }
             byVersion.assign(dwVersionBytes, 0);
-            if (!pfnGetFileVersionInfoExW(0, strName.c_str(), 0, dwVersionBytes, &byVersion[0]))
-            {
+            if (!pfnGetFileVersionInfoExW(0, strName.c_str(), 0, dwVersionBytes, &byVersion[0])) {
                 return false;
             }
         }
     }
-    if (bXpOs)
-    {
+    if (bXpOs) {
         //获取文件版本信息字节流
         DWORD dwVersionBytes = ::GetFileVersionInfoSizeW(strName.c_str(), NULL);
-        if (dwVersionBytes == 0)
-        {
+        if (dwVersionBytes == 0) {
             return false;
         }
         byVersion.assign(dwVersionBytes, 0);
-        if (!::GetFileVersionInfoW(strName.c_str(), 0, dwVersionBytes, &byVersion[0]))
-        {
+        if (!::GetFileVersionInfoW(strName.c_str(), 0, dwVersionBytes, &byVersion[0])) {
             return false;
         }
     }
 
-    if (byVersion.empty())
-    {
+    if (byVersion.empty()) {
         return false;
     }
 
@@ -147,8 +131,7 @@ static bool GetFileVersionInfoString(const wchar_t *pwkszFileName,
     if (!::VerQueryValueW(&byVersion[0],
                           L"\\VarFileInfo\\Translation",
                           reinterpret_cast<LPVOID *>(&pstLanguageCode),
-                          &uiTranslateBytes))
-    {
+                          &uiTranslateBytes)) {
         return false;
     }
 
@@ -174,15 +157,15 @@ static bool GetFileVersionInfoString(const wchar_t *pwkszFileName,
                                  L"\\StringFileInfo\\%04x%04x\\%s",
                                  pstLanguageCode[0].wLanguage,
                                  pstLanguageCode[0].wCodePage, //? 代码页的选择，如何支持多国语言
-                                 VERSION_KEY_NAMES[(int)emVersionKey])))
-    {
+                                 VERSION_KEY_NAMES[(int)emVersionKey]))) {
         return false;
     }
     wchar_t *pVersionInfo = NULL; //获取的版本信息只有UNICODE字符串，没有ANSI字符串
     UINT uiVersionChars = 0;
-    if (!::VerQueryValueW(
-            &byVersion[0], wszSubBlock, reinterpret_cast<LPVOID *>(&pVersionInfo), &uiVersionChars))
-    {
+    if (!::VerQueryValueW(&byVersion[0],
+                          wszSubBlock,
+                          reinterpret_cast<LPVOID *>(&pVersionInfo),
+                          &uiVersionChars)) {
         return false;
     }
     wstrVersionString = std::wstring(pVersionInfo, uiVersionChars);
@@ -194,8 +177,7 @@ static bool GetFileVersionInfoString(const wchar_t *pwkszFileName,
 std::wstring GetModuleModifyTime(const wchar_t *pModuleName)
 {
     SYSTEMTIME stTime{};
-    if (GetLocaleFileTime(pModuleName, TTimeType::MODIFY, stTime))
-    {
+    if (GetLocaleFileTime(pModuleName, TTimeType::MODIFY, stTime)) {
         wchar_t szTime[100] = {0};
         ::StringCbPrintfW(szTime,
                           sizeof(szTime),
@@ -207,9 +189,7 @@ std::wstring GetModuleModifyTime(const wchar_t *pModuleName)
                           stTime.wMinute,
                           stTime.wSecond);
         return szTime;
-    }
-    else
-    {
+    } else {
         return L"";
     }
 }
@@ -218,8 +198,7 @@ std::wstring GetModuleVersion(const wchar_t *pModuleName,
                               TVersionKey key /* = TVersionKey::ProductVersion*/)
 {
     std::wstring wstrTemp;
-    if (GetFileVersionInfoString(pModuleName, key, wstrTemp))
-    {
+    if (GetFileVersionInfoString(pModuleName, key, wstrTemp)) {
         return wstrTemp;
     }
     return L"";
@@ -228,8 +207,7 @@ std::wstring GetModuleVersion(const wchar_t *pModuleName,
 std::wstring GetModuleProductName(const wchar_t *pModuleName)
 {
     std::wstring wstrTemp;
-    if (GetFileVersionInfoString(pModuleName, TVersionKey::ProductName, wstrTemp))
-    {
+    if (GetFileVersionInfoString(pModuleName, TVersionKey::ProductName, wstrTemp)) {
         return wstrTemp;
     }
     return L"";

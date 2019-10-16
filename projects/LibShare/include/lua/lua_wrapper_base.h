@@ -54,8 +54,7 @@ public:
     {
         int nCount = ::lua_gettop(m_pL);
         assert(nCount >= m_nCount);
-        if (nCount > m_nCount)
-        {
+        if (nCount > m_nCount) {
             ::lua_pop(m_pL, (nCount - m_nCount));
         }
     }

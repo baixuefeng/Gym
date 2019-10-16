@@ -287,12 +287,10 @@ public:
 
     bool PtInRect(CD2DPointF point) const
     {
-        if (IsRectEmpty() || IsRectNull())
-        {
+        if (IsRectEmpty() || IsRectNull()) {
             return false;
         }
-        if (point.x >= left && point.x < right && point.y >= top && point.y < bottom)
-        {
+        if (point.x >= left && point.x < right && point.y >= top && point.y < bottom) {
             return true;
         }
         return false;
@@ -364,14 +362,12 @@ public:
     void NormalizeRect()
     {
         FLOAT nTemp;
-        if (left > right)
-        {
+        if (left > right) {
             nTemp = left;
             left = right;
             right = nTemp;
         }
-        if (top > bottom)
-        {
+        if (top > bottom) {
             nTemp = top;
             top = bottom;
             bottom = nTemp;

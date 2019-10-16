@@ -24,20 +24,15 @@ AlphaMemDc::~AlphaMemDc()
 
 bool AlphaMemDc::Create(HDC hDc, SIZE sz)
 {
-    if (IsNull())
-    {
-        if (CreateCompatibleDC(hDc))
-        {
+    if (IsNull()) {
+        if (CreateCompatibleDC(hDc)) {
             //此处创建Bitmap必须用外部DC，因为刚创建的内存DC只有黑的一个点
             m_bitmap.Attach(CreateAlphaBitmap(hDc, sz.cx, sz.cy, (void **)&m_pBitmapData));
-            if (m_bitmap)
-            {
+            if (m_bitmap) {
                 m_bitmapSize = sz;
                 m_oldBitmap.Attach(SelectBitmap(m_bitmap));
                 ::SetGraphicsMode(m_hDC, GM_ADVANCED);
-            }
-            else
-            {
+            } else {
                 DeleteDC();
             }
         }
@@ -48,15 +43,11 @@ bool AlphaMemDc::Create(HDC hDc, SIZE sz)
 bool AlphaMemDc::Resize(SIZE sz)
 {
     assert(!IsNull());
-    if (IsNull())
-    {
+    if (IsNull()) {
         return false;
-    }
-    else if ((m_bitmapSize.cx != sz.cx) || (m_bitmapSize.cy != sz.cy))
-    {
+    } else if ((m_bitmapSize.cx != sz.cx) || (m_bitmapSize.cy != sz.cy)) {
         HBITMAP hBitmap = CreateAlphaBitmap(m_hDC, sz.cx, sz.cy, (void **)&m_pBitmapData);
-        if (hBitmap)
-        {
+        if (hBitmap) {
             SelectBitmap(hBitmap);
             m_bitmap.Attach(hBitmap);
             m_bitmapSize = sz;
@@ -85,13 +76,11 @@ void AlphaMemDc::ClearZero()
 
 void AlphaMemDc::Destroy()
 {
-    if (!IsNull())
-    {
+    if (!IsNull()) {
         m_pBitmapData = nullptr;
         SelectBitmap(m_oldBitmap);
         DeleteDC();
-        if (m_bitmap)
-        {
+        if (m_bitmap) {
             m_bitmap.DeleteObject();
         }
         m_bitmapSize.cx = 0;
@@ -101,8 +90,7 @@ void AlphaMemDc::Destroy()
 
 bool AlphaMemDc::CopyBitmapTo(void *pDest, const RECT *pRect /*= nullptr*/)
 {
-    if (!pDest)
-    {
+    if (!pDest) {
         return false;
     }
     uint8_t *pBit = (uint8_t *)pDest;
@@ -123,8 +111,7 @@ bool AlphaMemDc::AlphaDraw(HDC hDestDc,
                            uint8_t alpha /*= 255*/,
                            bool bSrcAlpha /*= true*/)
 {
-    if (!IsNull() && hDestDc)
-    {
+    if (!IsNull() && hDestDc) {
         BLENDFUNCTION blend = {0};
         blend.BlendOp = AC_SRC_OVER;
         blend.BlendFlags = 0;
@@ -141,9 +128,7 @@ bool AlphaMemDc::AlphaDraw(HDC hDestDc,
                               (pSrc ? pSrc->right - pSrc->left : m_bitmapSize.cx),
                               (pSrc ? pSrc->bottom - pSrc->top : m_bitmapSize.cy),
                               blend);
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
@@ -153,8 +138,7 @@ bool AlphaMemDc::BitBltDraw(HDC hDestDc,
                             const RECT *pSrc /*= nullptr*/,
                             DWORD dwRop /*= SRCCOPY*/)
 {
-    if (!IsNull() && hDestDc)
-    {
+    if (!IsNull() && hDestDc) {
         return !!::BitBlt(hDestDc,
                           (pDest ? pDest->left : 0),
                           (pDest ? pDest->top : 0),
@@ -164,9 +148,7 @@ bool AlphaMemDc::BitBltDraw(HDC hDestDc,
                           (pSrc ? pSrc->left : 0),
                           (pSrc ? pSrc->top : 0),
                           dwRop);
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
@@ -176,8 +158,7 @@ bool AlphaMemDc::StretchBltDraw(HDC hDestDc,
                                 const RECT *pSrc /*= nullptr*/,
                                 DWORD dwRop /*= SRCCOPY*/)
 {
-    if (!IsNull() && hDestDc)
-    {
+    if (!IsNull() && hDestDc) {
         return !!::StretchBlt(hDestDc,
                               (pDest ? pDest->left : 0),
                               (pDest ? pDest->top : 0),
@@ -189,17 +170,14 @@ bool AlphaMemDc::StretchBltDraw(HDC hDestDc,
                               (pSrc ? pSrc->right - pSrc->left : m_bitmapSize.cx),
                               (pSrc ? pSrc->bottom - pSrc->top : m_bitmapSize.cy),
                               dwRop);
-    }
-    else
-    {
+    } else {
         return false;
     }
 }
 
 bool AlphaMemDc::UpdateLayeredWindowDraw(HWND hLayeredWnd, POINT pt, uint8_t alpha /*= 255*/)
 {
-    if (!IsNull() && ::IsWindow(hLayeredWnd))
-    {
+    if (!IsNull() && ::IsWindow(hLayeredWnd)) {
         POINT ptSrc{0};
         BLENDFUNCTION blend = {0};
         blend.BlendOp = AC_SRC_OVER;

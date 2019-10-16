@@ -34,8 +34,7 @@ namespace ipcdetail {
 inline void get_shared_dir(std::string &shared_dir)
 {
     auto dir = boost::dll::program_location().remove_filename() / "ipc_share";
-    if (!boost::filesystem::exists(dir))
-    {
+    if (!boost::filesystem::exists(dir)) {
         boost::filesystem::create_directories(dir);
     }
     shared_dir = dir.string();

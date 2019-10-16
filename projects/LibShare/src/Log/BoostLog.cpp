@@ -45,8 +45,7 @@ void DefaultFormater(const boost::log::record_view &view, Stream &stream)
            << ']';
 
     auto &&channel = boost::log::extract<std::string>(default_names::channel(), view);
-    if (channel)
-    {
+    if (channel) {
         stream << '[' << channel.get() << ']';
     }
 
@@ -56,15 +55,13 @@ void DefaultFormater(const boost::log::record_view &view, Stream &stream)
            << ']';
 
     auto &&severityValue = boost::log::extract<LogLevel>(default_names::severity(), view);
-    if (severityValue)
-    {
+    if (severityValue) {
         stream << '[' << ToString(severityValue.get()) << ']';
     }
 
     auto &&scopeValue = boost::log::extract<boost::log::attributes::named_scope::value_type>(
         NAMED_SCOPE_ATTR, view);
-    if (scopeValue && !scopeValue.get_ptr()->empty())
-    {
+    if (scopeValue && !scopeValue.get_ptr()->empty()) {
         stream << '['
                << boost::filesystem::path(scopeValue.get_ptr()->back().file_name.str())
                       .filename()
@@ -82,8 +79,7 @@ void InitLog()
 {
     static std::once_flag s_init_flag;
     std::call_once(s_init_flag, []() {
-        try
-        {
+        try {
             boost::log::core::get()->add_global_attribute(NAMED_SCOPE_ATTR,
                                                           boost::log::attributes::named_scope());
             boost::log::add_common_attributes();
@@ -105,9 +101,7 @@ void InitLog()
             customLocal = std::locale(customLocal, spDateFacet.release());
             customLocal = std::locale(customLocal, spDateFacetW.release());
             std::locale::global(customLocal);
-        }
-        catch (const std::exception &err)
-        {
+        } catch (const std::exception &err) {
             printf("%s\n", err.what());
         }
     });
@@ -126,8 +120,7 @@ void SetEnableLog(bool is_enable)
 
 const char *ToString(LogLevel level)
 {
-    switch (level)
-    {
+    switch (level) {
     case LogLevel::debug:
         return "debug";
     case LogLevel::info:
@@ -156,8 +149,7 @@ void SetGlobalLogLevel(LogLevel level)
 
 boost::shared_ptr<boost::log::sinks::sink> AddFileLog(const FileLogParam &param)
 {
-    if (param.full_path_.empty())
-    {
+    if (param.full_path_.empty()) {
         return nullptr;
     }
     using TSinkBackend = boost::log::sinks::text_file_backend;
@@ -165,8 +157,7 @@ boost::shared_ptr<boost::log::sinks::sink> AddFileLog(const FileLogParam &param)
     {
         // 日志回滚
         static const char *ROTATION_PATTERN = "_%Y%m%d_%H%M%S";
-        if (param.full_path_.has_extension())
-        {
+        if (param.full_path_.has_extension()) {
             auto file_name = param.full_path_.filename().string();
             auto extension = param.full_path_.extension().string();
             auto index = file_name.rfind(extension);
@@ -174,9 +165,7 @@ boost::shared_ptr<boost::log::sinks::sink> AddFileLog(const FileLogParam &param)
             file_name += ROTATION_PATTERN + extension;
             ratotion_name.remove_filename();
             ratotion_name.append(file_name);
-        }
-        else
-        {
+        } else {
             ratotion_name.append(ROTATION_PATTERN);
         }
     }
@@ -209,20 +198,14 @@ boost::shared_ptr<boost::log::sinks::sink> AddFileLog(const FileLogParam &param)
                                  level](const boost::log::attribute_value_set &attrs) -> bool {
             auto &&severity = attrs[default_names::severity()];
             assert(severity);
-            if (severity)
-            {
-                if (severity.extract<LogLevel>() >= level)
-                {
-                    if (filter.empty())
-                    {
+            if (severity) {
+                if (severity.extract<LogLevel>() >= level) {
+                    if (filter.empty()) {
                         return true;
-                    }
-                    else
-                    {
+                    } else {
                         auto &&channel = attrs[default_names::channel()];
                         assert(channel);
-                        if (channel)
-                        {
+                        if (channel) {
                             auto &&channel_value = channel.extract<std::string>();
                             return channel_value == filter;
                         }
@@ -233,8 +216,7 @@ boost::shared_ptr<boost::log::sinks::sink> AddFileLog(const FileLogParam &param)
         };
 
         // frontend
-        if (param.is_async_)
-        {
+        if (param.is_async_) {
             using TSinkFrontend =
                 SimpleAsyncSink<TSinkBackend,
                                 boost::log::sinks::bounded_fifo_queue<
@@ -245,9 +227,7 @@ boost::shared_ptr<boost::log::sinks::sink> AddFileLog(const FileLogParam &param)
             sp_sink = sp_frontend;
             sp_frontend->set_formatter(&DefaultFormater<TSinkFrontend::stream_type>);
             sp_frontend->set_filter(channel_filter);
-        }
-        else
-        {
+        } else {
             using TSinkFrontend = boost::log::sinks::synchronous_sink<TSinkBackend>;
             auto sp_frontend = boost::make_shared<TSinkFrontend>(sp_backend);
             sp_sink = sp_frontend;

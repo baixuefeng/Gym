@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "TestUnit/BoostSimulateShell.h"
+#include "stdafx.h"
 #include <string>
 #include <type_traits>
 #include <boost/log/trivial.hpp>
@@ -22,8 +22,7 @@ void SimulateShell()
     pf = std::function<void(const boost::system::error_code &, size_t)>(
         [&output, &pf, &out](const boost::system::error_code &err, std::size_t c) {
             BOOST_LOG_TRIVIAL(info) << err.message() << "  " << c << "\n";
-            if (!err)
-            {
+            if (!err) {
                 output.erase(c);
                 BOOST_LOG_TRIVIAL(info) << output;
                 output.assign(10000, 0);

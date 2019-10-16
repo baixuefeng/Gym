@@ -49,8 +49,7 @@ static shr::lua_ostream &operator<<(shr::lua_ostream &os, const WrapCompoment &c
 static shr::lua_istream &operator>>(shr::lua_istream &is, WrapCompoment &compoment)
 {
     is >> compoment.m_a;
-    if (is.is_subtable())
-    {
+    if (is.is_subtable()) {
         shr::lua_istream sub(is.get(), -1);
         sub >> compoment.m_b.left >> compoment.m_b.top >> compoment.m_b.right >>
             compoment.m_b.bottom;

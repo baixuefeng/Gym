@@ -86,33 +86,27 @@ bool ForEachItemInDirectory(const wchar_t *pDirPath,
                             Op2 itemOp,
                             Op3 dirOp)
 {
-    if (nMaxDepth == 0)
-    {
+    if (nMaxDepth == 0) {
         return true;
     }
 
     //检验合法性
-    if (pDirPath == nullptr)
-    {
+    if (pDirPath == nullptr) {
         return false;
     }
     size_t nLenth = std::wcslen(pDirPath);
-    if (nLenth >= MAX_PATH)
-    {
+    if (nLenth >= MAX_PATH) {
         return false;
     }
 
     //预处理
     std::unique_ptr<wchar_t[]> spTargetDir(new wchar_t[MAX_PATH * 2]{});
     std::memcpy(spTargetDir.get(), pDirPath, nLenth * sizeof(wchar_t));
-    if (pDirPath[nLenth - 1] != L'\\')
-    {
+    if (pDirPath[nLenth - 1] != L'\\') {
         spTargetDir.get()[nLenth] = L'\\';
         spTargetDir.get()[nLenth + 1] = L'*';
         ++nLenth;
-    }
-    else
-    {
+    } else {
         spTargetDir.get()[nLenth] = L'*';
     }
 
@@ -120,29 +114,22 @@ bool ForEachItemInDirectory(const wchar_t *pDirPath,
     WIN32_FIND_DATAW ffData;
     std::memset(&ffData, 0, sizeof(ffData));
     HANDLE hDir = ::FindFirstFileW(spTargetDir.get(), &ffData);
-    if (hDir == INVALID_HANDLE_VALUE)
-    {
+    if (hDir == INVALID_HANDLE_VALUE) {
         return false;
     }
 
-    do
-    {
+    do {
         if (ffData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY &&
-            std::wcscmp(ffData.cFileName, L".") != 0 && std::wcscmp(ffData.cFileName, L"..") != 0)
-        {
+            std::wcscmp(ffData.cFileName, L".") != 0 && std::wcscmp(ffData.cFileName, L"..") != 0) {
             std::wcscpy(spTargetDir.get() + nLenth, ffData.cFileName);
             //递归处理子目录
-            if ((nMaxDepth > 0) && needRecursion(spTargetDir.get()))
-            {
+            if ((nMaxDepth > 0) && needRecursion(spTargetDir.get())) {
                 if (!ForEachItemInDirectory(
-                        spTargetDir.get(), nMaxDepth - 1, needRecursion, itemOp, dirOp))
-                {
+                        spTargetDir.get(), nMaxDepth - 1, needRecursion, itemOp, dirOp)) {
                     return false;
                 }
             }
-        }
-        else if (ffData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY)
-        {
+        } else if (ffData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY) {
             std::wcscpy(spTargetDir.get() + nLenth, ffData.cFileName);
             //处理文件
             itemOp(spTargetDir.get());

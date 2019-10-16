@@ -225,20 +225,14 @@ public:
     bool SendLayerMsg(TFn &&pFn, TParam &&... param)
     {
         //hooker
-        if (m_spHookers && !m_spHookers->empty())
-        {
-            for (auto it = m_spHookers->begin(); it != m_spHookers->end();)
-            {
-                if (*it)
-                {
-                    if (((*it)->*pFn)(this, std::forward<TParam>(param)...))
-                    {
+        if (m_spHookers && !m_spHookers->empty()) {
+            for (auto it = m_spHookers->begin(); it != m_spHookers->end();) {
+                if (*it) {
+                    if (((*it)->*pFn)(this, std::forward<TParam>(param)...)) {
                         return true;
                     }
                     ++it;
-                }
-                else
-                {
+                } else {
                     it = m_spHookers->erase(it);
                 }
             }
@@ -248,17 +242,12 @@ public:
         bool bHandled = (this->*pFn)(this, std::forward<TParam>(param)...);
 
         //observer
-        if (m_spObservers && !m_spObservers->empty())
-        {
-            for (auto it = m_spObservers->begin(); it != m_spObservers->end();)
-            {
-                if (*it)
-                {
+        if (m_spObservers && !m_spObservers->empty()) {
+            for (auto it = m_spObservers->begin(); it != m_spObservers->end();) {
+                if (*it) {
                     bHandled |= ((*it)->*pFn)(this, std::forward<TParam>(param)...);
                     ++it;
-                }
-                else
-                {
+                } else {
                     it = m_spObservers->erase(it);
                 }
             }

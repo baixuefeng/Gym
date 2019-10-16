@@ -19,13 +19,11 @@ tree_node<Derived, Tags...>::~tree_node()
 template<class Derived, class... Tags>
 Derived *tree_node<Derived, Tags...>::root() const
 {
-    if (!m_pParent)
-    {
+    if (!m_pParent) {
         return (Derived *)this;
     }
     Derived *pRoot = m_pParent;
-    while (pRoot->m_pParent)
-    {
+    while (pRoot->m_pParent) {
         pRoot = pRoot->m_pParent;
     }
     return pRoot;
@@ -41,8 +39,7 @@ template<class Derived, class... Tags>
 Derived *tree_node<Derived, Tags...>::nth_child(size_t nth) const
 {
     Derived *pChild = m_pFirstChild;
-    while (pChild && nth-- > 0)
-    {
+    while (pChild && nth-- > 0) {
         pChild = pChild->m_pNextSibling;
     }
     return pChild;
@@ -55,8 +52,7 @@ void tree_node<Derived, Tags...>::insert_tree_node(
 {
     assert(pNewNode);
     assert(pNewNode != this);
-    switch (posType)
-    {
+    switch (posType) {
     case Derived::AsFirstChild:
         prepend_child(pNewNode);
         break;
@@ -79,18 +75,14 @@ template<class Derived, class... Tags>
 Derived *tree_node<Derived, Tags...>::remove_tree_node(Derived *pNode,
                                                        bool bNextSibling /* = true*/)
 {
-    if (!pNode)
-    {
+    if (!pNode) {
         return nullptr;
     }
-    if (pNode->m_pParent)
-    {
-        if (pNode->m_pParent->m_pFirstChild == pNode)
-        {
+    if (pNode->m_pParent) {
+        if (pNode->m_pParent->m_pFirstChild == pNode) {
             pNode->m_pParent->m_pFirstChild = pNode->m_pNextSibling;
         }
-        if (pNode->m_pParent->m_pLastChild == pNode)
-        {
+        if (pNode->m_pParent->m_pLastChild == pNode) {
             pNode->m_pParent->m_pLastChild = pNode->m_pPrevSibling;
         }
         assert(pNode->m_pParent->m_uChildCount);
@@ -100,21 +92,16 @@ Derived *tree_node<Derived, Tags...>::remove_tree_node(Derived *pNode,
 
     //记录要返回的结点
     Derived *pReturn = nullptr;
-    if (bNextSibling)
-    {
+    if (bNextSibling) {
         pReturn = pNode->m_pNextSibling;
-    }
-    else
-    {
+    } else {
         pReturn = pNode->m_pPrevSibling;
     }
 
-    if (pNode->m_pPrevSibling)
-    {
+    if (pNode->m_pPrevSibling) {
         pNode->m_pPrevSibling->m_pNextSibling = pNode->m_pNextSibling;
     }
-    if (pNode->m_pNextSibling)
-    {
+    if (pNode->m_pNextSibling) {
         pNode->m_pNextSibling->m_pPrevSibling = pNode->m_pPrevSibling;
     }
     pNode->m_pPrevSibling = nullptr;
@@ -136,20 +123,16 @@ Derived *tree_node<Derived, Tags...>::destroy_tree_node(Derived *pNode,
                                                         Deletor &&d,
                                                         bool bNextSibling /* = true*/)
 {
-    if (!pNode)
-    {
+    if (!pNode) {
         return nullptr;
     }
     destroy_children(pNode, std::forward<Deletor>(d));
 
     //记录要返回的结点，注意确保结点最后才从树中移除
     Derived *pReturn = nullptr;
-    if (bNextSibling)
-    {
+    if (bNextSibling) {
         pReturn = pNode->m_pNextSibling;
-    }
-    else
-    {
+    } else {
         pReturn = pNode->m_pPrevSibling;
     }
     d(pNode);
@@ -159,8 +142,7 @@ Derived *tree_node<Derived, Tags...>::destroy_tree_node(Derived *pNode,
 template<class Derived, class... Tags>
 void tree_node<Derived, Tags...>::destroy_children(Derived *pNode)
 {
-    if (!pNode || pNode->child_count() == 0)
-    {
+    if (!pNode || pNode->child_count() == 0) {
         return;
     }
     destroy_children(pNode, std::default_delete<Derived>());
@@ -170,12 +152,10 @@ template<class Derived, class... Tags>
 template<class Deletor>
 void tree_node<Derived, Tags...>::destroy_children(Derived *pNode, Deletor &&d)
 {
-    if (!pNode || pNode->child_count() == 0)
-    {
+    if (!pNode || pNode->child_count() == 0) {
         return;
     }
-    for (Derived *pChild = pNode->first_child(); pChild;)
-    {
+    for (Derived *pChild = pNode->first_child(); pChild;) {
         pChild = destroy_tree_node_helper(pChild, std::forward<Deletor>(d));
     }
 }
@@ -184,20 +164,16 @@ template<class Derived, class... Tags>
 void tree_node<Derived, Tags...>::prepend_child(Derived *pChild)
 {
     assert(pChild);
-    if (!pChild)
-    {
+    if (!pChild) {
         return;
     }
 
     //兄
     pChild->m_pNextSibling = m_pFirstChild;
-    if (m_pFirstChild)
-    {
+    if (m_pFirstChild) {
         m_pFirstChild->m_pPrevSibling = pChild;
         m_pFirstChild = pChild;
-    }
-    else
-    {
+    } else {
         m_pFirstChild = m_pLastChild = pChild;
     }
 
@@ -210,20 +186,16 @@ template<class Derived, class... Tags>
 void tree_node<Derived, Tags...>::append_child(Derived *pChild)
 {
     assert(pChild);
-    if (!pChild)
-    {
+    if (!pChild) {
         return;
     }
 
     //兄
     pChild->m_pPrevSibling = m_pLastChild;
-    if (m_pLastChild)
-    {
+    if (m_pLastChild) {
         m_pLastChild->m_pNextSibling = pChild;
         m_pLastChild = pChild;
-    }
-    else
-    {
+    } else {
         m_pFirstChild = m_pLastChild = pChild;
     }
 
@@ -236,17 +208,14 @@ template<class Derived, class... Tags>
 void tree_node<Derived, Tags...>::prepend_sibling(Derived *pSibling)
 {
     assert(pSibling);
-    if (!pSibling)
-    {
+    if (!pSibling) {
         return;
     }
     //父
     pSibling->m_pParent = m_pParent;
-    if (m_pParent)
-    {
+    if (m_pParent) {
         ++m_pParent->m_uChildCount;
-        if (!m_pPrevSibling)
-        {
+        if (!m_pPrevSibling) {
             m_pParent->m_pFirstChild = pSibling;
         }
     }
@@ -254,8 +223,7 @@ void tree_node<Derived, Tags...>::prepend_sibling(Derived *pSibling)
     //兄
     pSibling->m_pPrevSibling = m_pPrevSibling;
     pSibling->m_pNextSibling = (Derived *)this;
-    if (m_pPrevSibling)
-    {
+    if (m_pPrevSibling) {
         m_pPrevSibling->m_pNextSibling = pSibling;
     }
     m_pPrevSibling = pSibling;
@@ -265,17 +233,14 @@ template<class Derived, class... Tags>
 void tree_node<Derived, Tags...>::append_sibling(Derived *pSibling)
 {
     assert(pSibling);
-    if (!pSibling)
-    {
+    if (!pSibling) {
         return;
     }
     //父
     pSibling->m_pParent = m_pParent;
-    if (m_pParent)
-    {
+    if (m_pParent) {
         ++m_pParent->m_uChildCount;
-        if (!m_pNextSibling)
-        {
+        if (!m_pNextSibling) {
             m_pParent->m_pLastChild = pSibling;
         }
     }
@@ -283,8 +248,7 @@ void tree_node<Derived, Tags...>::append_sibling(Derived *pSibling)
     //兄
     pSibling->m_pPrevSibling = (Derived *)this;
     pSibling->m_pNextSibling = m_pNextSibling;
-    if (m_pNextSibling)
-    {
+    if (m_pNextSibling) {
         m_pNextSibling->m_pPrevSibling = pSibling;
     }
     m_pNextSibling = pSibling;
@@ -294,12 +258,10 @@ template<class Derived, class... Tags>
 template<class Deletor>
 Derived *tree_node<Derived, Tags...>::destroy_tree_node_helper(Derived *pNode, Deletor &&d)
 {
-    if (!pNode)
-    {
+    if (!pNode) {
         return nullptr;
     }
-    for (Derived *pChild = pNode->first_child(); pChild;)
-    {
+    for (Derived *pChild = pNode->first_child(); pChild;) {
         pChild = destroy_tree_node_helper(pChild, std::forward<Deletor>(d));
     }
 
