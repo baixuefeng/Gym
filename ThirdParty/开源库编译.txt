@@ -22,7 +22,10 @@ openssl
 */
 perl Configure VC-WIN32 --prefix="%cd%\..\OpenSSL\win32" --openssldir=.\SSL -DOPENSSL_NO_ASYNC
 perl Configure VC-WIN64A --prefix="%cd%\..\OpenSSL\win64" --openssldir=.\SSL -DOPENSSL_NO_ASYNC
-
+nmake
+nmake install_sw
+nmake install_ssldirs 
+nmake install_docs
 
 curl
 include ThirdParty.cmake
