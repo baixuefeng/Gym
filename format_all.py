@@ -1,5 +1,6 @@
 ﻿import os
 import re
+import sys
 import subprocess
 
 RE_SRC = re.compile(R"[\w-]+\.(h|hpp|inl|c|cpp|cc)")
@@ -19,5 +20,6 @@ def FormatSubDir(dir):
 
 
 if __name__ == "__main__":
-    cur_path = os.path.realpath(os.path.dirname(__file__))
-    FormatSubDir(os.path.join(cur_path, "projects"))
+    for item in sys.argv[1:]:
+        print("scandir :", item)
+        FormatSubDir(os.path.realpath(item))
